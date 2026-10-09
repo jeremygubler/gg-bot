@@ -47,3 +47,18 @@ def ensure_hierarchy(interaction: discord.Interaction, target: discord.Member) -
     if not isinstance(actor, discord.Member):
         raise UserError("error.guild_only")
     ensure_can_target(principal_of(actor), principal_of(target), principal_of(guild.me))
+
+
+def ensure_channel_permissions(
+    channel: discord.abc.GuildChannel | discord.Thread,
+    member: discord.Member,
+    *,
+    bot: bool,
+    **needed: bool,
+) -> None:
+    """Rechte in einem *anderen* Kanal als dem des Befehls (z. B. /slowmode #news)."""
+    have = channel.permissions_for(member)
+    missing = [name for name, wanted in needed.items() if wanted and not getattr(have, name)]
+    if missing:
+        key = "error.missing_bot_permissions" if bot else "error.missing_permissions"
+        raise UserError(key, permissions=_names(missing))

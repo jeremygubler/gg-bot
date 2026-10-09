@@ -109,7 +109,7 @@ bei Snowflakes < 2^63).
 | Phase | Tabellen |
 |---|---|
 | 1 | `guilds` (id, locale, timezone, joined_at, left_at), `guild_settings` (guild_id, module, data JSONB, version, updated_at), `dashboard_audit` (guild_id, user_id, module, before, after, at), `scheduled_jobs` |
-| 2 | `mod_cases` (guild_id, case_no, type, target_id, moderator_id, reason, duration, expires_at, active, created_at; Unique `(guild_id, case_no)`), `mod_notes`, `warn_escalations` kommt aus den Settings |
+| 2 | `mod_cases` (guild_id, case_no, type, target_id, moderator_id, reason, duration_seconds, expires_at, active, ref_case_no, created_at; Unique `(guild_id, case_no)`), `mod_case_counters` (atomare Case-Nummer pro Server), `mod_notes`, `channel_locks` (vorheriger Overwrite-Zustand für `/unlock`). Eskalationsregeln liegen in den Settings (Modul `moderation`) |
 | 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (Statistik, optional, mit Aufbewahrungsfrist) |
 | 4 | Nur Settings (Kanal pro Event-Typ); `invite_snapshots` für Invite-Tracking |
 | 5 | `xp_members` (guild_id, user_id, xp, level, msg_count, voice_seconds, last_xp_at), `xp_voice_sessions`, `level_rewards` in Settings, `rank_card_styles` (guild_id, user_id, JSONB) |
@@ -327,3 +327,22 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
    (Phase 7) verarbeitet und nur dort gespeichert; der Bot speichert keine allgemeinen
    Nachrichtenverläufe. Aufbewahrungsfristen sind pro Server einstellbar. `/privacy` zeigt
    Nutzern, was gespeichert ist, und erlaubt das Löschen ihrer XP-/Geburtstagsdaten.
+
+## 13. Moderation (Phase 2)
+
+- **Ablauf einer Aktion:** Berechtigung/Hierarchie (Cog) → DM an das Ziel (best effort) → Discord-Aktion →
+  Case speichern. Schlägt die Discord-Aktion fehl, entsteht **kein** Case. Der Service spricht Discord nur über
+  den Port `ModerationPort` an, den der Cog implementiert; so ist die Logik ohne Discord testbar.
+- **Case-Nummern:** pro Server lückenlos aufsteigend, vergeben über `mod_case_counters`
+  (`INSERT … ON CONFLICT DO UPDATE … RETURNING`), also auch bei parallelen Aktionen eindeutig.
+- **Tempban:** Case (`active`) + Job `mod.unban` in derselben Transaktion. Der Job prüft beim Ausführen, ob der
+  Case noch aktiv ist; ein manuelles `/unban` setzt ihn nur auf inaktiv. Der automatische Unban erzeugt einen
+  eigenen Case (`unban`, Moderator = Bot, `ref_case_no` zeigt auf den Tempban).
+- **Eskalation:** Nach jeder Verwarnung zählt der Service die aktiven Verwarnungen (optional nur innerhalb von
+  `warn_expiry_days`). Eine Regel feuert genau dann, wenn die Anzahl ihrem Schwellwert **entspricht**. Die
+  Folgeaktion läuft als Bot mit eigenem Case (`ref_case_no` = auslösende Verwarnung). Scheitert sie, bleibt die
+  Verwarnung bestehen und das Ergebnis meldet den Fehler.
+- **Massenaktionen:** `core/bulk.py`: Chunking und ein Gate pro Server (eine Massenaktion zugleich, sonst
+  freundlicher Fehler). `/purge` löscht nur Nachrichten, die jünger als 14 Tage sind (Bulk-Delete-Limit von Discord).
+- **Lock/Unlock:** `/lock` merkt sich den vorherigen `send_messages`-Overwrite von @everyone, `/unlock` stellt ihn
+  exakt wieder her (auch „explizit erlaubt“ bleibt erlaubt).

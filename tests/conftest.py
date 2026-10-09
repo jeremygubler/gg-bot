@@ -32,11 +32,16 @@ def migrated() -> None:
 async def db(migrated: None) -> AsyncIterator[Database]:
     database = Database(TEST_DB_URL, pool=False)
     async with database.session() as session:
-        await session.execute(
-            text(
-                "TRUNCATE guilds, guild_settings, dashboard_audit, scheduled_jobs RESTART IDENTITY"
+        # Alle Tabellen, damit neue Phasen die Fixture nicht vergessen können.
+        tables = (
+            await session.execute(
+                text(
+                    "SELECT quote_ident(tablename) FROM pg_tables "
+                    "WHERE schemaname = 'public' AND tablename <> 'alembic_version'"
+                )
             )
-        )
+        ).scalars()
+        await session.execute(text(f"TRUNCATE {', '.join(tables)} RESTART IDENTITY"))
     yield database
     await database.dispose()
 

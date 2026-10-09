@@ -23,6 +23,9 @@ class AppConfig(BaseSettings):
     shard_count: int | None = Field(default=None, ge=1)
     shard_ids: list[int] | None = None
 
+    # Privilegierter Intent: erst einschalten, wenn er im Developer Portal freigegeben ist.
+    enable_message_content_intent: bool = False
+
     # Nur für die Entwicklung: Slash-Commands sofort auf einer Test-Guild statt global.
     dev_guild_id: int | None = None
 

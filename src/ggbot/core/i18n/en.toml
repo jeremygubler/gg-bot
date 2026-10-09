@@ -9,6 +9,31 @@ hierarchy_owner = "The server owner cannot be targeted."
 hierarchy_self = "You cannot do that to yourself."
 unknown_timezone = "Unknown timezone: {name}. Example: Europe/Zurich"
 cooldown = "Slow down! Try again in {seconds} s."
+invalid_duration = "I can't read the duration \"{value}\". Examples: 30m, 2h, 1d12h, 1w"
+reason_too_long = "The reason is too long (maximum {limit} characters)."
+bulk_busy = "A bulk action is already running on this server. Please wait for it to finish."
+mod_case_not_found = "There is no case #{case_no} on this server."
+mod_not_a_warn = "Case #{case_no} is not a warning."
+mod_warn_inactive = "Warning #{case_no} was already removed."
+mod_not_banned = "That user is not banned."
+mod_timeout_range = "A timeout must last between 1 second and {max}."
+mod_tempban_range = "A tempban must last between {min} and {max}."
+mod_forbidden = "Discord refused that. My role is probably not high enough, or I lack the permission."
+mod_target_not_found = "I could not find that member on this server."
+note_empty = "The note is empty."
+note_too_long = "The note is too long (maximum {limit} characters)."
+note_not_found = "There is no note with ID {note_id} on this server."
+purge_range = "Choose an amount between 1 and {max}."
+slowmode_range = "Slowmode must be between 0 and {max} seconds."
+not_text_channel = "That channel does not support this."
+lock_already = "This channel is already locked."
+lock_not_locked = "This channel is not locked by me."
+escalation_duration_needed = "The action {action} needs a duration, e.g. 1h."
+escalation_duration_unexpected = "The action {action} does not take a duration."
+escalation_invalid = "That escalation rule is not valid."
+escalation_not_found = "There is no escalation rule for {warns} warnings."
+mod_target_bot = "I can't do that to myself."
+purge_needs_content = "Filtering by text or links needs the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
 
 [cmd.help]
 desc = "Shows all commands you can use"
@@ -31,3 +56,189 @@ empty = "There are no commands you can use here."
 [config]
 language_set = "Language set to **{language}**."
 timezone_set = "Time zone set to **{name}**."
+
+[cmd.warn]
+desc = "Warns a member"
+[cmd.unwarn]
+desc = "Removes a warning from the escalation count"
+[cmd.timeout]
+desc = "Times a member out"
+[cmd.untimeout]
+desc = "Ends a member's timeout"
+[cmd.kick]
+desc = "Kicks a member"
+[cmd.ban]
+desc = "Bans a user"
+[cmd.unban]
+desc = "Unbans a user"
+[cmd.tempban]
+desc = "Bans a user for a limited time"
+[cmd.softban]
+desc = "Bans and immediately unbans a user to delete their messages"
+[cmd.case]
+desc = "Shows a moderation case"
+[cmd.history]
+desc = "Shows the moderation history of a user"
+[cmd.note]
+desc = "Private moderator notes about users"
+[cmd.note.add]
+desc = "Adds a note to a user"
+[cmd.note.list]
+desc = "Lists the notes about a user"
+[cmd.note.remove]
+desc = "Removes a note"
+[cmd.purge]
+desc = "Deletes recent messages, optionally filtered"
+[cmd.slowmode]
+desc = "Sets the slowmode of a channel"
+[cmd.lock]
+desc = "Locks a channel for everyone"
+[cmd.unlock]
+desc = "Unlocks a channel locked with /lock"
+[cmd.modconfig]
+desc = "Moderation settings"
+[cmd.modconfig.escalation]
+desc = "Automatic actions at a number of warnings"
+[cmd.modconfig.escalation.add]
+desc = "Adds or replaces an escalation rule"
+[cmd.modconfig.escalation.remove]
+desc = "Removes an escalation rule"
+[cmd.modconfig.escalation.list]
+desc = "Lists the escalation rules"
+[cmd.modconfig.warn_expiry]
+desc = "Sets after how many days warnings stop counting"
+[cmd.modconfig.dm]
+desc = "Sets whether affected users get a direct message"
+
+[cmd.arg.user]
+desc = "The user"
+[cmd.arg.member]
+desc = "The member"
+[cmd.arg.reason]
+desc = "The reason (optional)"
+[cmd.arg.duration]
+desc = "How long, e.g. 30m, 2h, 1d12h"
+[cmd.arg.delete_days]
+desc = "Delete this many days of their messages (0-7)"
+[cmd.arg.case_no]
+desc = "The case number"
+[cmd.arg.page]
+desc = "The page"
+[cmd.arg.text]
+desc = "The note text"
+[cmd.arg.note_id]
+desc = "The note ID"
+[cmd.arg.amount]
+desc = "How many messages to delete"
+[cmd.arg.author]
+desc = "Only messages from this user"
+[cmd.arg.contains]
+desc = "Only messages containing this text"
+[cmd.arg.bots]
+desc = "Only messages from bots"
+[cmd.arg.attachments]
+desc = "Only messages with attachments"
+[cmd.arg.links]
+desc = "Only messages with links"
+[cmd.arg.embeds]
+desc = "Only messages with embeds"
+[cmd.arg.seconds]
+desc = "Seconds between messages per member (0 = off)"
+[cmd.arg.channel]
+desc = "The channel (default: this one)"
+[cmd.arg.warns]
+desc = "Number of active warnings"
+[cmd.arg.action]
+desc = "What to do"
+[cmd.arg.days]
+desc = "Number of days"
+[cmd.arg.enabled]
+desc = "On or off"
+
+[mod]
+no_reason = "No reason given"
+escalation_reason = "Escalation: {count} warnings"
+tempban_expired = "Tempban of case #{case_no} expired"
+
+[mod.dm]
+warn = "You were **warned** in **{guild}**.\nReason: {reason}"
+timeout = "You were **timed out** in **{guild}** for {duration}.\nReason: {reason}"
+kick = "You were **kicked** from **{guild}**.\nReason: {reason}"
+ban = "You were **banned** from **{guild}**.\nReason: {reason}"
+tempban = "You were **banned** from **{guild}** for {duration}.\nReason: {reason}"
+softban = "You were removed from **{guild}** and your recent messages were deleted. You may rejoin.\nReason: {reason}"
+
+[mod.done]
+warn = "**{target}** was warned. (Case #{case_no})"
+timeout = "**{target}** is timed out for {duration}. (Case #{case_no})"
+untimeout = "**{target}**'s timeout ended. (Case #{case_no})"
+kick = "**{target}** was kicked. (Case #{case_no})"
+ban = "**{target}** was banned. (Case #{case_no})"
+tempban = "**{target}** is banned for {duration}. (Case #{case_no})"
+softban = "**{target}** was softbanned. (Case #{case_no})"
+unban = "**{target}** was unbanned. (Case #{case_no})"
+unwarn = "Warning #{case_no} no longer counts."
+dm_failed = "The direct message could not be delivered."
+escalated = "Escalation: {text}"
+escalation_failed = "The automatic escalation failed: {error}"
+
+[mod.case]
+title = "Case #{case_no} – {type}"
+target = "User"
+moderator = "Moderator"
+reason = "Reason"
+duration = "Duration"
+expires = "Expires"
+status = "Status"
+active = "active"
+inactive = "inactive"
+reference = "Related to case"
+date = "Date"
+
+[mod.type]
+warn = "Warning"
+timeout = "Timeout"
+untimeout = "Timeout ended"
+kick = "Kick"
+ban = "Ban"
+tempban = "Tempban"
+softban = "Softban"
+unban = "Unban"
+
+[mod.history]
+title = "History of {user}"
+summary = "{total} cases · {warns} active warnings · {notes} notes"
+empty = "No cases for this user."
+footer = "Page {page}/{pages}"
+line = "`#{case_no}` {type} · <t:{ts}:d> · {reason}"
+
+[mod.note]
+more = "… and {count} older notes"
+added = "Note #{note_id} saved."
+removed = "Note #{note_id} removed."
+title = "Notes about {user}"
+empty = "No notes for this user."
+line = "`#{id}` <@{author}> · <t:{ts}:d>\n{content}"
+
+[mod.purge]
+done = "{count} messages deleted."
+none = "No matching messages found (only messages younger than 14 days can be deleted)."
+
+[mod.slowmode]
+set = "Slowmode in {channel}: {seconds} s."
+off = "Slowmode in {channel} is off."
+
+[mod.lock]
+locked = "🔒 {channel} is locked."
+unlocked = "🔓 {channel} is unlocked."
+
+[mod.config]
+escalation_saved = "Rule saved: at {warns} warnings → {action}."
+escalation_removed = "Rule for {warns} warnings removed."
+escalation_empty = "No escalation rules. Add one with /modconfig escalation add."
+escalation_title = "Escalation rules"
+escalation_line = "At **{warns}** warnings → {action}"
+expiry_set = "Warnings stop counting after {days} days."
+expiry_off = "Warnings count forever."
+dm_on = "Affected users now get a direct message."
+dm_off = "Affected users no longer get a direct message."

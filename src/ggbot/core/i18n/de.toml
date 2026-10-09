@@ -9,6 +9,31 @@ hierarchy_owner = "Der Server-Besitzer kann nicht ausgewählt werden."
 hierarchy_self = "Das kannst du nicht bei dir selbst tun."
 unknown_timezone = "Unbekannte Zeitzone: {name}. Beispiel: Europe/Zurich"
 cooldown = "Nicht so schnell! Versuche es in {seconds} s nochmals."
+invalid_duration = "Ich kann die Dauer \"{value}\" nicht lesen. Beispiele: 30m, 2h, 1d12h, 1w"
+reason_too_long = "Der Grund ist zu lang (höchstens {limit} Zeichen)."
+bulk_busy = "Auf diesem Server läuft schon eine Massenaktion. Bitte warte, bis sie fertig ist."
+mod_case_not_found = "Es gibt keinen Case #{case_no} auf diesem Server."
+mod_not_a_warn = "Case #{case_no} ist keine Verwarnung."
+mod_warn_inactive = "Verwarnung #{case_no} wurde bereits entfernt."
+mod_not_banned = "Dieser Nutzer ist nicht gebannt."
+mod_timeout_range = "Ein Timeout muss zwischen 1 Sekunde und {max} dauern."
+mod_tempban_range = "Ein Tempban muss zwischen {min} und {max} dauern."
+mod_forbidden = "Discord hat das verweigert. Vermutlich steht meine Rolle nicht hoch genug, oder mir fehlt das Recht."
+mod_target_not_found = "Ich finde dieses Mitglied nicht auf diesem Server."
+note_empty = "Die Notiz ist leer."
+note_too_long = "Die Notiz ist zu lang (höchstens {limit} Zeichen)."
+note_not_found = "Es gibt keine Notiz mit der ID {note_id} auf diesem Server."
+purge_range = "Wähle eine Anzahl zwischen 1 und {max}."
+slowmode_range = "Der Slowmode muss zwischen 0 und {max} Sekunden liegen."
+not_text_channel = "Dieser Kanal unterstützt das nicht."
+lock_already = "Dieser Kanal ist bereits gesperrt."
+lock_not_locked = "Dieser Kanal wurde nicht von mir gesperrt."
+escalation_duration_needed = "Die Aktion {action} braucht eine Dauer, z. B. 1h."
+escalation_duration_unexpected = "Die Aktion {action} hat keine Dauer."
+escalation_invalid = "Diese Eskalationsregel ist nicht gültig."
+escalation_not_found = "Es gibt keine Eskalationsregel für {warns} Verwarnungen."
+mod_target_bot = "Das kann ich nicht bei mir selbst tun."
+purge_needs_content = "Das Filtern nach Text oder Links braucht den Message-Content-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MESSAGE_CONTENT_INTENT=true."
 
 [cmd.help]
 desc = "Zeigt alle Befehle, die du nutzen kannst"
@@ -31,3 +56,189 @@ empty = "Hier gibt es keine Befehle, die du nutzen kannst."
 [config]
 language_set = "Sprache auf **{language}** gestellt."
 timezone_set = "Zeitzone auf **{name}** gestellt."
+
+[cmd.warn]
+desc = "Verwarnt ein Mitglied"
+[cmd.unwarn]
+desc = "Nimmt eine Verwarnung aus der Eskalationszählung"
+[cmd.timeout]
+desc = "Setzt ein Mitglied in den Timeout"
+[cmd.untimeout]
+desc = "Beendet den Timeout eines Mitglieds"
+[cmd.kick]
+desc = "Wirft ein Mitglied vom Server"
+[cmd.ban]
+desc = "Bannt einen Nutzer"
+[cmd.unban]
+desc = "Hebt den Bann eines Nutzers auf"
+[cmd.tempban]
+desc = "Bannt einen Nutzer für eine begrenzte Zeit"
+[cmd.softban]
+desc = "Bannt und entbannt sofort, um Nachrichten zu löschen"
+[cmd.case]
+desc = "Zeigt einen Moderationsfall"
+[cmd.history]
+desc = "Zeigt die Moderationshistorie eines Nutzers"
+[cmd.note]
+desc = "Private Moderator-Notizen zu Nutzern"
+[cmd.note.add]
+desc = "Fügt einem Nutzer eine Notiz hinzu"
+[cmd.note.list]
+desc = "Listet die Notizen zu einem Nutzer"
+[cmd.note.remove]
+desc = "Entfernt eine Notiz"
+[cmd.purge]
+desc = "Löscht letzte Nachrichten, optional gefiltert"
+[cmd.slowmode]
+desc = "Stellt den Slowmode eines Kanals ein"
+[cmd.lock]
+desc = "Sperrt einen Kanal für alle"
+[cmd.unlock]
+desc = "Hebt eine Sperre mit /lock auf"
+[cmd.modconfig]
+desc = "Moderations-Einstellungen"
+[cmd.modconfig.escalation]
+desc = "Automatische Aktionen ab einer Anzahl Verwarnungen"
+[cmd.modconfig.escalation.add]
+desc = "Fügt eine Eskalationsregel hinzu oder ersetzt sie"
+[cmd.modconfig.escalation.remove]
+desc = "Entfernt eine Eskalationsregel"
+[cmd.modconfig.escalation.list]
+desc = "Listet die Eskalationsregeln"
+[cmd.modconfig.warn_expiry]
+desc = "Legt fest, nach wie vielen Tagen Verwarnungen nicht mehr zählen"
+[cmd.modconfig.dm]
+desc = "Legt fest, ob Betroffene eine Direktnachricht bekommen"
+
+[cmd.arg.user]
+desc = "Der Nutzer"
+[cmd.arg.member]
+desc = "Das Mitglied"
+[cmd.arg.reason]
+desc = "Der Grund (optional)"
+[cmd.arg.duration]
+desc = "Wie lange, z. B. 30m, 2h, 1d12h"
+[cmd.arg.delete_days]
+desc = "So viele Tage seiner Nachrichten löschen (0-7)"
+[cmd.arg.case_no]
+desc = "Die Case-Nummer"
+[cmd.arg.page]
+desc = "Die Seite"
+[cmd.arg.text]
+desc = "Der Notiztext"
+[cmd.arg.note_id]
+desc = "Die Notiz-ID"
+[cmd.arg.amount]
+desc = "Wie viele Nachrichten gelöscht werden"
+[cmd.arg.author]
+desc = "Nur Nachrichten dieses Nutzers"
+[cmd.arg.contains]
+desc = "Nur Nachrichten mit diesem Text"
+[cmd.arg.bots]
+desc = "Nur Nachrichten von Bots"
+[cmd.arg.attachments]
+desc = "Nur Nachrichten mit Anhängen"
+[cmd.arg.links]
+desc = "Nur Nachrichten mit Links"
+[cmd.arg.embeds]
+desc = "Nur Nachrichten mit Embeds"
+[cmd.arg.seconds]
+desc = "Sekunden zwischen Nachrichten pro Mitglied (0 = aus)"
+[cmd.arg.channel]
+desc = "Der Kanal (Standard: dieser)"
+[cmd.arg.warns]
+desc = "Anzahl aktiver Verwarnungen"
+[cmd.arg.action]
+desc = "Was passieren soll"
+[cmd.arg.days]
+desc = "Anzahl Tage"
+[cmd.arg.enabled]
+desc = "An oder aus"
+
+[mod]
+no_reason = "Kein Grund angegeben"
+escalation_reason = "Eskalation: {count} Verwarnungen"
+tempban_expired = "Tempban von Case #{case_no} abgelaufen"
+
+[mod.dm]
+warn = "Du wurdest auf **{guild}** **verwarnt**.\nGrund: {reason}"
+timeout = "Du wurdest auf **{guild}** für {duration} in den **Timeout** gesetzt.\nGrund: {reason}"
+kick = "Du wurdest von **{guild}** **gekickt**.\nGrund: {reason}"
+ban = "Du wurdest von **{guild}** **gebannt**.\nGrund: {reason}"
+tempban = "Du wurdest von **{guild}** für {duration} **gebannt**.\nGrund: {reason}"
+softban = "Du wurdest von **{guild}** entfernt und deine letzten Nachrichten wurden gelöscht. Du kannst wieder beitreten.\nGrund: {reason}"
+
+[mod.done]
+warn = "**{target}** wurde verwarnt. (Case #{case_no})"
+timeout = "**{target}** ist für {duration} im Timeout. (Case #{case_no})"
+untimeout = "Der Timeout von **{target}** wurde beendet. (Case #{case_no})"
+kick = "**{target}** wurde gekickt. (Case #{case_no})"
+ban = "**{target}** wurde gebannt. (Case #{case_no})"
+tempban = "**{target}** ist für {duration} gebannt. (Case #{case_no})"
+softban = "**{target}** wurde gesoftbannt. (Case #{case_no})"
+unban = "**{target}** wurde entbannt. (Case #{case_no})"
+unwarn = "Verwarnung #{case_no} zählt nicht mehr."
+dm_failed = "Die Direktnachricht konnte nicht zugestellt werden."
+escalated = "Eskalation: {text}"
+escalation_failed = "Die automatische Eskalation ist fehlgeschlagen: {error}"
+
+[mod.case]
+title = "Case #{case_no} – {type}"
+target = "Nutzer"
+moderator = "Moderator"
+reason = "Grund"
+duration = "Dauer"
+expires = "Läuft ab"
+status = "Status"
+active = "aktiv"
+inactive = "inaktiv"
+reference = "Bezieht sich auf Case"
+date = "Datum"
+
+[mod.type]
+warn = "Verwarnung"
+timeout = "Timeout"
+untimeout = "Timeout beendet"
+kick = "Kick"
+ban = "Bann"
+tempban = "Tempban"
+softban = "Softban"
+unban = "Entbannung"
+
+[mod.history]
+title = "Historie von {user}"
+summary = "{total} Fälle · {warns} aktive Verwarnungen · {notes} Notizen"
+empty = "Keine Fälle für diesen Nutzer."
+footer = "Seite {page}/{pages}"
+line = "`#{case_no}` {type} · <t:{ts}:d> · {reason}"
+
+[mod.note]
+more = "… und {count} ältere Notizen"
+added = "Notiz #{note_id} gespeichert."
+removed = "Notiz #{note_id} entfernt."
+title = "Notizen zu {user}"
+empty = "Keine Notizen zu diesem Nutzer."
+line = "`#{id}` <@{author}> · <t:{ts}:d>\n{content}"
+
+[mod.purge]
+done = "{count} Nachrichten gelöscht."
+none = "Keine passenden Nachrichten gefunden (nur Nachrichten unter 14 Tagen lassen sich löschen)."
+
+[mod.slowmode]
+set = "Slowmode in {channel}: {seconds} s."
+off = "Slowmode in {channel} ist aus."
+
+[mod.lock]
+locked = "🔒 {channel} ist gesperrt."
+unlocked = "🔓 {channel} ist entsperrt."
+
+[mod.config]
+escalation_saved = "Regel gespeichert: bei {warns} Verwarnungen → {action}."
+escalation_removed = "Regel für {warns} Verwarnungen entfernt."
+escalation_empty = "Keine Eskalationsregeln. Füge eine mit /modconfig escalation add hinzu."
+escalation_title = "Eskalationsregeln"
+escalation_line = "Bei **{warns}** Verwarnungen → {action}"
+expiry_set = "Verwarnungen zählen nach {days} Tagen nicht mehr."
+expiry_off = "Verwarnungen zählen für immer."
+dm_on = "Betroffene bekommen jetzt eine Direktnachricht."
+dm_off = "Betroffene bekommen keine Direktnachricht mehr."

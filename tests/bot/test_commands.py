@@ -8,7 +8,10 @@ from redis.asyncio import Redis
 
 from ggbot.bot.checks import ensure_bot_permissions, ensure_user_permissions
 from ggbot.bot.client import GGBot
+from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
+from ggbot.bot.cogs.modconfig import ModConfigCog
+from ggbot.bot.cogs.moderation import ModerationCog
 from ggbot.bot.errors import to_message
 from ggbot.bot.i18n import CommandTranslator, command_key
 from ggbot.bot.services import Services
@@ -23,6 +26,9 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     instance = GGBot(Services.build(AppConfig(), db, redis))
     await instance.tree.set_translator(CommandTranslator())
     await instance.add_cog(CoreCog(instance))
+    await instance.add_cog(ModerationCog(instance))
+    await instance.add_cog(ChannelToolsCog(instance))
+    await instance.add_cog(ModConfigCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -79,13 +85,19 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
     commands_ = leaf_commands(bot)
     plain = discord.Permissions.none()
     manager = discord.Permissions(manage_guild=True)
-    assert [c.qualified_name for c in visible_commands(commands_, plain, in_guild=True)] == ["help"]
-    names = [c.qualified_name for c in visible_commands(commands_, manager, in_guild=True)]
-    assert names == ["config language", "config timezone", "help"]
+    moderator = discord.Permissions(moderate_members=True, kick_members=True)
+
+    def names(permissions: discord.Permissions, in_guild: bool = True) -> list[str]:
+        return [c.qualified_name for c in visible_commands(commands_, permissions, in_guild)]
+
+    assert names(plain) == ["help"]
+    assert "config language" in names(manager)
+    assert "modconfig dm" in names(manager)
+    assert "warn" not in names(manager)  # Manage Server ist kein Moderator-Recht
+    assert {"warn", "timeout", "kick", "case", "history", "note add"} <= set(names(moderator))
+    assert "ban" not in names(moderator)
     # In Direktnachrichten gibt es keine Server-Befehle.
-    assert [c.qualified_name for c in visible_commands(commands_, manager, in_guild=False)] == [
-        "help"
-    ]
+    assert names(discord.Permissions.all(), in_guild=False) == ["help"]
 
 
 def test_gruppen_sind_guild_only(bot: GGBot) -> None:
@@ -163,3 +175,62 @@ async def test_sync_nur_bei_aenderung(bot: GGBot, monkeypatch: pytest.MonkeyPatc
 
     await bot._sync_commands()
     assert len(calls) == 2
+
+
+EXPECTED_PERMISSIONS = {
+    "warn": "moderate_members",
+    "unwarn": "moderate_members",
+    "timeout": "moderate_members",
+    "untimeout": "moderate_members",
+    "kick": "kick_members",
+    "ban": "ban_members",
+    "unban": "ban_members",
+    "tempban": "ban_members",
+    "softban": "ban_members",
+    "case": "moderate_members",
+    "history": "moderate_members",
+    "note add": "moderate_members",
+    "note list": "moderate_members",
+    "note remove": "moderate_members",
+    "purge": "manage_messages",
+    "slowmode": "manage_channels",
+    "lock": "manage_channels",
+    "unlock": "manage_channels",
+    "modconfig warn_expiry": "manage_guild",
+    "modconfig dm": "manage_guild",
+    "modconfig escalation add": "manage_guild",
+    "modconfig escalation remove": "manage_guild",
+    "modconfig escalation list": "manage_guild",
+}
+
+
+def test_jeder_moderationsbefehl_hat_die_richtige_standardberechtigung(bot: GGBot) -> None:
+    by_name = {c.qualified_name: c for c in leaf_commands(bot)}
+    for name, permission in EXPECTED_PERMISSIONS.items():
+        needed = required_permissions(by_name[name])
+        assert needed is not None, f"{name} hat keine Standardberechtigung"
+        assert getattr(needed, permission), f"{name} braucht {permission}"
+        assert needed.value == discord.Permissions(**{permission: True}).value, name
+        assert is_guild_only(by_name[name]), name
+
+
+def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
+    # Ein neuer Befehl muss hier bewusst eingetragen werden, sonst bliebe er unbemerkt offen.
+    open_commands = {
+        c.qualified_name for c in leaf_commands(bot) if required_permissions(c) is None
+    }
+    assert open_commands == {"help"}
+    known = set(EXPECTED_PERMISSIONS) | {"help", "config language", "config timezone"}
+    assert {c.qualified_name for c in leaf_commands(bot)} == known
+
+
+def test_jedes_argument_hat_eine_uebersetzte_beschreibung(bot: GGBot) -> None:
+    for command in leaf_commands(bot):
+        for parameter in command.parameters:
+            extras = getattr(parameter.locale_description, "extras", {})
+            key = extras.get("i18n")
+            assert key, (
+                f"{command.qualified_name}: Argument {parameter.name} ohne i18n-Beschreibung"
+            )
+            for locale in LOCALES:
+                assert translator.has(locale, key), f"{key} fehlt in {locale}"

@@ -2,11 +2,14 @@ from dataclasses import dataclass
 
 from redis.asyncio import Redis
 
+from ggbot.core.bulk import BulkGate
 from ggbot.core.config import AppConfig
 from ggbot.core.db.engine import Database
 from ggbot.core.ratelimit import Cooldown
 from ggbot.core.scheduler import Scheduler
+from ggbot.core.services.channels import ChannelLockService
 from ggbot.core.services.guilds import GuildService
+from ggbot.core.services.moderation import ModerationService
 from ggbot.core.settings.store import SettingsStore
 
 
@@ -21,15 +24,24 @@ class Services:
     settings: SettingsStore
     scheduler: Scheduler
     cooldown: Cooldown
+    moderation: ModerationService
+    channel_locks: ChannelLockService
+    bulk_gate: BulkGate
 
     @classmethod
     def build(cls, config: AppConfig, db: Database, redis: Redis) -> "Services":
+        guilds = GuildService(db, redis, default_locale=config.default_locale)
+        settings = SettingsStore(db, redis)
+        scheduler = Scheduler(db)
         return cls(
             config=config,
             db=db,
             redis=redis,
-            guilds=GuildService(db, redis, default_locale=config.default_locale),
-            settings=SettingsStore(db, redis),
-            scheduler=Scheduler(db),
+            guilds=guilds,
+            settings=settings,
+            scheduler=scheduler,
             cooldown=Cooldown(redis),
+            moderation=ModerationService(db, settings, scheduler, guilds),
+            channel_locks=ChannelLockService(db),
+            bulk_gate=BulkGate(),
         )
