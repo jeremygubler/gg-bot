@@ -1,0 +1,33 @@
+[error]
+generic = "Da ist etwas schiefgelaufen (Fehler-ID: {error_id}). Bitte versuche es später nochmals."
+missing_bot_permissions = "Mir fehlen dafür Berechtigungen: {permissions}"
+missing_permissions = "Dir fehlen dafür Berechtigungen: {permissions}"
+guild_only = "Dieser Befehl funktioniert nur auf einem Server."
+hierarchy_actor = "Deine höchste Rolle steht nicht über der Rolle dieses Mitglieds."
+hierarchy_bot = "Meine höchste Rolle steht nicht über der Rolle dieses Mitglieds."
+hierarchy_owner = "Der Server-Besitzer kann nicht ausgewählt werden."
+hierarchy_self = "Das kannst du nicht bei dir selbst tun."
+unknown_timezone = "Unbekannte Zeitzone: {name}. Beispiel: Europe/Zurich"
+cooldown = "Nicht so schnell! Versuche es in {seconds} s nochmals."
+
+[cmd.help]
+desc = "Zeigt alle Befehle, die du nutzen kannst"
+[cmd.config]
+desc = "Server-Einstellungen des Bots"
+[cmd.config.language]
+desc = "Stellt die Sprache des Bots auf diesem Server ein"
+[cmd.config.timezone]
+desc = "Stellt die Zeitzone dieses Servers ein (für Zeitpläne und Uhrzeiten)"
+[cmd.arg.language]
+desc = "Die Sprache"
+[cmd.arg.timezone]
+desc = "IANA-Zeitzone, z. B. Europe/Zurich"
+
+[help]
+title = "GG-Bot – Befehle"
+footer = "{count} Befehle für dich verfügbar"
+empty = "Hier gibt es keine Befehle, die du nutzen kannst."
+
+[config]
+language_set = "Sprache auf **{language}** gestellt."
+timezone_set = "Zeitzone auf **{name}** gestellt."

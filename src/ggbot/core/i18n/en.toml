@@ -1,0 +1,33 @@
+[error]
+generic = "Something went wrong (error ID: {error_id}). Please try again later."
+missing_bot_permissions = "I am missing permissions for that: {permissions}"
+missing_permissions = "You are missing permissions for that: {permissions}"
+guild_only = "This command only works on a server."
+hierarchy_actor = "Your highest role is not above that member's role."
+hierarchy_bot = "My highest role is not above that member's role."
+hierarchy_owner = "The server owner cannot be targeted."
+hierarchy_self = "You cannot do that to yourself."
+unknown_timezone = "Unknown timezone: {name}. Example: Europe/Zurich"
+cooldown = "Slow down! Try again in {seconds} s."
+
+[cmd.help]
+desc = "Shows all commands you can use"
+[cmd.config]
+desc = "Server settings of the bot"
+[cmd.config.language]
+desc = "Sets the language of the bot on this server"
+[cmd.config.timezone]
+desc = "Sets the time zone of this server (for schedules and times)"
+[cmd.arg.language]
+desc = "The language"
+[cmd.arg.timezone]
+desc = "IANA time zone, e.g. Europe/Zurich"
+
+[help]
+title = "GG-Bot – Commands"
+footer = "{count} commands available to you"
+empty = "There are no commands you can use here."
+
+[config]
+language_set = "Language set to **{language}**."
+timezone_set = "Time zone set to **{name}**."

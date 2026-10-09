@@ -1,6 +1,6 @@
 # GG-Bot – Architektur
 
-Status: **Entwurf zur Freigabe (Phase 0).** Bis zum OK existiert kein Code.
+Status: freigegeben, Phase 1 umgesetzt. Abweichungen vom ersten Entwurf sind in den Abschnitten 6 (Intents) und 10 (CI) vermerkt.
 
 Selbst gehosteter Discord-Bot als MEE6-Ersatz, Multi-Guild, Docker Compose.
 Konventionen: Deutsch in Kommentaren, Docstrings, Commits und Doku; Bezeichner Englisch.
@@ -193,9 +193,12 @@ Neuladen, die Daten sind bereits validiert.
 - **Sharding:** `AutoShardedBot` mit Shard-Anzahl aus der Umgebung (Standard: automatisch,
   ein Prozess). Wer mehrere Prozesse will, setzt `SHARD_IDS`/`SHARD_COUNT`. Nichts im Code
   nimmt an, dass alle Guilds im selben Prozess liegen.
-- **Gateway-Intents:** `guilds, members, messages, message_content, voice_states,
-  guild_scheduled_events, moderation, invites, reactions`. `members`, `message_content`
-  müssen im Developer Portal als privilegiert freigeschaltet werden (siehe README).
+- **Gateway-Intents:** Der Bot fordert nur an, was die jeweilige Phase braucht. Phase 1:
+  `guilds` (und `emojis_and_stickers` für den Snapshot), beides nicht privilegiert. Später
+  kommen dazu: `members`, `message_content` (privilegiert, im Developer Portal freischalten),
+  `guild_messages`, `voice_states`, `guild_scheduled_events`, `moderation`, `invites`,
+  `guild_reactions`. Jede Phase nennt ihre Intents im README. So startet der Bot schon
+  vor der Freischaltung, statt mit `PrivilegedIntentsRequired` abzubrechen.
 
 ## 7. Querschnittsthemen
 
@@ -289,7 +292,8 @@ Backups sind Aufgabe des Betreibers; das README beschreibt ein `pg_dump`-Beispie
 
 **CI (GitHub Actions):** `ruff check`, `ruff format --check`, `mypy` (strict für `core/`,
 Standard für den Rest), `pytest` mit Postgres- und Redis-Service-Containern,
-Migrations-Roundtrip, Frontend: `tsc --noEmit`, `eslint`, `vitest`, `vite build`.
+Migrations-Roundtrip, Frontend: `tsc --noEmit`, `vitest`, `vite build` (ESLint kommt mit dem echten Dashboard in Phase 10),
+Compose-Smoke-Test (Images bauen, `up --wait`, `/api/healthz` über nginx).
 
 ## 11. Teststrategie
 
