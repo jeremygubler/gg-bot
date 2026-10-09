@@ -34,6 +34,16 @@ escalation_invalid = "Diese Eskalationsregel ist nicht gültig."
 escalation_not_found = "Es gibt keine Eskalationsregel für {warns} Verwarnungen."
 mod_target_bot = "Das kann ich nicht bei mir selbst tun."
 purge_needs_content = "Das Filtern nach Text oder Links braucht den Message-Content-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MESSAGE_CONTENT_INTENT=true."
+automod_pattern_empty = "Das Muster ist leer."
+automod_wildcard_space = "Ein Platzhalter wird pro Wort geprüft und darf keine Leerzeichen enthalten. Für Wortfolgen nimm einen Wort-Eintrag."
+automod_regex_invalid = "Dieser reguläre Ausdruck ist ungültig oder nutzt nicht unterstützte Funktionen (keine Lookarounds, keine Rückreferenzen): {detail}"
+automod_pattern_matches_all = "Dieses Muster träfe jede Nachricht. Formuliere es genauer."
+automod_invalid = "Diese Einstellung ist nicht gültig ({detail})."
+automod_needs_message_content = "Diese Regel braucht den Message-Content-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MESSAGE_CONTENT_INTENT=true."
+automod_needs_members = "Diese Regel braucht den Server-Members-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MEMBERS_INTENT=true."
+automod_cannot_delete = "Ich darf dort keine Nachrichten löschen (Nachrichten verwalten)."
+automod_domain_invalid = "In \"{value}\" finde ich keine Domain."
+automod_word_not_found = "Es gibt keinen Eintrag \"{pattern}\"."
 
 [cmd.help]
 desc = "Zeigt alle Befehle, die du nutzen kannst"
@@ -242,3 +252,200 @@ expiry_set = "Verwarnungen zählen nach {days} Tagen nicht mehr."
 expiry_off = "Verwarnungen zählen für immer."
 dm_on = "Betroffene bekommen jetzt eine Direktnachricht."
 dm_off = "Betroffene bekommen keine Direktnachricht mehr."
+
+[cmd.automod]
+desc = "Automatische Moderation"
+[cmd.automod.status]
+desc = "Zeigt, welche Regeln an sind und wie sie eingestellt sind"
+[cmd.automod.stats]
+desc = "Zeigt, wie oft jede Regel ausgelöst hat"
+[cmd.automod.enable]
+desc = "Schaltet eine Regel ein"
+[cmd.automod.disable]
+desc = "Schaltet eine Regel aus"
+[cmd.automod.action]
+desc = "Legt fest, was bei einem Treffer passiert"
+[cmd.automod.spam]
+desc = "Stellt das Spam-Limit ein"
+[cmd.automod.duplicates]
+desc = "Stellt ein, wie viele gleiche Nachrichten erlaubt sind"
+[cmd.automod.caps]
+desc = "Stellt das Limit für Grossbuchstaben ein"
+[cmd.automod.mentions]
+desc = "Stellt die maximale Anzahl Erwähnungen pro Nachricht ein"
+[cmd.automod.log]
+desc = "Legt den Kanal fest, in den Treffer gemeldet werden"
+[cmd.automod.moderators]
+desc = "Legt fest, ob Moderatoren von den Regeln ausgenommen sind"
+[cmd.automod.accountage]
+desc = "Stellt das Mindestalter des Kontos neuer Mitglieder ein"
+[cmd.automod.exempt]
+desc = "Ausnahmen für Kanäle und Rollen"
+[cmd.automod.exempt.channel_add]
+desc = "Nimmt einen Kanal von einer Regel aus"
+[cmd.automod.exempt.channel_remove]
+desc = "Entfernt eine Kanal-Ausnahme"
+[cmd.automod.exempt.role_add]
+desc = "Nimmt eine Rolle von einer Regel aus"
+[cmd.automod.exempt.role_remove]
+desc = "Entfernt eine Rollen-Ausnahme"
+[cmd.automod.invite]
+desc = "Erlaubte Einladungslinks"
+[cmd.automod.invite.allow]
+desc = "Erlaubt einen Einladungscode (z. B. den eigenen Server)"
+[cmd.automod.invite.disallow]
+desc = "Entfernt einen erlaubten Einladungscode"
+[cmd.automod.link]
+desc = "Link-Filter"
+[cmd.automod.link.mode]
+desc = "Wählt zwischen Sperrliste und Erlaubt-Liste für Domains"
+[cmd.automod.link.add]
+desc = "Fügt der Liste eine Domain hinzu"
+[cmd.automod.link.remove]
+desc = "Entfernt eine Domain aus der Liste"
+[cmd.automod.link.list]
+desc = "Zeigt den Modus und die Domain-Liste"
+[cmd.automod.word]
+desc = "Wortfilter"
+[cmd.automod.word.add]
+desc = "Fügt ein Wort, einen Platzhalter oder einen regulären Ausdruck hinzu"
+[cmd.automod.word.remove]
+desc = "Entfernt einen Eintrag"
+[cmd.automod.word.list]
+desc = "Listet alle Einträge"
+[cmd.automod.word.test]
+desc = "Prüft einen Text gegen den Wortfilter"
+[cmd.automod.raid]
+desc = "Raid-Schutz"
+[cmd.automod.raid.set]
+desc = "Legt fest, ab wann ein Raid erkannt wird und was dann passiert"
+[cmd.automod.raid.end]
+desc = "Beendet den Raid-Modus sofort"
+
+[cmd.arg.rule]
+desc = "Die Regel"
+[cmd.arg.role]
+desc = "Die Rolle"
+[cmd.arg.delete]
+desc = "Die Nachricht löschen"
+[cmd.arg.warn]
+desc = "Das Mitglied verwarnen"
+[cmd.arg.timeout_duration]
+desc = "Timeout-Dauer, z. B. 10m (leer oder off = kein Timeout)"
+[cmd.arg.messages]
+desc = "Anzahl Nachrichten"
+[cmd.arg.window]
+desc = "Zeitfenster in Sekunden"
+[cmd.arg.count]
+desc = "Anzahl gleicher Nachrichten"
+[cmd.arg.min_length]
+desc = "Mindestanzahl Buchstaben, ab der geprüft wird"
+[cmd.arg.percent]
+desc = "Höchstanteil an Grossbuchstaben in Prozent"
+[cmd.arg.maximum]
+desc = "Höchstanzahl"
+[cmd.arg.log_channel]
+desc = "Der Kanal (leer = keine Meldungen)"
+[cmd.arg.code]
+desc = "Einladungscode oder Link"
+[cmd.arg.mode]
+desc = "Der Modus"
+[cmd.arg.domain]
+desc = "Domain oder Link, z. B. example.com"
+[cmd.arg.kind]
+desc = "Art des Eintrags"
+[cmd.arg.pattern]
+desc = "Das Wort, der Platzhalter (* und ?) oder der reguläre Ausdruck"
+[cmd.arg.sample]
+desc = "Der Text zum Testen"
+[cmd.arg.joins]
+desc = "Anzahl Beitritte"
+[cmd.arg.join_action]
+desc = "Was mit dem neuen Mitglied passiert"
+[cmd.arg.minutes]
+desc = "Wie lange der Raid-Modus gilt, in Minuten"
+[cmd.arg.min_days]
+desc = "Mindestalter des Kontos in Tagen"
+
+[automod]
+reason = "Automod: {rule}"
+notice = "{user}, deine Nachricht wurde entfernt ({rule})."
+yes = "ja"
+no = "nein"
+raid_alert = "🚨 **Raid erkannt:** {joins} Beitritte innerhalb von {seconds} s. Der Raid-Modus gilt {minutes} Min.; neue Mitglieder bekommen: {action}."
+raid_failed = "{count} Mitglieder konnten nicht behandelt werden (fehlende Rechte?)."
+enabled = "Regel **{rule}** ist an."
+disabled = "Regel **{rule}** ist aus."
+action_set = "Aktion für **{rule}** gespeichert."
+spam_set = "Spam: {messages} Nachrichten innerhalb von {seconds} s."
+duplicates_set = "Duplikate: {count} gleiche Nachrichten innerhalb von {seconds} s."
+caps_set = "Grossbuchstaben: mehr als {percent} % ab {min_length} Buchstaben."
+mentions_set = "Erwähnungen: höchstens {maximum} pro Nachricht."
+log_set = "Treffer werden in {channel} gemeldet."
+log_off = "Treffer werden nicht mehr in einen Kanal gemeldet."
+moderators_on = "Mitglieder, die Nachrichten verwalten dürfen, sind ausgenommen."
+moderators_off = "Mitglieder, die Nachrichten verwalten dürfen, sind nicht mehr ausgenommen."
+exempt_added = "{target} ist ausgenommen von: {rule}."
+exempt_removed = "{target} ist nicht mehr ausgenommen von: {rule}."
+invite_allowed = "Einladungscode `{code}` ist erlaubt."
+invite_disallowed = "Einladungscode `{code}` ist nicht mehr erlaubt."
+link_mode_blacklist = "Modus: Domains auf der Liste sind gesperrt."
+link_mode_whitelist = "Modus: nur Domains auf der Liste sind erlaubt (ein Einladungslink braucht discord.gg auf der Liste)."
+link_added = "`{domain}` hinzugefügt."
+link_removed = "`{domain}` entfernt."
+list_empty = "(leer)"
+word_added = "Hinzugefügt ({kind}): `{pattern}`"
+word_removed = "Entfernt: `{pattern}`"
+word_test_hit = "Dieser Text würde erfasst von:"
+word_test_miss = "Dieser Text würde nicht erfasst."
+raid_set = "Raid-Erkennung: {joins} Beitritte innerhalb von {seconds} s, Raid-Modus für {minutes} Min."
+raid_ended = "Raid-Modus beendet."
+raid_not_active = "Der Raid-Modus ist nicht aktiv."
+accountage_set = "Neue Mitglieder brauchen ein Konto, das älter als {days} Tage ist."
+
+[automod.rule]
+spam = "Spam"
+duplicates = "doppelte Nachrichten"
+caps = "zu viele Grossbuchstaben"
+invites = "Einladungslink"
+links = "Link"
+mentions = "zu viele Erwähnungen"
+words = "Wortfilter"
+raid = "Raid-Schutz"
+accountage = "Konto-Alter"
+
+[automod.action]
+delete = "gelöscht"
+warn = "verwarnt"
+timeout = "Timeout"
+kick = "Kick"
+ban = "Bann"
+
+[automod.log]
+title = "Automod: {rule}"
+user = "Mitglied"
+channel = "Kanal"
+actions = "Aktionen"
+none = "keine"
+trigger = "Auslöser"
+content = "Nachricht"
+failed = "Probleme"
+
+[automod.join_reason]
+raid = "Automod: Raid-Schutz ({joins} Beitritte in kurzer Zeit)"
+accountage = "Automod: Konto zu neu ({days} von {min_days} Tagen)"
+
+[automod.status]
+title = "Automod"
+intents = "Intents"
+raid = "Raid-Modus"
+raid_on = "aktiv"
+raid_off = "aus"
+log = "Meldekanal"
+footer = "Ausgenommen: {channels} Kanäle, {roles} Rollen · Moderatoren ausgenommen: {moderators}"
+need_message_content = "Nachrichten-Regeln sind inaktiv: Der Message-Content-Intent fehlt."
+need_members = "Beitritts-Regeln sind inaktiv: Der Server-Members-Intent fehlt."
+
+[automod.stats]
+title = "Regeltreffer der letzten {days} Tage"
+empty = "Keine Regeltreffer in den letzten {days} Tagen."

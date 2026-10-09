@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.3",
     "redis>=6.0",
     "structlog>=24.1",
+    "google-re2>=1.1.20251105",
 ]
 
 [project.optional-dependencies]
@@ -63,6 +64,10 @@ files = ["src", "tests"]
 [[tool.mypy.overrides]]
 module = "ggbot.core.*"
 strict = true
+
+[[tool.mypy.overrides]]
+module = "re2"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

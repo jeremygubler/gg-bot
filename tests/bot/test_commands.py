@@ -8,6 +8,7 @@ from redis.asyncio import Redis
 
 from ggbot.bot.checks import ensure_bot_permissions, ensure_user_permissions
 from ggbot.bot.client import GGBot
+from ggbot.bot.cogs.automod_config import AutomodConfigCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
 from ggbot.bot.cogs.modconfig import ModConfigCog
@@ -29,6 +30,7 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(ModerationCog(instance))
     await instance.add_cog(ChannelToolsCog(instance))
     await instance.add_cog(ModConfigCog(instance))
+    await instance.add_cog(AutomodConfigCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -196,6 +198,39 @@ EXPECTED_PERMISSIONS = {
     "slowmode": "manage_channels",
     "lock": "manage_channels",
     "unlock": "manage_channels",
+    **{
+        name: "manage_guild"
+        for name in (
+            "automod status",
+            "automod stats",
+            "automod enable",
+            "automod disable",
+            "automod action",
+            "automod spam",
+            "automod duplicates",
+            "automod caps",
+            "automod mentions",
+            "automod log",
+            "automod moderators",
+            "automod accountage",
+            "automod exempt channel_add",
+            "automod exempt channel_remove",
+            "automod exempt role_add",
+            "automod exempt role_remove",
+            "automod invite allow",
+            "automod invite disallow",
+            "automod link mode",
+            "automod link add",
+            "automod link remove",
+            "automod link list",
+            "automod word add",
+            "automod word remove",
+            "automod word list",
+            "automod word test",
+            "automod raid set",
+            "automod raid end",
+        )
+    },
     "modconfig warn_expiry": "manage_guild",
     "modconfig dm": "manage_guild",
     "modconfig escalation add": "manage_guild",

@@ -22,6 +22,8 @@ COGS = (
     "ggbot.bot.cogs.moderation",
     "ggbot.bot.cogs.channel_tools",
     "ggbot.bot.cogs.modconfig",
+    "ggbot.bot.cogs.automod",
+    "ggbot.bot.cogs.automod_config",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10
@@ -53,6 +55,9 @@ class GGBot(commands.AutoShardedBot):
         intents.emojis_and_stickers = True
         # Purge liest den Verlauf per REST; ohne diesen Intent sind fremde Inhalte leer.
         intents.message_content = config.enable_message_content_intent
+        # Nachrichten-Ereignisse (Automod) nur mit dem Inhalts-Intent: ohne Inhalt wären sie blind.
+        intents.guild_messages = config.enable_message_content_intent
+        intents.members = config.enable_members_intent
         # discord.py typisiert shard_ids als list[int], erwartet aber "weglassen" für "auto".
         shard_options: dict[str, Any] = {"shard_ids": config.shard_ids} if config.shard_ids else {}
         super().__init__(

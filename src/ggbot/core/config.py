@@ -26,6 +26,9 @@ class AppConfig(BaseSettings):
     # Privilegierter Intent: erst einschalten, wenn er im Developer Portal freigegeben ist.
     enable_message_content_intent: bool = False
 
+    # Privilegierter Intent für Beitritts-Regeln (Anti-Raid, Konto-Alter), ebenfalls nach Freigabe.
+    enable_members_intent: bool = False
+
     # Nur für die Entwicklung: Slash-Commands sofort auf einer Test-Guild statt global.
     dev_guild_id: int | None = None
 

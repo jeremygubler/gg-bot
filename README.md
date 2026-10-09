@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 2 (Moderation)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 3 (Automod)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -83,6 +83,55 @@ Beispiel: `escalation add 3 timeout 1h` und `escalation add 5 kick` ergibt: 3. V
 auslösende Verwarnung). Scheitert sie (z. B. Rolle zu niedrig), bleibt die Verwarnung bestehen und
 der Moderator bekommt die Fehlermeldung.
 
+### Automod (Phase 3)
+
+Alle Regeln sind **standardmässig aus**. Moderatoren (wer *Nachrichten verwalten* darf) sind ausgenommen,
+solange das nicht mit `/automod moderators false` geändert wird. Bots, Webhooks und Systemnachrichten werden ignoriert.
+Nachrichten-Regeln brauchen den *Message Content Intent*, Beitritts-Regeln den *Server Members Intent*
+(siehe „Benötigte Bot-Rechte“). Ohne den Intent lehnt `/automod enable` die Regel mit einer klaren Meldung ab.
+
+| Regel | Erkennt | Einstellung |
+|---|---|---|
+| `spam` | zu viele Nachrichten in kurzer Zeit (Standard 5 in 5 s); die ganze Welle wird gelöscht | `/automod spam <messages> <window>` |
+| `duplicates` | dieselbe Nachricht mehrfach (Gross/Klein und Leerzeichen egal; Standard 3 in 30 s) | `/automod duplicates <count> <window>` |
+| `caps` | zu viele Grossbuchstaben (Standard > 70 % ab 10 Buchstaben, Ziffern und Zeichen zählen nicht) | `/automod caps <min_length> <percent>` |
+| `invites` | Discord-Einladungen (`discord.gg`, `discord.com/invite`, …) ausser erlaubten Codes | `/automod invite allow\|disallow <code>` |
+| `links` | Links nach Sperrliste oder Erlaubt-Liste, inkl. Subdomains | `/automod link mode\|add\|remove\|list` |
+| `mentions` | zu viele verschiedene Erwähnungen (Nutzer + Rollen; Standard > 5) | `/automod mentions <maximum>` |
+| `words` | Wörter, Platzhalter, reguläre Ausdrücke | `/automod word add\|remove\|list\|test` |
+| `raid` | viele Beitritte in kurzer Zeit (Standard 5 in 10 s) → Raid-Modus | `/automod raid set\|end` |
+| `accountage` | Konten jünger als N Tage | `/automod accountage <days> <action>` |
+
+Steuerung: `/automod enable|disable <rule>`, `/automod status`, `/automod stats [days]`.
+
+**Aktion pro Regel** (`/automod action <rule> [delete] [warn] [timeout_duration]`): löschen, verwarnen und/oder
+Timeout, frei kombinierbar. Verwarnen läuft über `/warn`, hat also einen Case und löst die Eskalation aus. Beim
+Raid und Konto-Alter heisst die Aktion `kick`, `ban` oder `timeout`.
+Pro Regel und Treffer-Welle wird höchstens **einmal** verwarnt oder in den Timeout gesetzt (30 s Sperre),
+gelöscht wird jede Nachricht.
+
+**Ausnahmen:** `/automod exempt channel_add|channel_remove|role_add|role_remove <rule> <target>`; `rule` ist eine
+einzelne Regel oder `all`. Threads erben die Ausnahme ihres Elternkanals.
+
+**Meldekanal:** `/automod log <channel>` – jeder Treffer (einmal je Welle) mit Auslöser, Aktionen und Problemen.
+
+**Wortfilter im Detail**
+- `word`: ganzes Wort oder Wortfolge, ohne Gross/Klein, Akzente und unsichtbare Zeichen (`arger` trifft `Ärger`,
+  `ass` trifft nicht `Klasse`).
+- `wildcard`: `*` = beliebig viele, `?` = genau ein Zeichen, je Wort (`dumm*` trifft `dummkopf`).
+- `regex`: reguläre Ausdrücke mit **RE2**. Garantiert lineare Laufzeit, also kein Einfrieren durch böse Muster, aber
+  ohne Lookarounds und Rückreferenzen. Muster, die auf leeren Text passen (`a*`), werden abgelehnt.
+- `/automod word test <text>` zeigt, was ein Text auslösen würde.
+
+**Links im Detail:** Erkannt werden `http(s)://…`, `www.…` und `domain.endung` mit bekannter Endung (damit ein
+vergessenes Leerzeichen nach einem Satzende nicht als Link zählt). Im Erlaubt-Modus ist auch eine Einladung ein
+Link: `discord.gg` muss dann auf der Liste stehen. Ein Eintrag gilt für die Domain und alle ihre Subdomains, nicht für
+ähnlich geschriebene (`evilexample.com`).
+
+**Anti-Raid:** Ab N Beitritten in S Sekunden beginnt der Raid-Modus. Die ganze Welle bekommt die Aktion, ebenso jeder
+weitere Beitritt, bis der Modus nach `minutes` abläuft oder `/automod raid end` ihn beendet. Die Warnung geht in den
+Meldekanal, sonst in den Systemkanal des Servers.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -95,7 +144,8 @@ Dashboard bearbeitet.
 | `POSTGRES_*` | Zugang zur Datenbank; Compose baut daraus `DATABASE_URL` |
 | `DEFAULT_LOCALE` | Startsprache neuer Server (`de`/`en`) |
 | `LOG_LEVEL`, `LOG_FORMAT` | `json` (Standard, für Logsammler) oder `console` |
-| `ENABLE_MESSAGE_CONTENT_INTENT` | `true` schaltet den privilegierten *Message Content Intent* ein (nur nach Freigabe im Developer Portal) |
+| `ENABLE_MESSAGE_CONTENT_INTENT` | `true` schaltet den privilegierten *Message Content Intent* ein (nur nach Freigabe im Developer Portal). Für Automod-Nachrichtenregeln und die Purge-Filter `contains`/`links` |
+| `ENABLE_MEMBERS_INTENT` | `true` schaltet den privilegierten *Server Members Intent* ein (nur nach Freigabe). Für Anti-Raid und Konto-Alter |
 | `DEV_GUILD_ID` | Befehle sofort auf einer Test-Guild statt global (Entwicklung) |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
 
@@ -111,14 +161,20 @@ Dashboard bearbeitet.
 | *Manage Channels* | `/slowmode` |
 | *Manage Threads* | `/slowmode` in Threads |
 | *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone) |
+| *Manage Messages* | Automod löscht Nachrichten |
+| *Send Messages* | Automod-Hinweise und Meldungen (optional; ohne wird nur geloggt) |
+| *Moderate Members*, *Kick Members*, *Ban Members* | Automod-Aktionen (Timeout, Raid/Konto-Alter) |
 
 **Rollen-Reihenfolge:** Die Rolle des Bots muss in der Rollenliste **über** den Rollen der Mitglieder
 stehen, die er moderieren soll. Sonst verweigert Discord die Aktion und der Bot meldet das.
 
-Gateway-Intents: *Guilds* (nicht privilegiert). Optional *Message Content* (privilegiert) für die
-Purge-Filter `contains` und `links`: im Developer Portal unter *Bot → Privileged Gateway Intents*
-aktivieren und `ENABLE_MESSAGE_CONTENT_INTENT=true` setzen. Ohne die Freigabe startet der Bot mit
-`true` nicht. *Server Members* wird erst von späteren Phasen gebraucht.
+Gateway-Intents: *Guilds* (nicht privilegiert). Zusätzlich, jeweils im Developer Portal unter *Bot → Privileged
+Gateway Intents* freischalten **und** per Umgebungsvariable einschalten (ohne Freigabe startet der Bot mit `true` nicht):
+
+| Intent | Variable | Wofür |
+|---|---|---|
+| *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`, `/purge links` |
+| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter |
 
 ## Entwicklung
 

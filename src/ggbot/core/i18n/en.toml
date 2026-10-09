@@ -34,6 +34,16 @@ escalation_invalid = "That escalation rule is not valid."
 escalation_not_found = "There is no escalation rule for {warns} warnings."
 mod_target_bot = "I can't do that to myself."
 purge_needs_content = "Filtering by text or links needs the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
+automod_pattern_empty = "The pattern is empty."
+automod_wildcard_space = "A wildcard is matched per word and cannot contain spaces. Use a word entry for phrases."
+automod_regex_invalid = "That regular expression is not valid or uses unsupported features (no lookarounds, no backreferences): {detail}"
+automod_pattern_matches_all = "That pattern would match every message. Make it more specific."
+automod_invalid = "That setting is not valid ({detail})."
+automod_needs_message_content = "This rule needs the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
+automod_needs_members = "This rule needs the Server Members intent. Enable it in the Developer Portal and set ENABLE_MEMBERS_INTENT=true."
+automod_cannot_delete = "I am not allowed to delete messages there (Manage Messages)."
+automod_domain_invalid = "I can't find a domain in \"{value}\"."
+automod_word_not_found = "There is no entry \"{pattern}\"."
 
 [cmd.help]
 desc = "Shows all commands you can use"
@@ -242,3 +252,200 @@ expiry_set = "Warnings stop counting after {days} days."
 expiry_off = "Warnings count forever."
 dm_on = "Affected users now get a direct message."
 dm_off = "Affected users no longer get a direct message."
+
+[cmd.automod]
+desc = "Automatic moderation"
+[cmd.automod.status]
+desc = "Shows which rules are on and how they are set"
+[cmd.automod.stats]
+desc = "Shows how often each rule triggered"
+[cmd.automod.enable]
+desc = "Turns a rule on"
+[cmd.automod.disable]
+desc = "Turns a rule off"
+[cmd.automod.action]
+desc = "Sets what happens when a rule triggers"
+[cmd.automod.spam]
+desc = "Sets the spam limit"
+[cmd.automod.duplicates]
+desc = "Sets how many identical messages are allowed"
+[cmd.automod.caps]
+desc = "Sets the limit for capital letters"
+[cmd.automod.mentions]
+desc = "Sets the maximum number of mentions per message"
+[cmd.automod.log]
+desc = "Sets the channel where rule hits are reported"
+[cmd.automod.moderators]
+desc = "Sets whether moderators are exempt from the rules"
+[cmd.automod.accountage]
+desc = "Sets the minimum account age for new members"
+[cmd.automod.exempt]
+desc = "Exceptions for channels and roles"
+[cmd.automod.exempt.channel_add]
+desc = "Exempts a channel from a rule"
+[cmd.automod.exempt.channel_remove]
+desc = "Removes a channel exception"
+[cmd.automod.exempt.role_add]
+desc = "Exempts a role from a rule"
+[cmd.automod.exempt.role_remove]
+desc = "Removes a role exception"
+[cmd.automod.invite]
+desc = "Allowed invite links"
+[cmd.automod.invite.allow]
+desc = "Allows an invite code (e.g. your own server)"
+[cmd.automod.invite.disallow]
+desc = "Removes an allowed invite code"
+[cmd.automod.link]
+desc = "Link filter"
+[cmd.automod.link.mode]
+desc = "Chooses between blocking listed domains or allowing only listed domains"
+[cmd.automod.link.add]
+desc = "Adds a domain to the list"
+[cmd.automod.link.remove]
+desc = "Removes a domain from the list"
+[cmd.automod.link.list]
+desc = "Shows the mode and the domain list"
+[cmd.automod.word]
+desc = "Word filter"
+[cmd.automod.word.add]
+desc = "Adds a word, wildcard or regular expression"
+[cmd.automod.word.remove]
+desc = "Removes an entry"
+[cmd.automod.word.list]
+desc = "Lists all entries"
+[cmd.automod.word.test]
+desc = "Tests a text against the word filter"
+[cmd.automod.raid]
+desc = "Raid protection"
+[cmd.automod.raid.set]
+desc = "Sets when a raid is detected and what happens"
+[cmd.automod.raid.end]
+desc = "Ends raid mode right now"
+
+[cmd.arg.rule]
+desc = "The rule"
+[cmd.arg.role]
+desc = "The role"
+[cmd.arg.delete]
+desc = "Delete the message"
+[cmd.arg.warn]
+desc = "Warn the member"
+[cmd.arg.timeout_duration]
+desc = "Timeout duration, e.g. 10m (empty or off = no timeout)"
+[cmd.arg.messages]
+desc = "Number of messages"
+[cmd.arg.window]
+desc = "Time window in seconds"
+[cmd.arg.count]
+desc = "Number of identical messages"
+[cmd.arg.min_length]
+desc = "Minimum number of letters before the check applies"
+[cmd.arg.percent]
+desc = "Maximum percentage of capital letters"
+[cmd.arg.maximum]
+desc = "Maximum number"
+[cmd.arg.log_channel]
+desc = "The channel (empty = no reports)"
+[cmd.arg.code]
+desc = "Invite code or link"
+[cmd.arg.mode]
+desc = "The mode"
+[cmd.arg.domain]
+desc = "Domain or link, e.g. example.com"
+[cmd.arg.kind]
+desc = "Type of entry"
+[cmd.arg.pattern]
+desc = "The word, wildcard (* and ?) or regular expression"
+[cmd.arg.sample]
+desc = "The text to test"
+[cmd.arg.joins]
+desc = "Number of joins"
+[cmd.arg.join_action]
+desc = "What happens to the new member"
+[cmd.arg.minutes]
+desc = "How long raid mode lasts, in minutes"
+[cmd.arg.min_days]
+desc = "Minimum account age in days"
+
+[automod]
+reason = "Automod: {rule}"
+notice = "{user}, your message was removed ({rule})."
+yes = "yes"
+no = "no"
+raid_alert = "🚨 **Raid detected:** {joins} joins within {seconds} s. Raid mode is on for {minutes} min; new members get: {action}."
+raid_failed = "{count} members could not be handled (missing permissions?)."
+enabled = "Rule **{rule}** is on."
+disabled = "Rule **{rule}** is off."
+action_set = "Action for **{rule}** saved."
+spam_set = "Spam: {messages} messages within {seconds} s."
+duplicates_set = "Duplicates: {count} identical messages within {seconds} s."
+caps_set = "Capitals: more than {percent} % from {min_length} letters."
+mentions_set = "Mentions: at most {maximum} per message."
+log_set = "Rule hits are reported in {channel}."
+log_off = "Rule hits are no longer reported in a channel."
+moderators_on = "Members who can manage messages are exempt."
+moderators_off = "Members who can manage messages are no longer exempt."
+exempt_added = "{target} is exempt from: {rule}."
+exempt_removed = "{target} is no longer exempt from: {rule}."
+invite_allowed = "Invite code `{code}` is allowed."
+invite_disallowed = "Invite code `{code}` is no longer allowed."
+link_mode_blacklist = "Mode: listed domains are blocked."
+link_mode_whitelist = "Mode: only listed domains are allowed (an invite link needs discord.gg on the list)."
+link_added = "`{domain}` added."
+link_removed = "`{domain}` removed."
+list_empty = "(empty)"
+word_added = "Added ({kind}): `{pattern}`"
+word_removed = "Removed: `{pattern}`"
+word_test_hit = "This text would be caught by:"
+word_test_miss = "This text would not be caught."
+raid_set = "Raid detection: {joins} joins within {seconds} s, raid mode for {minutes} min."
+raid_ended = "Raid mode ended."
+raid_not_active = "Raid mode is not active."
+accountage_set = "New members must have an account older than {days} days."
+
+[automod.rule]
+spam = "spam"
+duplicates = "duplicate messages"
+caps = "too many capitals"
+invites = "invite link"
+links = "link"
+mentions = "too many mentions"
+words = "word filter"
+raid = "raid protection"
+accountage = "account age"
+
+[automod.action]
+delete = "deleted"
+warn = "warned"
+timeout = "timeout"
+kick = "kick"
+ban = "ban"
+
+[automod.log]
+title = "Automod: {rule}"
+user = "Member"
+channel = "Channel"
+actions = "Actions"
+none = "none"
+trigger = "Trigger"
+content = "Message"
+failed = "Problems"
+
+[automod.join_reason]
+raid = "Automod: raid protection ({joins} joins in a short time)"
+accountage = "Automod: account too new ({days} of {min_days} days)"
+
+[automod.status]
+title = "Automod"
+intents = "Intents"
+raid = "Raid mode"
+raid_on = "active"
+raid_off = "off"
+log = "Report channel"
+footer = "Exempt: {channels} channels, {roles} roles · Moderators exempt: {moderators}"
+need_message_content = "Message rules are inactive: the Message Content intent is missing."
+need_members = "Join rules are inactive: the Server Members intent is missing."
+
+[automod.stats]
+title = "Rule hits in the last {days} days"
+empty = "No rule hits in the last {days} days."

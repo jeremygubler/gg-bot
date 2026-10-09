@@ -110,7 +110,7 @@ bei Snowflakes < 2^63).
 |---|---|
 | 1 | `guilds` (id, locale, timezone, joined_at, left_at), `guild_settings` (guild_id, module, data JSONB, version, updated_at), `dashboard_audit` (guild_id, user_id, module, before, after, at), `scheduled_jobs` |
 | 2 | `mod_cases` (guild_id, case_no, type, target_id, moderator_id, reason, duration_seconds, expires_at, active, ref_case_no, created_at; Unique `(guild_id, case_no)`), `mod_case_counters` (atomare Case-Nummer pro Server), `mod_notes`, `channel_locks` (vorheriger Overwrite-Zustand für `/unlock`). Eskalationsregeln liegen in den Settings (Modul `moderation`) |
-| 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (Statistik, optional, mit Aufbewahrungsfrist) |
+| 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (guild_id, user_id, channel_id, rule, actions, created_at; Statistik, 30 Tage Aufbewahrung) |
 | 4 | Nur Settings (Kanal pro Event-Typ); `invite_snapshots` für Invite-Tracking |
 | 5 | `xp_members` (guild_id, user_id, xp, level, msg_count, voice_seconds, last_xp_at), `xp_voice_sessions`, `level_rewards` in Settings, `rank_card_styles` (guild_id, user_id, JSONB) |
 | 6 | `role_panels`, `role_panel_items`, `reaction_roles`, Willkommen in Settings |
@@ -346,3 +346,37 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   freundlicher Fehler). `/purge` löscht nur Nachrichten, die jünger als 14 Tage sind (Bulk-Delete-Limit von Discord).
 - **Lock/Unlock:** `/lock` merkt sich den vorherigen `send_messages`-Overwrite von @everyone, `/unlock` stellt ihn
   exakt wieder her (auch „explizit erlaubt“ bleibt erlaubt).
+
+## 14. Automod (Phase 3)
+
+- **Aufbau:** Erkennung rein in `core/automod/` (`text.py` Normalisierung, `rules.py` Prüfungen), Entscheidung und
+  Zähler in `core/services/automod.py`, Umsetzung (löschen, verwarnen, Timeout, Kick) im Cog. Verwarnen und Timeout
+  laufen über den `ModerationService` mit dem Bot als Moderator: Cases, DM und Eskalation gelten also auch hier.
+- **Intents:** Nachrichten-Regeln brauchen *Message Content*, Beitritts-Regeln *Server Members* (beide privilegiert,
+  beide per Umgebungsvariable zuschaltbar). Fehlt ein Intent, **verweigert** `/automod enable` die betroffenen Regeln,
+  `/automod status` zeigt die Lücke, und der Start loggt eine Warnung. Es gibt keinen Zustand, in dem eine Regel an
+  ist, aber nichts sieht.
+- **Regeln und Reihenfolge:** Bei mehreren Treffern entscheidet die spezifischste Regel:
+  `words > invites > links > mentions > caps > duplicates > spam`. Spam- und Duplikat-Zähler laufen für jede
+  Nachricht weiter, auch wenn eine andere Regel zuerst greift.
+- **Zähler:** Redis-Sorted-Sets pro (Server, Nutzer) bzw. (Server, Nutzer, Text-Hash), Zeitfenster über den Score.
+  Nach einem Treffer wird die gelöschte Welle aus dem Zähler genommen, sonst löste jede weitere Nachricht erneut aus.
+  Bearbeitungen prüfen nur den Inhalt und zählen nicht zur Rate.
+- **Bestrafen höchstens einmal je Welle:** Löschen passiert bei jeder Nachricht, Verwarnen/Timeout höchstens einmal
+  pro (Nutzer, Regel) und 30 Sekunden (`SET NX EX`). Ebenso der Hinweis im Kanal und der Eintrag im Meldekanal.
+- **Wortfilter:** Einträge sind `word` (ganze Wörter/Wortfolgen), `wildcard` (`*`, `?` je Wort) oder `regex`. Alle
+  Muster laufen mit **RE2** (`google-re2`): garantiert lineare Laufzeit, daher kann ein Nutzer-Muster den Bot nicht
+  einfrieren. Dafür gibt es keine Lookarounds und Rückreferenzen. Muster werden beim Anlegen geprüft; eines, das auf
+  leeren Text passt (`a*`, `*`), wird abgelehnt, weil es jede Nachricht träfe. Texte werden vor dem Vergleich
+  normalisiert (NFKD, ohne Akzente und unsichtbare Zeichen, kleingeschrieben).
+- **Links:** Hostnamen werden aus URLs gelesen (Zugangsdaten-Trick `gut.de@boese.com` zählt als `boese.com`);
+  eine Domain trifft sich selbst und ihre Subdomains, nicht `evilexample.com`. Ohne `http://`/`www.` zählt `wort.wort`
+  nur mit bekannter Endung, sonst wäre ein vergessenes Leerzeichen nach einem Punkt schon ein Link.
+- **Anti-Raid:** Beitritte pro Server in einem Sorted-Set. Ab `joins` Beitritten innerhalb `seconds` beginnt der
+  Raid-Modus (Redis-Schlüssel mit Ablauf, `SET NX` entscheidet bei gleichzeitigen Beitritten, wer ihn auslöst). Die
+  ganze Welle bekommt die Aktion, danach jeder weitere Beitritt, bis der Modus abläuft oder `/automod raid end`.
+  Aktionen laufen in Fünferblöcken mit Pause. Die Warnung geht in den Meldekanal, sonst in den Systemkanal.
+- **Konto-Alter:** Konten jünger als `min_days` bekommen die Aktion (genau `min_days` ist alt genug). Bots sind ausgenommen.
+- **Statistik:** `automod_hits`, Aufräumen höchstens stündlich beim Schreiben (Redis-Sperre), ohne eigenen Job.
+- **Prozess-Cache:** Die Einstellungen werden pro Nachricht gebraucht und deshalb 5 s im Prozess gehalten; das
+  `settings.changed`-Event und jeder Befehl leeren ihn sofort.
