@@ -72,10 +72,10 @@ jobs:
           echo "POSTGRES_PASSWORD=ci-only" >> .env
       - name: Images bauen und Dienste hochfahren (ohne Bot, der braucht einen echten Token)
         run: docker compose up -d --build --wait postgres redis migrate api web
-      - name: Bot-Image kann alles importieren (z. B. die native RE2-Bibliothek)
+      - name: Bot-Image kann alle Cogs importieren (z. B. die native RE2-Bibliothek)
         run: |
-          docker compose run --rm --no-deps --build bot \
-            python -c "import re2, ggbot.bot.client, ggbot.bot.cogs.automod, ggbot.bot.cogs.automod_config"
+          docker compose run --rm --no-deps --build bot python -c \
+            "import importlib, re2; from ggbot.bot.client import COGS; [importlib.import_module(c) for c in COGS]; print(len(COGS), 'Cogs ok')"
       - name: API über nginx erreichbar
         run: |
           curl -fsS http://localhost:8080/api/healthz

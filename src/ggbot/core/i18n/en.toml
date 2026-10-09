@@ -44,6 +44,9 @@ automod_needs_members = "This rule needs the Server Members intent. Enable it in
 automod_cannot_delete = "I am not allowed to delete messages there (Manage Messages)."
 automod_domain_invalid = "I can't find a domain in \"{value}\"."
 automod_word_not_found = "There is no entry \"{pattern}\"."
+logging_invalid = "That log setting is not valid."
+logging_needs_message_content = "These events need the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
+logging_needs_members = "These events need the Server Members intent. Enable it in the Developer Portal and set ENABLE_MEMBERS_INTENT=true."
 
 [cmd.help]
 desc = "Shows all commands you can use"
@@ -449,3 +452,137 @@ need_members = "Join rules are inactive: the Server Members intent is missing."
 [automod.stats]
 title = "Rule hits in the last {days} days"
 empty = "No rule hits in the last {days} days."
+
+[logging.value]
+unknown = "unknown"
+empty = "(empty)"
+jump = "Jump to message"
+none = "none"
+unlimited = "unlimited"
+never = "never"
+yes = "yes"
+timeout_ended = "ended"
+
+[logging.field]
+executor = "By"
+reason = "Reason"
+channel = "Channel"
+message_id = "Message ID"
+author = "Author"
+content = "Content"
+attachments = "Attachments"
+before = "Before"
+after = "After"
+link = "Link"
+count = "Count"
+known = "Known content"
+user = "Member"
+account_created = "Account created"
+member_count = "Members now"
+joined = "Joined"
+roles = "Roles"
+roles_added = "Roles added"
+roles_removed = "Roles removed"
+nickname = "Nickname"
+timeout = "Timeout until"
+name = "Name"
+id = "ID"
+changes = "Changes"
+type = "Type"
+code = "Code"
+inviter = "Created by"
+max_uses = "Max uses"
+expires = "Expires"
+temporary = "Temporary membership"
+
+[logging.message]
+not_cached = "The content is no longer known (the message is too old or the bot restarted since)."
+before_unknown = "(not known)"
+
+[logging.bulk]
+header = "Bulk delete in channel {channel}: {count} messages, {cached} with known content"
+see_file = "The deleted messages are in the attached file."
+
+[logging.title]
+message_delete = "Message deleted"
+message_edit = "Message edited"
+message_bulk = "Messages deleted in bulk"
+member_join = "Member joined"
+member_leave = "Member left"
+member_kicked = "Member kicked"
+member_update = "Member updated"
+member_ban = "Member banned"
+member_unban = "Member unbanned"
+role_create = "Role created"
+role_delete = "Role deleted"
+role_update = "Role changed"
+channel_create = "Channel created"
+channel_delete = "Channel deleted"
+channel_update = "Channel changed"
+voice = "Voice"
+invite_create = "Invite created"
+invite_delete = "Invite deleted"
+
+[logging.voice]
+joined = "joined <#{channel}>"
+left = "left <#{channel}>"
+moved = "moved from <#{before}> to <#{after}>"
+
+[logging.change]
+name = "Name"
+color = "Color"
+permissions = "Permissions"
+hoist = "Shown separately"
+mentionable = "Mentionable"
+topic = "Topic"
+slowmode = "Slowmode"
+nsfw = "Age-restricted"
+category = "Category"
+bitrate = "Bitrate"
+user_limit = "User limit"
+
+[cmd.logging]
+desc = "Server log: what happens on the server, written to channels"
+[cmd.logging.set]
+desc = "Chooses the channel for an event type (or for all)"
+[cmd.logging.off]
+desc = "Turns an event type (or all) off"
+[cmd.logging.status]
+desc = "Shows which event types are logged where"
+[cmd.logging.ignore]
+desc = "Exceptions for the log"
+[cmd.logging.ignore.channel_add]
+desc = "Stops logging messages from a channel"
+[cmd.logging.ignore.channel_remove]
+desc = "Logs messages from a channel again"
+[cmd.logging.ignore.bots]
+desc = "Sets whether messages and voice activity of bots are left out"
+
+[cmd.arg.event]
+desc = "The event type, or all"
+[cmd.arg.target_channel]
+desc = "The channel the entries go to"
+[cmd.arg.ignored_channel]
+desc = "The channel"
+
+[logging]
+all = "all event types"
+set = "Logging {event} → {channel}.{skipped}"
+skipped = "Skipped because an intent is missing: {events}"
+off = "Logging for {event} is off."
+ignored_added = "Messages in {channel} are no longer logged."
+ignored_removed = "Messages in {channel} are logged again."
+bots_ignored = "Messages and voice activity of bots are left out."
+bots_logged = "Messages and voice activity of bots are logged."
+dropped = "⚠️ {count} log entries were dropped because too many arrived at once."
+
+[logging.status]
+title = "Server log"
+ignored = "Ignored channels"
+bots = "Bots left out"
+no_audit = "I lack the View Audit Log permission: entries show no moderator or reason."
+need_message_content = "needs the Message Content intent"
+need_members = "needs the Server Members intent"
+channel_missing = "channel not found"
+cannot_send = "I can't write there (Send Messages, Embed Links)"
+cannot_attach = "I can't attach files there (Attach Files)"

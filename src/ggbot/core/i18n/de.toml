@@ -44,6 +44,9 @@ automod_needs_members = "Diese Regel braucht den Server-Members-Intent. Schalte 
 automod_cannot_delete = "Ich darf dort keine Nachrichten löschen (Nachrichten verwalten)."
 automod_domain_invalid = "In \"{value}\" finde ich keine Domain."
 automod_word_not_found = "Es gibt keinen Eintrag \"{pattern}\"."
+logging_invalid = "Diese Log-Einstellung ist nicht gültig."
+logging_needs_message_content = "Diese Ereignisse brauchen den Message-Content-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MESSAGE_CONTENT_INTENT=true."
+logging_needs_members = "Diese Ereignisse brauchen den Server-Members-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MEMBERS_INTENT=true."
 
 [cmd.help]
 desc = "Zeigt alle Befehle, die du nutzen kannst"
@@ -449,3 +452,137 @@ need_members = "Beitritts-Regeln sind inaktiv: Der Server-Members-Intent fehlt."
 [automod.stats]
 title = "Regeltreffer der letzten {days} Tage"
 empty = "Keine Regeltreffer in den letzten {days} Tagen."
+
+[logging.value]
+unknown = "unbekannt"
+empty = "(leer)"
+jump = "Zur Nachricht"
+none = "keine"
+unlimited = "unbegrenzt"
+never = "nie"
+yes = "ja"
+timeout_ended = "beendet"
+
+[logging.field]
+executor = "Durch"
+reason = "Grund"
+channel = "Kanal"
+message_id = "Nachrichten-ID"
+author = "Autor"
+content = "Inhalt"
+attachments = "Anhänge"
+before = "Vorher"
+after = "Nachher"
+link = "Link"
+count = "Anzahl"
+known = "Bekannter Inhalt"
+user = "Mitglied"
+account_created = "Konto erstellt"
+member_count = "Mitglieder jetzt"
+joined = "Beigetreten"
+roles = "Rollen"
+roles_added = "Rollen hinzugefügt"
+roles_removed = "Rollen entfernt"
+nickname = "Nickname"
+timeout = "Timeout bis"
+name = "Name"
+id = "ID"
+changes = "Änderungen"
+type = "Typ"
+code = "Code"
+inviter = "Erstellt von"
+max_uses = "Max. Verwendungen"
+expires = "Läuft ab"
+temporary = "Vorübergehende Mitgliedschaft"
+
+[logging.message]
+not_cached = "Der Inhalt ist nicht mehr bekannt (die Nachricht ist zu alt, oder der Bot wurde seither neu gestartet)."
+before_unknown = "(nicht bekannt)"
+
+[logging.bulk]
+header = "Massenlöschung im Kanal {channel}: {count} Nachrichten, davon {cached} mit bekanntem Inhalt"
+see_file = "Die gelöschten Nachrichten stehen in der angehängten Datei."
+
+[logging.title]
+message_delete = "Nachricht gelöscht"
+message_edit = "Nachricht bearbeitet"
+message_bulk = "Nachrichten massenhaft gelöscht"
+member_join = "Mitglied beigetreten"
+member_leave = "Mitglied gegangen"
+member_kicked = "Mitglied gekickt"
+member_update = "Mitglied geändert"
+member_ban = "Mitglied gebannt"
+member_unban = "Mitglied entbannt"
+role_create = "Rolle erstellt"
+role_delete = "Rolle gelöscht"
+role_update = "Rolle geändert"
+channel_create = "Kanal erstellt"
+channel_delete = "Kanal gelöscht"
+channel_update = "Kanal geändert"
+voice = "Sprache"
+invite_create = "Einladung erstellt"
+invite_delete = "Einladung gelöscht"
+
+[logging.voice]
+joined = "ist <#{channel}> beigetreten"
+left = "hat <#{channel}> verlassen"
+moved = "wechselte von <#{before}> nach <#{after}>"
+
+[logging.change]
+name = "Name"
+color = "Farbe"
+permissions = "Berechtigungen"
+hoist = "Separat angezeigt"
+mentionable = "Erwähnbar"
+topic = "Thema"
+slowmode = "Slowmode"
+nsfw = "Altersbeschränkt"
+category = "Kategorie"
+bitrate = "Bitrate"
+user_limit = "Nutzerlimit"
+
+[cmd.logging]
+desc = "Server-Log: was auf dem Server passiert, in Kanäle geschrieben"
+[cmd.logging.set]
+desc = "Wählt den Kanal für eine Ereignisart (oder für alle)"
+[cmd.logging.off]
+desc = "Schaltet eine Ereignisart (oder alle) aus"
+[cmd.logging.status]
+desc = "Zeigt, welche Ereignisarten wohin protokolliert werden"
+[cmd.logging.ignore]
+desc = "Ausnahmen für das Log"
+[cmd.logging.ignore.channel_add]
+desc = "Protokolliert keine Nachrichten aus einem Kanal mehr"
+[cmd.logging.ignore.channel_remove]
+desc = "Protokolliert Nachrichten aus einem Kanal wieder"
+[cmd.logging.ignore.bots]
+desc = "Legt fest, ob Nachrichten und Sprachaktivität von Bots weggelassen werden"
+
+[cmd.arg.event]
+desc = "Die Ereignisart, oder all"
+[cmd.arg.target_channel]
+desc = "Der Kanal, in den die Einträge gehen"
+[cmd.arg.ignored_channel]
+desc = "Der Kanal"
+
+[logging]
+all = "alle Ereignisarten"
+set = "{event} wird protokolliert → {channel}.{skipped}"
+skipped = "Übersprungen, weil ein Intent fehlt: {events}"
+off = "Protokollierung für {event} ist aus."
+ignored_added = "Nachrichten in {channel} werden nicht mehr protokolliert."
+ignored_removed = "Nachrichten in {channel} werden wieder protokolliert."
+bots_ignored = "Nachrichten und Sprachaktivität von Bots werden weggelassen."
+bots_logged = "Nachrichten und Sprachaktivität von Bots werden protokolliert."
+dropped = "⚠️ {count} Log-Einträge wurden verworfen, weil zu viele auf einmal kamen."
+
+[logging.status]
+title = "Server-Log"
+ignored = "Ignorierte Kanäle"
+bots = "Bots weggelassen"
+no_audit = "Mir fehlt das Recht „Audit-Log ansehen“: Einträge zeigen keinen Moderator und keinen Grund."
+need_message_content = "braucht den Message-Content-Intent"
+need_members = "braucht den Server-Members-Intent"
+channel_missing = "Kanal nicht gefunden"
+cannot_send = "Ich darf dort nicht schreiben (Nachrichten senden, Links einbetten)"
+cannot_attach = "Ich darf dort keine Dateien anhängen (Dateien anhängen)"

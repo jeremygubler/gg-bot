@@ -111,7 +111,7 @@ bei Snowflakes < 2^63).
 | 1 | `guilds` (id, locale, timezone, joined_at, left_at), `guild_settings` (guild_id, module, data JSONB, version, updated_at), `dashboard_audit` (guild_id, user_id, module, before, after, at), `scheduled_jobs` |
 | 2 | `mod_cases` (guild_id, case_no, type, target_id, moderator_id, reason, duration_seconds, expires_at, active, ref_case_no, created_at; Unique `(guild_id, case_no)`), `mod_case_counters` (atomare Case-Nummer pro Server), `mod_notes`, `channel_locks` (vorheriger Overwrite-Zustand für `/unlock`). Eskalationsregeln liegen in den Settings (Modul `moderation`) |
 | 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (guild_id, user_id, channel_id, rule, actions, created_at; Statistik, 30 Tage Aufbewahrung) |
-| 4 | Nur Settings (Kanal pro Event-Typ); `invite_snapshots` für Invite-Tracking |
+| 4 | Keine eigenen Tabellen: Einstellungen (Modul `logging`, Kanal pro Ereignisart). Nachrichteninhalte werden **nicht** in der Datenbank gespeichert |
 | 5 | `xp_members` (guild_id, user_id, xp, level, msg_count, voice_seconds, last_xp_at), `xp_voice_sessions`, `level_rewards` in Settings, `rank_card_styles` (guild_id, user_id, JSONB) |
 | 6 | `role_panels`, `role_panel_items`, `reaction_roles`, Willkommen in Settings |
 | 7 | `ticket_panels`, `ticket_categories`, `tickets`, `ticket_messages` (nur für Transkript), `ticket_feedback`, `ticket_transcripts` |
@@ -323,8 +323,7 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
 6. **MEE6-Import (Phase 5):** über die öffentliche Leaderboard-API von MEE6, die Server
    freigeben müssen; ob sie zum Zeitpunkt der Umsetzung noch erreichbar ist, prüfe ich dann
    und melde es, bevor ich baue.
-7. **Datenschutz:** Nachrichteninhalte werden nur für Logging-Features (Phase 4) und Tickets
-   (Phase 7) verarbeitet und nur dort gespeichert; der Bot speichert keine allgemeinen
+7. **Datenschutz:** Nachrichteninhalte liegen nur im Arbeitsspeicher des Bots (Phase 4, Event-Log) bzw. in Ticket-Transkripten (Phase 7); der Bot speichert keine allgemeinen
    Nachrichtenverläufe. Aufbewahrungsfristen sind pro Server einstellbar. `/privacy` zeigt
    Nutzern, was gespeichert ist, und erlaubt das Löschen ihrer XP-/Geburtstagsdaten.
 
@@ -380,3 +379,31 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
 - **Statistik:** `automod_hits`, Aufräumen höchstens stündlich beim Schreiben (Redis-Sperre), ohne eigenen Job.
 - **Prozess-Cache:** Die Einstellungen werden pro Nachricht gebraucht und deshalb 5 s im Prozess gehalten; das
   `settings.changed`-Event und jeder Befehl leeren ihn sofort.
+
+## 15. Event-Log (Phase 4)
+
+- **Aufbau:** `core/logs/entries.py` formatiert Einträge aus reinen Daten (Schnappschüsse, Diffs), `core/services/eventlog.py`
+  entscheidet, ob und wohin ein Ereignis geht, der Cog `eventlog` übersetzt Discord-Objekte und Ereignisse. Der Sender
+  (`bot/eventlog_send.py`) schreibt in die Kanäle.
+- **17 Ereignisarten, je ein eigener Kanal:** message_delete/edit/bulk, member_join/leave/update/ban/unban,
+  role_create/delete/update, channel_create/delete/update, voice, invite_create/delete. Eine Art ohne Kanal ist aus.
+  Ein Kick wird als Variante von `member_leave` gezeigt (Audit-Log-Abgleich), nicht als eigene Art.
+- **Keine Nachrichten in der Datenbank.** Inhalt gelöschter/bearbeiteter Nachrichten stammt aus dem Nachrichten-Cache
+  des Bots (`MESSAGE_CACHE_SIZE`, Standard 5000, nur im Speicher). Ist eine Nachricht nicht (mehr) im Cache, etwa nach einem
+  Neustart, steht im Log ehrlich „Inhalt nicht mehr bekannt“, nichts Erfundenes. Das ist die Abwägung gegen ein
+  Redis-/DB-Archiv: kein Vorrat privater Nachrichten, dafür Lücken nach Neustarts.
+- **Intents:** Nachrichten-Arten brauchen *Message Content*, `member_join/leave/update` brauchen *Server Members*.
+  `/logging set` verweigert eine einzelne Art ohne den Intent; bei `all` werden solche Arten übersprungen und genannt;
+  `/logging status` markiert bereits gesetzte, aber blinde Arten. `voice_states`, `invites` und `moderation` sind nicht
+  privilegiert und immer an.
+- **Wer war es?** Für Ban/Unban, Kick, Rollen, Kanäle und Mitgliedsänderungen fragt der Cog das Audit-Log ab, nach 1 s Pause
+  (der Eintrag entsteht kurz nach dem Ereignis), nur für Einträge der letzten 20 s und höchstens drei Abfragen gleichzeitig.
+  Ohne das Recht *Audit-Log ansehen* fehlt die Angabe, es wird nichts geraten. Die Abfrage läuft erst, nachdem feststeht, dass
+  die Art überhaupt an ist. Nachrichten-Löschungen haben keinen Ausführenden: das Audit-Log fasst sie nur gesammelt zusammen.
+- **Rauschen vermeiden:** Umsortieren von Rollen/Kanälen, Stummschalten in Sprachkanälen und reine Link-Vorschau-
+  Bearbeitungen ergeben keinen Eintrag. Das Löschen in einem Log-Kanal selbst wird nicht protokolliert (Rückkopplung).
+  Bots werden bei Nachrichten und Sprache standardmässig weggelassen.
+- **Massenlöschungen als Datei:** Bulk-Delete (auch durch `/purge`) erzeugt einen Eintrag mit einer Textdatei aller bekannten
+  Nachrichten (Zeit, Autor, Inhalt, Anhänge), unbekannte nur als ID.
+- **Flut-Schutz:** Pro Kanal ein Worker mit höchstens 100 wartenden Einträgen. Was darüber hinaus kommt (Raid, Massenaktionen),
+  wird verworfen und am Ende in einer Zeile gemeldet. Fehlt das Schreibrecht, wird der Rest verworfen statt endlos versucht.

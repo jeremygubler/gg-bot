@@ -11,6 +11,7 @@ from ggbot.bot.client import GGBot
 from ggbot.bot.cogs.automod_config import AutomodConfigCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
+from ggbot.bot.cogs.eventlog_config import EventLogConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
 from ggbot.bot.errors import to_message
@@ -31,6 +32,7 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(ChannelToolsCog(instance))
     await instance.add_cog(ModConfigCog(instance))
     await instance.add_cog(AutomodConfigCog(instance))
+    await instance.add_cog(EventLogConfigCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -231,6 +233,17 @@ EXPECTED_PERMISSIONS = {
             "automod raid end",
         )
     },
+    **{
+        name: "manage_guild"
+        for name in (
+            "logging set",
+            "logging off",
+            "logging status",
+            "logging ignore channel_add",
+            "logging ignore channel_remove",
+            "logging ignore bots",
+        )
+    },
     "modconfig warn_expiry": "manage_guild",
     "modconfig dm": "manage_guild",
     "modconfig escalation add": "manage_guild",
@@ -269,3 +282,11 @@ def test_jedes_argument_hat_eine_uebersetzte_beschreibung(bot: GGBot) -> None:
             )
             for locale in LOCALES:
                 assert translator.has(locale, key), f"{key} fehlt in {locale}"
+
+
+def test_event_log_braucht_die_nicht_privilegierten_intents_immer(bot: GGBot) -> None:
+    intents = bot.intents
+    assert intents.voice_states
+    assert intents.invites
+    assert intents.moderation
+    assert intents.guilds

@@ -54,3 +54,16 @@ class FakePort:
 async def invoke(command: Any, *args: Any) -> None:
     """Ruft einen Slash-Command wie Discord auf (mypy kennt `.callback` nicht)."""
     await command.callback(*args)
+
+
+class FakeUser:
+    """Nutzer mit lesbarem Namen (`str(user)`), wie ihn Discord-Objekte liefern."""
+
+    def __init__(self, user_id: int, name: str = "alice", *, bot: bool = False) -> None:
+        self.id = user_id
+        self.name = name
+        self.bot = bot
+        self.mention = f"<@{user_id}>"
+
+    def __str__(self) -> str:
+        return self.name

@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 3 (Automod)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 4 (Logging)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -132,6 +132,47 @@ Link: `discord.gg` muss dann auf der Liste stehen. Ein Eintrag gilt für die Dom
 weitere Beitritt, bis der Modus nach `minutes` abläuft oder `/automod raid end` ihn beendet. Die Warnung geht in den
 Meldekanal, sonst in den Systemkanal des Servers.
 
+### Server-Log (Phase 4)
+
+Jede Ereignisart schreibt in einen **eigenen Kanal** (oder alle in denselben). Eine Art ohne Kanal ist aus.
+Standardmässig ist nichts an.
+
+| Art | Protokolliert | Braucht |
+|---|---|---|
+| `message_delete` | gelöschte Nachricht mit Autor, Kanal, Inhalt, Anhängen | Message Content |
+| `message_edit` | Bearbeitung mit Vorher/Nachher und Link | Message Content |
+| `message_bulk` | Massenlöschung (auch durch `/purge`) mit **Textdatei** aller bekannten Nachrichten | Message Content, *Dateien anhängen* im Log-Kanal |
+| `member_join` | Beitritt mit Kontoalter und Mitgliederzahl | Server Members |
+| `member_leave` | Austritt mit Rollen; als **Kick** erkannt, wenn das Audit-Log einen zeigt | Server Members |
+| `member_update` | Rollen, Nickname, Timeout geändert | Server Members |
+| `member_ban`, `member_unban` | Bann/Entbannung mit Moderator und Grund | – |
+| `role_create`, `role_delete`, `role_update` | Rollen, bei Änderung mit Name, Farbe, Berechtigungen (Hinzugefügtes/Entferntes) | – |
+| `channel_create`, `channel_delete`, `channel_update` | Kanäle, bei Änderung mit Name, Thema, Slowmode, Kategorie … | – |
+| `voice` | Sprachkanal betreten, verlassen, wechseln | – |
+| `invite_create`, `invite_delete` | Einladung mit Ersteller, Limit, Ablauf | – |
+
+| Befehl | Wirkung |
+|---|---|
+| `/logging set <event> <channel>` | Kanal für eine Art wählen; `all` setzt alle Arten, die möglich sind (die übrigen werden genannt) |
+| `/logging off <event>` | Art ausschalten; `all` schaltet alles aus |
+| `/logging status` | Welche Art wohin geht, mit Warnungen (fehlender Intent, fehlende Schreibrechte, gelöschter Kanal, kein Audit-Log-Recht) |
+| `/logging ignore channel_add\|channel_remove <channel>` | Nachrichten aus diesem Kanal nicht protokollieren |
+| `/logging ignore bots <on\|off>` | Nachrichten und Sprachaktivität von Bots weglassen (Standard: ja) |
+
+Alle brauchen *Manage Server*. Hinweise:
+- **Wer war es:** Moderator und Grund stammen aus dem Audit-Log und erscheinen nur, wenn der Bot *Audit-Log ansehen* darf.
+  Bei gelöschten Nachrichten gibt es keinen Ausführenden (das Audit-Log liefert ihn dort nicht verlässlich).
+- **Inhalt gelöschter Nachrichten** kennt der Bot nur aus seinem **Speicher** (`MESSAGE_CACHE_SIZE`, Standard 5000 Nachrichten).
+  Nach einem Neustart oder bei sehr alten Nachrichten steht im Log „Inhalt nicht mehr bekannt“. Es werden keine Nachrichten in
+  der Datenbank gespeichert.
+- **Datenschutz:** Log-Einträge enthalten Nachrichteninhalte. Wähle Kanäle, die nur das Team lesen darf.
+- Kein Eintrag entsteht für reines Umsortieren von Rollen/Kanälen, Stummschaltung im Sprachkanal und Link-Vorschauen.
+  Das Löschen im Log-Kanal selbst wird nicht protokolliert.
+- Kommen sehr viele Einträge auf einmal (Raid, Massenaktion), schreibt der Bot höchstens 100 pro Kanal in die Warteschlange
+  und meldet die verworfenen am Ende in einer Zeile.
+- Falls keine Einladungs-Einträge ankommen, dem Bot im Kanal das Recht *Kanäle verwalten* geben (Discord liefert diese
+  Ereignisse sonst unter Umständen nicht).
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -145,6 +186,7 @@ Dashboard bearbeitet.
 | `DEFAULT_LOCALE` | Startsprache neuer Server (`de`/`en`) |
 | `LOG_LEVEL`, `LOG_FORMAT` | `json` (Standard, für Logsammler) oder `console` |
 | `ENABLE_MESSAGE_CONTENT_INTENT` | `true` schaltet den privilegierten *Message Content Intent* ein (nur nach Freigabe im Developer Portal). Für Automod-Nachrichtenregeln und die Purge-Filter `contains`/`links` |
+| `MESSAGE_CACHE_SIZE` | Nachrichten im Arbeitsspeicher (100 bis 100000, Standard 5000); nur daraus zeigt das Event-Log den Inhalt gelöschter Nachrichten |
 | `ENABLE_MEMBERS_INTENT` | `true` schaltet den privilegierten *Server Members Intent* ein (nur nach Freigabe). Für Anti-Raid und Konto-Alter |
 | `DEV_GUILD_ID` | Befehle sofort auf einer Test-Guild statt global (Entwicklung) |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
@@ -162,6 +204,8 @@ Dashboard bearbeitet.
 | *Manage Threads* | `/slowmode` in Threads |
 | *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone) |
 | *Manage Messages* | Automod löscht Nachrichten |
+| *View Audit Log* | Event-Log: Moderator und Grund bei Bann, Kick, Rollen, Kanälen (optional) |
+| *Send Messages*, *Embed Links* (und *Attach Files* für `message_bulk`) in den Log-Kanälen | Event-Log |
 | *Send Messages* | Automod-Hinweise und Meldungen (optional; ohne wird nur geloggt) |
 | *Moderate Members*, *Kick Members*, *Ban Members* | Automod-Aktionen (Timeout, Raid/Konto-Alter) |
 
@@ -173,8 +217,8 @@ Gateway Intents* freischalten **und** per Umgebungsvariable einschalten (ohne Fr
 
 | Intent | Variable | Wofür |
 |---|---|---|
-| *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`, `/purge links` |
-| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter |
+| *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`/`links`, Log der Nachrichten-Arten |
+| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen |
 
 ## Entwicklung
 

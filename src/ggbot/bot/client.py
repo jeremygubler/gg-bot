@@ -24,6 +24,8 @@ COGS = (
     "ggbot.bot.cogs.modconfig",
     "ggbot.bot.cogs.automod",
     "ggbot.bot.cogs.automod_config",
+    "ggbot.bot.cogs.eventlog",
+    "ggbot.bot.cogs.eventlog_config",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10
@@ -58,6 +60,10 @@ class GGBot(commands.AutoShardedBot):
         # Nachrichten-Ereignisse (Automod) nur mit dem Inhalts-Intent: ohne Inhalt wären sie blind.
         intents.guild_messages = config.enable_message_content_intent
         intents.members = config.enable_members_intent
+        # Nicht privilegiert; für das Event-Log (Sprache, Einladungen, Bans).
+        intents.voice_states = True
+        intents.invites = True
+        intents.moderation = True
         # discord.py typisiert shard_ids als list[int], erwartet aber "weglassen" für "auto".
         shard_options: dict[str, Any] = {"shard_ids": config.shard_ids} if config.shard_ids else {}
         super().__init__(
@@ -65,6 +71,7 @@ class GGBot(commands.AutoShardedBot):
             intents=intents,
             tree_cls=GGTree,
             shard_count=config.shard_count,
+            max_messages=config.message_cache_size,
             **shard_options,
             help_command=None,
         )

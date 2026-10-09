@@ -29,6 +29,10 @@ class AppConfig(BaseSettings):
     # Privilegierter Intent für Beitritts-Regeln (Anti-Raid, Konto-Alter), ebenfalls nach Freigabe.
     enable_members_intent: bool = False
 
+    # Nachrichten, die der Bot im Speicher hält. Nur daraus zeigt das Event-Log den Inhalt
+    # gelöschter oder bearbeiteter Nachrichten; in der Datenbank wird nichts davon gespeichert.
+    message_cache_size: int = Field(default=5000, ge=100, le=100_000)
+
     # Nur für die Entwicklung: Slash-Commands sofort auf einer Test-Guild statt global.
     dev_guild_id: int | None = None
 
