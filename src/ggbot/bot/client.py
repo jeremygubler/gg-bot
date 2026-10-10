@@ -2,15 +2,19 @@ import asyncio
 import contextlib
 import hashlib
 import json
+import math
+import time
 from typing import Any
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from ggbot import __version__
 from ggbot.bot.errors import respond_ephemeral, to_message
 from ggbot.bot.i18n import CommandTranslator
 from ggbot.bot.services import Services
+from ggbot.core import status
 from ggbot.core.logging import get_logger
 from ggbot.core.redis import get_str, key
 
@@ -43,9 +47,14 @@ COGS = (
     "ggbot.bot.cogs.statchannels",
     "ggbot.bot.cogs.schedule",
 )
-HEARTBEAT_KEY = key("heartbeat", "bot")
-HEARTBEAT_INTERVAL = 10
-HEARTBEAT_TTL = 30
+
+
+async def _count(bot: "GGBot", name: str) -> None:
+    try:
+        await status.count(bot.services.redis, name)
+    except Exception:
+        # Eine Zahl für die Metriken darf nie einen Befehl kosten.
+        log.warning("metric_count_failed", name=name)
 
 
 class GGTree(app_commands.CommandTree["GGBot"]):
@@ -59,7 +68,10 @@ class GGTree(app_commands.CommandTree["GGBot"]):
             # Die Fehlermeldung darf nicht an der Sprachabfrage scheitern.
             log.exception("locale_lookup_failed")
             locale = bot.services.config.default_locale
-        text, _ = to_message(error, locale)
+        text, error_id = to_message(error, locale)
+        if error_id is not None:
+            # Nur echte Bugs zählen; falsche Eingaben und fehlende Rechte sind kein Fehlerbild.
+            await _count(bot, "command_errors")
         await respond_ephemeral(interaction, text)
 
 
@@ -144,9 +156,31 @@ class GGBot(commands.AutoShardedBot):
         await self.services.redis.set(redis_key, digest)
         log.info("commands_synced", count=len(payload), dev_guild=guild.id if guild else None)
 
+    async def on_app_command_completion(
+        self, interaction: discord.Interaction, command: Any
+    ) -> None:
+        await _count(self, "commands")
+
     async def _heartbeat(self) -> None:
-        """Lebenszeichen für den Docker-Healthcheck."""
+        """Lebenszeichen für Docker-Healthcheck, Dashboard und Metriken."""
+        started = time.time()
         while True:
             if self.is_ready():
-                await self.services.redis.set(HEARTBEAT_KEY, "1", ex=HEARTBEAT_TTL)
-            await asyncio.sleep(HEARTBEAT_INTERVAL)
+                try:
+                    latency = self.latency
+                    await status.write_status(
+                        self.services.redis,
+                        status.BotStatus(
+                            version=__version__,
+                            started_at=started,
+                            guilds=len(self.guilds),
+                            shards=len(self.shards) or 1,
+                            # Vor dem ersten Herzschlag ist die Latenz NaN.
+                            latency_ms=None if math.isnan(latency) else round(latency * 1000, 1),
+                            written_at=time.time(),
+                        ),
+                    )
+                except Exception:
+                    # Kein Lebenszeichen heisst für Docker „ungesund“; der Grund gehört ins Log.
+                    log.exception("heartbeat_failed")
+            await asyncio.sleep(status.HEARTBEAT_INTERVAL)

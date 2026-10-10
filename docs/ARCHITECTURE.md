@@ -681,3 +681,57 @@ Umgesetzt in `web/src/` (React 18, Vite, Tailwind, nur `react`/`react-dom` zur L
   neu anlegen), Reihenfolge ändern, Reaktions-Panels an fremden Nachrichten anlegen (nur per Slash-Befehl,
   weil sie die Nachricht prüfen müssen), persönliches Ausblenden aus der öffentlichen Liste.
 
+## 25. Betrieb und Härtung (Phase 11)
+
+- **Lebenszeichen und Zähler** (`core/status.py`): der Bot schreibt alle 10 s Version, Serverzahl,
+  Shards und Latenz als JSON nach Redis (30 s gültig); der Docker-Healthcheck prüft nur, ob der
+  Schlüssel da ist. Zwei Zähler (`commands`, `command_errors`) zählt der Bot per `INCR`; Fehler zählen
+  nur echte Bugs (mit Fehler-ID), nicht falsche Eingaben oder fehlende Rechte. Es gibt bewusst keinen
+  zweiten HTTP-Server im Bot. Ein Fehler beim Schreiben kostet nie einen Befehl und beendet den Herzschlag nicht.
+- **`/metrics`** (`api/metrics.py`): Prometheus-Textformat ohne zusätzliche Bibliothek. Nur mit
+  `METRICS_TOKEN` (Bearer, Vergleich zeitkonstant); ohne gesetztes Token gibt es den Endpunkt nicht (404).
+  nginx beantwortet `/api/metrics` selbst mit 404; Prometheus ruft `api:8000/metrics` im Compose-Netz auf.
+  Metriken: `gg_info`, `gg_{db,redis,bot}_up`, `gg_bot_{guilds,shards,latency_seconds,uptime_seconds}`,
+  `gg_bot_commands_total`, `gg_bot_command_errors_total`, `gg_scheduler_jobs{state}`,
+  `gg_scheduler_overdue_jobs` und `gg_scheduler_oldest_overdue_seconds` (fällig seit über 60 s und nicht
+  abgearbeitet = Scheduler hängt). `/healthz` nennt zusätzlich Version und `bot: ok|down`; der Bot zählt
+  **nicht** zum HTTP-Status (fällt er aus, bleibt das Dashboard erreichbar).
+  Vorschlag für Alarme: `gg_bot_up == 0` seit 2 min; `gg_scheduler_overdue_jobs > 0` seit 5 min;
+  `increase(gg_bot_command_errors_total[15m]) > 0`.
+- **Gefundene Lücken beim Sicherheitsdurchgang** (selbst durchgesehen, `security-review` lief hier nicht,
+  weil kein `origin/HEAD` existiert):
+  1. *Zu grosse IDs gaben 500* (Postgres lehnt Zahlen über int64 ab), auch auf der öffentlichen Rangliste.
+     Jetzt `api/ids.py` (`Id`), Körper-IDs prüft `Snowflake`; Test je Route.
+  2. *Der einmalige Anmelde-Code stand im Zugriffsprotokoll* (uvicorn loggt die Query). Jetzt
+     `--no-access-log` und ein eigenes Protokoll mit Methode, Pfad, Status, Dauer, nie der Query.
+  3. *Besucheradresse als Redis-Schlüssel*: beliebige Zeichenketten aus `X-Forwarded-For`; jetzt nur echte IPs.
+  4. *Avatar-URLs* aus dem Zwischenspeicher gehen nur noch durch, wenn sie von `cdn.discordapp.com` kommen.
+  5. Antworten der API: `Cache-Control: no-store` (sofern nicht anders gesetzt), `nosniff`, `X-Frame-Options`, `no-referrer`.
+- **nginx** (`web/nginx.conf`, `web/security-headers.conf`): unprivilegierte Variante (Port 8080 im Container,
+  `WEB_PORT` bleibt aussen), Content-Security-Policy (`default-src 'none'`, Skripte und Stile nur von sich, Bilder
+  von sich, `blob:` und Discords CDN), `nosniff`, `X-Frame-Options: DENY`, `Permissions-Policy`, Hash-Dateien
+  ewig cachebar, `index.html` nie. **HSTS** gehört an den TLS-beendenden Proxy davor. Die CSP wurde im echten
+  Browser gegen alle Seiten geprüft (keine Verstösse; mit entferntem CDN schlägt dieselbe Prüfung an).
+- **Container**: `cap_drop: ALL`, `no-new-privileges`, Log-Rotation (10 MB × 3), `read_only` mit `tmpfs /tmp`
+  für API und Web. Postgres und Redis bleiben bei den Standardwerten der offiziellen Images. Der Bot läuft nicht
+  `read_only`: das liess sich ohne echten Discord-Token nicht erproben.
+- **Backup/Restore** (`scripts/backup.sh`, `scripts/restore.sh`): `pg_dump -Fc` mit sofortiger Leseprobe
+  (`pg_restore --list`), Rechte 600, Rotation (`BACKUP_KEEP`, Standard 14), halbfertige Dateien werden entfernt.
+  Restore prüft die Datei **vor** dem Eingriff, verlangt `RESTORE` (oder `--yes`), hält Bot und API an, spielt ein,
+  leert Redis (sonst zeigt der Einstellungs-Cache noch eine Stunde den alten Stand) und startet neu; bei einem
+  Fehler wird weder geleert noch gestartet. Redis wird nicht gesichert (Zwischenspeicher). Getestet gegen echtes
+  Postgres (`tests/integration/test_backup_scripts.py`) und in CI auf dem laufenden Compose-Stack.
+- **Last und Ausfälle** (`tests/integration/test_load.py`): 5 Worker ziehen 300 Jobs gleichzeitig, jeder läuft
+  genau einmal; scheiternde Handler laufen genau einmal erneut; ein Worker, der nach dem Ziehen stirbt, verliert
+  keine Jobs (Pacht läuft ab, andere übernehmen); 500 Ereignisse mit Müll dazwischen kommen vollständig und
+  in Reihenfolge an. Hinweis: `SKIP LOCKED` ist für den Durchsatz da, nicht für die Korrektheit (mit
+  gewöhnlichem `FOR UPDATE` bliebe es genau einmal, aber Worker warteten aufeinander).
+- **Abhängigkeiten**: `audit.yml` prüft Laufzeit-Pakete (`pip-audit`) und alle npm-Pakete (`npm audit --audit-level=high`)
+  bei jedem Push und wöchentlich. Beim ersten Lauf: Python 0 Funde; npm 2 kritische in den Test-Werkzeugen
+  (Tinypool in Vitest 3), behoben durch Vitest 5.
+- **Release**: Version steht in `pyproject.toml`, `src/ggbot/__init__.py`, `web/package.json`, beiden Lockfiles;
+  ein Test erzwingt, dass sie gleich sind und `CHANGELOG.md` einen Abschnitt dafür hat. Ein Tag `vX.Y.Z` löst
+  `release.yml` aus: Tag, Versionen und Changelog prüfen, Images nach `ghcr.io/<owner>/gg-bot[-web]` (Version und
+  `latest`), GitHub-Release mit dem Changelog-Abschnitt. **Der Workflow ist nicht erprobt** (kein Registry-Zugang
+  hier); der erste Tag zeigt es.
+

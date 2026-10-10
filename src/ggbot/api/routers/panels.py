@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from ggbot.api import policy
 from ggbot.api.access import Csrf, GuildAccess, api_error, guild_access, is_administrator
 from ggbot.api.errors import request_locale
+from ggbot.api.ids import Id
 from ggbot.api.ratelimit import hit
 from ggbot.core import events
 from ggbot.core.errors import UserError
@@ -219,7 +220,7 @@ async def _notify(
     request: Request,
     access: GuildAccess,
     kind: Literal["role", "ticket"],
-    panel_id: int,
+    panel_id: Id,
     *,
     action: Literal["publish", "refresh", "delete"],
     channel_id: int | None = None,
@@ -283,7 +284,7 @@ async def create_role_panel(
     return role_panel_out(view)
 
 
-async def _role_panel(request: Request, access: GuildAccess, panel_id: int) -> PanelView:
+async def _role_panel(request: Request, access: GuildAccess, panel_id: Id) -> PanelView:
     return await _roles(request).get(access.guild.id, panel_id)
 
 
@@ -294,7 +295,7 @@ async def _refresh_role_panel(request: Request, access: GuildAccess, view: Panel
 
 @router.put("/guilds/{guild_id}/panels/roles/{panel_id}", dependencies=[Csrf])
 async def update_role_panel(
-    panel_id: int, body: RolePanelUpdate, request: Request, access: Access
+    panel_id: Id, body: RolePanelUpdate, request: Request, access: Access
 ) -> RolePanelOut:
     _require_administrator(access)
     await _write_gate(request, access)
@@ -306,7 +307,7 @@ async def update_role_panel(
 
 
 @router.delete("/guilds/{guild_id}/panels/roles/{panel_id}", dependencies=[Csrf], status_code=204)
-async def delete_role_panel(panel_id: int, request: Request, access: Access) -> None:
+async def delete_role_panel(panel_id: Id, request: Request, access: Access) -> None:
     _require_administrator(access)
     await _write_gate(request, access)
     view = await _roles(request).delete(access.guild.id, panel_id)
@@ -326,7 +327,7 @@ async def delete_role_panel(panel_id: int, request: Request, access: Access) -> 
     "/guilds/{guild_id}/panels/roles/{panel_id}/items", dependencies=[Csrf], status_code=201
 )
 async def add_role_item(
-    panel_id: int, body: RoleItemIn, request: Request, access: Access
+    panel_id: Id, body: RoleItemIn, request: Request, access: Access
 ) -> RolePanelOut:
     _require_administrator(access)
     await _write_gate(request, access)
@@ -346,7 +347,7 @@ async def add_role_item(
 
 @router.delete("/guilds/{guild_id}/panels/roles/{panel_id}/items/{role_id}", dependencies=[Csrf])
 async def remove_role_item(
-    panel_id: int, role_id: int, request: Request, access: Access
+    panel_id: Id, role_id: Id, request: Request, access: Access
 ) -> RolePanelOut:
     _require_administrator(access)
     await _write_gate(request, access)
@@ -359,7 +360,7 @@ async def remove_role_item(
     "/guilds/{guild_id}/panels/roles/{panel_id}/publish", dependencies=[Csrf], status_code=202
 )
 async def publish_role_panel(
-    panel_id: int, body: PublishIn, request: Request, access: Access
+    panel_id: Id, body: PublishIn, request: Request, access: Access
 ) -> StatusOut:
     _require_administrator(access)
     await _write_gate(request, access)
@@ -374,7 +375,7 @@ async def publish_role_panel(
 
 
 @router.get("/guilds/{guild_id}/panels/roles/{panel_id}/status")
-async def role_panel_status(panel_id: int, request: Request, access: Access) -> StatusOut:
+async def role_panel_status(panel_id: Id, request: Request, access: Access) -> StatusOut:
     await _role_panel(request, access, panel_id)
     return _status_out(
         request, await get_status(request.app.state.redis, "role", access.guild.id, panel_id)
@@ -396,7 +397,7 @@ async def _refresh_ticket_panel(
 
 
 async def _category_name(
-    request: Request, access: GuildAccess, panel_id: int, category_id: int
+    request: Request, access: GuildAccess, panel_id: Id, category_id: Id
 ) -> str:
     """Die Dienste adressieren Kategorien über den Namen; die API über die ID (Namen dürfen
     Schrägstriche und Sonderzeichen enthalten)."""
@@ -425,7 +426,7 @@ async def create_ticket_panel(
 
 @router.put("/guilds/{guild_id}/panels/tickets/{panel_id}", dependencies=[Csrf])
 async def update_ticket_panel(
-    panel_id: int, body: TicketPanelIn, request: Request, access: Access
+    panel_id: Id, body: TicketPanelIn, request: Request, access: Access
 ) -> TicketPanelOut:
     await _write_gate(request, access)
     view = await _tickets(request).update_panel(
@@ -436,7 +437,7 @@ async def update_ticket_panel(
 
 
 @router.delete("/guilds/{guild_id}/panels/tickets/{panel_id}", dependencies=[Csrf], status_code=204)
-async def delete_ticket_panel(panel_id: int, request: Request, access: Access) -> None:
+async def delete_ticket_panel(panel_id: Id, request: Request, access: Access) -> None:
     await _write_gate(request, access)
     view = await _tickets(request).delete_panel(access.guild.id, panel_id)
     if view.published:
@@ -457,7 +458,7 @@ async def delete_ticket_panel(panel_id: int, request: Request, access: Access) -
     status_code=201,
 )
 async def add_category(
-    panel_id: int, body: CategoryIn, request: Request, access: Access
+    panel_id: Id, body: CategoryIn, request: Request, access: Access
 ) -> TicketPanelOut:
     await _write_gate(request, access)
     policy.check_support_role(access.snapshot, body.support_role_id)
@@ -482,7 +483,7 @@ async def add_category(
     "/guilds/{guild_id}/panels/tickets/{panel_id}/categories/{category_id}", dependencies=[Csrf]
 )
 async def remove_category(
-    panel_id: int, category_id: int, request: Request, access: Access
+    panel_id: Id, category_id: Id, request: Request, access: Access
 ) -> TicketPanelOut:
     await _write_gate(request, access)
     name = await _category_name(request, access, panel_id, category_id)
@@ -497,7 +498,7 @@ async def remove_category(
     status_code=201,
 )
 async def add_support_role(
-    panel_id: int, category_id: int, body: SupportRoleIn, request: Request, access: Access
+    panel_id: Id, category_id: Id, body: SupportRoleIn, request: Request, access: Access
 ) -> TicketPanelOut:
     await _write_gate(request, access)
     policy.check_support_role(access.snapshot, body.role_id)
@@ -513,7 +514,7 @@ async def add_support_role(
     dependencies=[Csrf],
 )
 async def remove_support_role(
-    panel_id: int, category_id: int, role_id: int, request: Request, access: Access
+    panel_id: Id, category_id: Id, role_id: Id, request: Request, access: Access
 ) -> TicketPanelOut:
     await _write_gate(request, access)
     name = await _category_name(request, access, panel_id, category_id)
@@ -527,7 +528,7 @@ async def remove_support_role(
     "/guilds/{guild_id}/panels/tickets/{panel_id}/publish", dependencies=[Csrf], status_code=202
 )
 async def publish_ticket_panel(
-    panel_id: int, body: PublishIn, request: Request, access: Access
+    panel_id: Id, body: PublishIn, request: Request, access: Access
 ) -> StatusOut:
     await _write_gate(request, access)
     view = await _tickets(request).get_panel(access.guild.id, panel_id)
@@ -539,7 +540,7 @@ async def publish_ticket_panel(
 
 
 @router.get("/guilds/{guild_id}/panels/tickets/{panel_id}/status")
-async def ticket_panel_status(panel_id: int, request: Request, access: Access) -> StatusOut:
+async def ticket_panel_status(panel_id: Id, request: Request, access: Access) -> StatusOut:
     await _tickets(request).get_panel(access.guild.id, panel_id)
     return _status_out(
         request, await get_status(request.app.state.redis, "ticket", access.guild.id, panel_id)

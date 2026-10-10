@@ -601,3 +601,35 @@ async def test_ticket_panel_status(api: Api) -> None:
     await set_status(api.redis, "ticket", GUILD_A, int(panel["id"]), PanelStatus(state="done"))
 
     assert (await api.client.get(url)).json()["state"] == "done"
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        f"{ROLES}/99999999999999999999999/status",
+        f"{ROLES}/99999999999999999999999/items/5",
+        f"{ROLES}/1/items/99999999999999999999999",
+        f"{TICKETS}/1/categories/99999999999999999999999",
+        f"{TICKETS}/99999999999999999999999/status",
+        f"/guilds/{GUILD_A}/audit?before=99999999999999999999999",
+    ],
+)
+async def test_zu_grosse_ids_geben_422_statt_500(api: Api, admin: None, path: str) -> None:
+    await login(api)
+
+    response = await api.client.request(
+        "DELETE" if "/items/" in path or "/categories/" in path else "GET", path, headers=CSRF
+    )
+
+    assert response.status_code == 422, path
+
+
+async def test_zu_grosse_id_im_koerper_ist_422(api: Api, admin: None) -> None:
+    await login(api)
+    panel = await role_panel(api)
+
+    response = await post(
+        api, f"{ROLES}/{panel['id']}/items", {"role_id": "99999999999999999999999", "label": "x"}
+    )
+
+    assert response.status_code == 422

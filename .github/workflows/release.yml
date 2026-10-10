@@ -1,0 +1,59 @@
+name: Release
+
+# Ein Tag vX.Y.Z veröffentlicht die Images (ghcr.io) und das GitHub-Release. Gebaut und getestet wird
+# in ci.yml; hier wird nur geprüft, dass Tag, Version und Changelog zusammenpassen, und dann ausgeliefert.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag, Version und Changelog müssen übereinstimmen
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          declared="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          web="$(python3 -c 'import json; print(json.load(open("web/package.json"))["version"])')"
+          if [ "$version" != "$declared" ] || [ "$version" != "$web" ]; then
+            echo "Tag $GITHUB_REF_NAME, pyproject $declared und web/package.json $web passen nicht zusammen" >&2
+            exit 1
+          fi
+          scripts/release-notes.sh "$version" > release-notes.md
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image-Namen (ghcr verlangt Kleinschreibung)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+      - name: Backend-Image (bot, api, migrate)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.ref_name }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Web-Image
+        uses: docker/build-push-action@v6
+        with:
+          context: web
+          push: true
+          tags: |
+            ${{ env.IMAGE }}-web:${{ github.ref_name }}
+            ${{ env.IMAGE }}-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: GitHub-Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md

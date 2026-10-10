@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 10 (Dashboard) komplett**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 11 (Härtung und Betrieb) komplett**, Version 0.11.0. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -19,7 +19,7 @@ Stand: **Phase 10 (Dashboard) komplett**. Die weiteren Feature-Phasen folgen.
    ```
 
    Der Dienst `migrate` legt das Schema an, danach starten `bot` und `api`.
-   Das Dashboard-Gerüst ist unter `http://<host>:8080` erreichbar (Port: `WEB_PORT`).
+   Das Dashboard ist unter `http://<host>:8080` erreichbar (Port: `WEB_PORT`).
 
 4. Auf dem Server `/help` ausprobieren.
 
@@ -472,9 +472,46 @@ Dashboard bearbeitet.
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | OAuth2-Zugang des Dashboards (Secret wird nie geloggt) |
 | `DASHBOARD_URL` | öffentliche Adresse des Dashboards, daraus entsteht der Redirect `<URL>/api/auth/callback` |
 | `SESSION_SECRET` | signiert das Sitzungs-Cookie, mind. 32 Zeichen (wird nie geloggt) |
+| `METRICS_TOKEN` | schaltet `/metrics` (Prometheus) ein; ohne Wert gibt es den Endpunkt nicht (wird nie geloggt) |
 | `PROXY_HOPS` | Proxys vor der API, die ihre Adresse an `X-Forwarded-For` anhängen (1 = nginx aus Compose, 2 = zusätzlich dein Reverse Proxy); für das Limit der öffentlichen Rangliste |
 | `COOKIE_SECURE` | `false` nur für lokale Entwicklung ohne https |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
+
+## Betrieb
+
+**Backup.** Alles Dauerhafte liegt in Postgres; Redis ist nur Zwischenspeicher (Sitzungen, Zähler, Caches).
+
+```bash
+scripts/backup.sh                      # schreibt backups/ggbot-<Zeit>.dump (Rechte 600), behält die letzten 14
+scripts/restore.sh backups/ggbot-….dump  # ÜBERSCHREIBT die Datenbank; verlangt die Eingabe von RESTORE
+```
+
+Per Cron täglich, die Dateien gehören ausserhalb des Servers gesichert. Die `.env` (Geheimnisse) gehört in
+dein Passwort-Archiv, nicht ins Backup. Nach einem Restore müssen sich Dashboard-Nutzer neu anmelden.
+Probiere den Restore einmal aus, bevor du ihn brauchst.
+
+**Überwachung.** Mit `METRICS_TOKEN` in der `.env` liefert die API unter `api:8000/metrics` Prometheus-Metriken
+(nur im Compose-Netz, von nginx gesperrt). Beispiel für Prometheus im selben Docker-Netz:
+
+```yaml
+scrape_configs:
+  - job_name: ggbot
+    authorization: {credentials: "<METRICS_TOKEN>"}
+    static_configs: [{targets: ["api:8000"]}]
+```
+
+Sinnvolle Alarme: `gg_bot_up == 0` seit 2 Minuten, `gg_scheduler_overdue_jobs > 0` seit 5 Minuten,
+`increase(gg_bot_command_errors_total[15m]) > 0`. Ohne Prometheus genügt `docker compose ps` (der Bot hat einen
+Healthcheck) und `GET /api/healthz` (nennt Version und `bot: ok|down`).
+
+**Härtung.** Die Container laufen ohne Root-Rechte und ohne Linux-Capabilities, API und Web mit
+Schreibschutz; nginx setzt eine strenge Content-Security-Policy. **TLS und HSTS** gehören an deinen
+Reverse Proxy davor. Der Bot läuft nicht schreibgeschützt (nicht erprobt). Mehr in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) Abschnitt 25.
+
+**Releases.** Version in `pyproject.toml`, `web/package.json` und `CHANGELOG.md` erhöhen, committen, dann
+`git tag vX.Y.Z && git push --tags`: der Workflow baut und veröffentlicht die Images
+(`ghcr.io/<owner>/gg-bot` und `-web`) und legt das GitHub-Release an. Abhängigkeiten prüft ein wöchentlicher Lauf.
 
 ## Benötigte Bot-Rechte
 

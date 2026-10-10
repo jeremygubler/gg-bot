@@ -11,6 +11,7 @@ from ggbot.core.db.repos import settings as repo
 from ggbot.core.settings.registry import MODELS
 from ggbot.core.settings.schema import SettingsModel
 from ggbot.core.settings.store import SettingsStore
+from ggbot.core.settings.types import MAX_SNOWFLAKE
 from ggbot.core.snapshot import GuildSnapshot
 
 router = APIRouter()
@@ -115,7 +116,7 @@ async def audit(
     request: Request,
     access: Annotated[GuildAccess, Depends(guild_access)],
     limit: Annotated[int, Query(ge=1, le=AUDIT_PAGE_MAX)] = 50,
-    before: Annotated[int | None, Query(ge=1)] = None,
+    before: Annotated[int | None, Query(ge=1, le=MAX_SNOWFLAKE)] = None,
 ) -> list[AuditEntry]:
     async with request.app.state.db.session() as session:
         rows = await repo.list_audit(session, access.guild.id, limit=limit, before_id=before)

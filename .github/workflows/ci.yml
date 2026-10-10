@@ -71,6 +71,7 @@ jobs:
         run: |
           cp .env.example .env
           echo "POSTGRES_PASSWORD=ci-only" >> .env
+          echo "METRICS_TOKEN=ci-metrics-token" >> .env
       - name: Images bauen und Dienste hochfahren (ohne Bot, der braucht einen echten Token)
         run: docker compose up -d --build --wait postgres redis migrate api web
       - name: Bot-Image kann alle Cogs importieren (z. B. die native RE2-Bibliothek)
@@ -79,6 +80,42 @@ jobs:
             "import importlib, re2; from ggbot.bot.client import COGS; [importlib.import_module(c) for c in COGS]; print(len(COGS), 'Cogs ok')"
       - name: API über nginx erreichbar
         run: |
+          curl -fsS http://localhost:8080/api/healthz
+      - name: Sicherheitsköpfe, gesperrter Metrik-Weg, keine Root-Prozesse
+        run: |
+          headers="$(curl -sS -D - -o /dev/null http://localhost:8080/)"
+          echo "$headers" | grep -i "^content-security-policy: default-src 'none'"
+          echo "$headers" | grep -i "^x-frame-options: DENY"
+          curl -sS -D - -o /dev/null http://localhost:8080/api/healthz | grep -i "^cache-control: no-store"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/metrics)" = 404
+          for service in web api; do
+            test "$(docker compose exec -T $service id -u)" != 0
+          done
+      - name: Metriken im Compose-Netz (mit Token) und ohne Token gesperrt
+        run: |
+          docker compose exec -T api python - <<'PY'
+          import os, urllib.request, urllib.error
+          def get(token):
+              request = urllib.request.Request("http://127.0.0.1:8000/metrics")
+              if token:
+                  request.add_header("Authorization", f"Bearer {token}")
+              return urllib.request.urlopen(request, timeout=5)
+          body = get(os.environ["METRICS_TOKEN"]).read().decode()
+          assert "gg_db_up 1" in body and "gg_redis_up 1" in body, body
+          try:
+              get(None)
+          except urllib.error.HTTPError as error:
+              assert error.code == 401
+          else:
+              raise SystemExit("ohne Token erreichbar")
+          PY
+      - name: Backup und Restore auf dem laufenden Stack
+        env:
+          START_CMD: docker compose up -d --wait migrate api
+        run: |
+          file="$(scripts/backup.sh)"
+          test -s "$file"
+          scripts/restore.sh --yes "$file"
           curl -fsS http://localhost:8080/api/healthz
       - if: failure()
         run: docker compose logs --no-color

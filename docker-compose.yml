@@ -1,6 +1,15 @@
 name: gg-bot
 
+# Logs wachsen sonst ohne Grenze; Rechte und Rechteerhöhung brauchen unsere Prozesse nicht.
+x-hardening: &hardening
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: ["ALL"]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+
 x-backend: &backend
+  <<: *hardening
   build: .
   restart: unless-stopped
   env_file: .env
@@ -59,7 +68,9 @@ services:
 
   api:
     <<: *backend
-    command: ["uvicorn", "ggbot.api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+    read_only: true
+    tmpfs: ["/tmp"]
+    command: ["uvicorn", "ggbot.api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
@@ -71,14 +82,17 @@ services:
       retries: 3
 
   web:
+    <<: *hardening
     build: ./web
     restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp"]
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8080}:8080"
     depends_on:
       api: {condition: service_healthy}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
       interval: 15s
       timeout: 5s
       retries: 3

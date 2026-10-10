@@ -174,3 +174,42 @@ class _Req:
 )
 def test_client_key(header: str | None, hops: int, expected: str) -> None:
     assert client_key(_Req(header), hops) == expected  # type: ignore[arg-type]
+
+
+async def test_riesige_ids_sind_404_nicht_500(api: Api) -> None:
+    """Postgres lehnt Zahlen über int64 ab; das darf auf einer offenen Route kein 500 werden."""
+    for huge in (2**63, 99999999999999999999999):
+        assert (await api.client.get(f"/public/{huge}/leaderboard")).status_code == 422
+
+
+async def test_avatar_nur_von_discords_cdn(api: Api) -> None:
+    await enable(api)
+    rows = [
+        BoardRow(
+            position=1,
+            name="a",
+            avatar_url="https://cdn.discordapp.com/avatars/1/x.png",
+            level=1,
+            xp=1,
+        ),
+        BoardRow(position=2, name="b", avatar_url="https://evil.example/x.png", level=1, xp=1),
+        BoardRow(position=3, name="c", avatar_url="javascript:alert(1)", level=1, xp=1),
+        BoardRow(
+            position=4,
+            name="d",
+            avatar_url="https://cdn.discordapp.com.evil.example/x.png",
+            level=1,
+            xp=1,
+        ),
+    ]
+    await save_board(api.redis, GUILD_A, PublicBoard(guild_name="Alpha", rows=rows))
+
+    avatars = [r["avatar_url"] for r in (await api.client.get(url())).json()["rows"]]
+
+    assert avatars == ["https://cdn.discordapp.com/avatars/1/x.png", None, None, None]
+
+
+def test_client_key_ignoriert_keine_ip_eintraege() -> None:
+    assert client_key(_Req("x" * 5000), 1) == "10.0.0.5"  # type: ignore[arg-type]
+    assert client_key(_Req("not-an-ip"), 1) == "10.0.0.5"  # type: ignore[arg-type]
+    assert client_key(_Req("::1"), 1) == "::1"  # type: ignore[arg-type]

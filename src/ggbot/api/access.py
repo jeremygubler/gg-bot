@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 
 from ggbot.api.discord import DiscordError, DiscordOAuth, UserGuild
+from ggbot.api.ids import Id
 from ggbot.api.sessions import COOKIE_NAME, Session, SessionStore
 from ggbot.core.logging import get_logger
 from ggbot.core.snapshot import GuildSnapshot, load_snapshot
@@ -100,7 +101,7 @@ async def current_user(
 
 
 async def guild_access(
-    guild_id: int, request: Request, auth: Annotated[Authed, Depends(current_user)]
+    guild_id: Id, request: Request, auth: Annotated[Authed, Depends(current_user)]
 ) -> GuildAccess:
     """Nutzer darf den Server verwalten UND der Bot ist dort.
 

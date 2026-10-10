@@ -4,6 +4,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
+from ggbot import __version__
 from ggbot.api.main import create_app
 from ggbot.core.config import AppConfig
 from tests.conftest import TEST_DB_URL, TEST_REDIS_URL
@@ -22,7 +23,7 @@ async def test_healthz_ok(client: tuple[httpx.AsyncClient, FastAPI]) -> None:
     http, _ = client
     response = await http.get("/healthz")
     assert response.status_code == 200
-    assert response.json() == {"db": "ok", "redis": "ok"}
+    assert response.json() == {"db": "ok", "redis": "ok", "version": __version__, "bot": "down"}
 
 
 async def test_healthz_meldet_503_wenn_redis_fehlt(
@@ -35,4 +36,4 @@ async def test_healthz_meldet_503_wenn_redis_fehlt(
     app.state.redis = create_redis("redis://localhost:1/0")  # nichts hört dort zu
     response = await http.get("/healthz")
     assert response.status_code == 503
-    assert response.json() == {"db": "ok", "redis": "error"}
+    assert response.json() == {"db": "ok", "redis": "error", "version": __version__}

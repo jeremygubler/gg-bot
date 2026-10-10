@@ -3,9 +3,9 @@
 import asyncio
 import sys
 
-from ggbot.bot.client import HEARTBEAT_KEY
 from ggbot.core.config import get_config
 from ggbot.core.redis import create_redis
+from ggbot.core.status import HEARTBEAT_KEY
 
 
 async def check() -> bool:
