@@ -37,6 +37,9 @@ async def bot(db: Database, redis: Redis) -> GGBot:
 @pytest.fixture(autouse=True)
 def no_audit_delay(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(eventlog_module, "AUDIT_DELAY_SECONDS", 0)
+    # NOW wird beim Import festgelegt; die Suite braucht mehr als die 20 s des Audit-Fensters, bis
+    # diese Tests drankommen. Mit eingefrorener Uhr hängt das Ergebnis nicht von der Laufzeit ab.
+    monkeypatch.setattr(eventlog_module, "_now", lambda: NOW)
 
 
 def make_world(
