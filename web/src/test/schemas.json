@@ -1,0 +1,1426 @@
+{
+  "general": {
+    "schema": {
+      "properties": {
+        "embed_color": {
+          "default": 5793266,
+          "maximum": 16777215,
+          "minimum": 0,
+          "title": "Embed Color",
+          "type": "integer",
+          "x-widget": "color"
+        }
+      },
+      "title": "GeneralSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "embed_color": 5793266
+    }
+  },
+  "moderation": {
+    "schema": {
+      "$defs": {
+        "EscalationRule": {
+          "description": "\"Bei genau `warns` aktiven Verwarnungen führt der Bot `action` aus\".",
+          "properties": {
+            "warns": {
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Warns",
+              "type": "integer"
+            },
+            "action": {
+              "enum": [
+                "timeout",
+                "kick",
+                "ban",
+                "tempban"
+              ],
+              "title": "Action",
+              "type": "string"
+            },
+            "duration_seconds": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Duration Seconds"
+            }
+          },
+          "required": [
+            "warns",
+            "action"
+          ],
+          "title": "EscalationRule",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "dm_on_action": {
+          "default": true,
+          "title": "Dm On Action",
+          "type": "boolean"
+        },
+        "warn_expiry_days": {
+          "anyOf": [
+            {
+              "maximum": 3650,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Warn Expiry Days"
+        },
+        "escalation": {
+          "items": {
+            "$ref": "#/$defs/EscalationRule"
+          },
+          "maxItems": 20,
+          "title": "Escalation",
+          "type": "array"
+        }
+      },
+      "title": "ModerationSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "dm_on_action": true,
+      "warn_expiry_days": null,
+      "escalation": []
+    }
+  },
+  "automod": {
+    "schema": {
+      "$defs": {
+        "AccountAgeRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "min_days": {
+              "default": 7,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Min Days",
+              "type": "integer"
+            },
+            "action": {
+              "$ref": "#/$defs/JoinAction"
+            }
+          },
+          "title": "AccountAgeRule",
+          "type": "object"
+        },
+        "CapsRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "min_length": {
+              "default": 10,
+              "maximum": 200,
+              "minimum": 5,
+              "title": "Min Length",
+              "type": "integer"
+            },
+            "max_percent": {
+              "default": 70,
+              "maximum": 100,
+              "minimum": 30,
+              "title": "Max Percent",
+              "type": "integer"
+            }
+          },
+          "title": "CapsRule",
+          "type": "object"
+        },
+        "DuplicatesRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "count": {
+              "default": 3,
+              "maximum": 20,
+              "minimum": 2,
+              "title": "Count",
+              "type": "integer"
+            },
+            "seconds": {
+              "default": 30,
+              "maximum": 300,
+              "minimum": 5,
+              "title": "Seconds",
+              "type": "integer"
+            }
+          },
+          "title": "DuplicatesRule",
+          "type": "object"
+        },
+        "InvitesRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "allowed_codes": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Allowed Codes",
+              "type": "array"
+            }
+          },
+          "title": "InvitesRule",
+          "type": "object"
+        },
+        "JoinAction": {
+          "description": "Aktion für Beitritte: Kick, Bann oder Timeout.",
+          "properties": {
+            "action": {
+              "default": "kick",
+              "enum": [
+                "kick",
+                "ban",
+                "timeout"
+              ],
+              "title": "Action",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 2419200,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Timeout Seconds"
+            }
+          },
+          "title": "JoinAction",
+          "type": "object"
+        },
+        "LinksRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "mode": {
+              "default": "blacklist",
+              "enum": [
+                "blacklist",
+                "whitelist"
+              ],
+              "title": "Mode",
+              "type": "string"
+            },
+            "domains": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Domains",
+              "type": "array"
+            }
+          },
+          "title": "LinksRule",
+          "type": "object"
+        },
+        "MentionsRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "max_mentions": {
+              "default": 5,
+              "maximum": 50,
+              "minimum": 2,
+              "title": "Max Mentions",
+              "type": "integer"
+            }
+          },
+          "title": "MentionsRule",
+          "type": "object"
+        },
+        "RaidRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "joins": {
+              "default": 5,
+              "maximum": 100,
+              "minimum": 2,
+              "title": "Joins",
+              "type": "integer"
+            },
+            "seconds": {
+              "default": 10,
+              "maximum": 300,
+              "minimum": 2,
+              "title": "Seconds",
+              "type": "integer"
+            },
+            "mode_minutes": {
+              "default": 10,
+              "maximum": 1440,
+              "minimum": 1,
+              "title": "Mode Minutes",
+              "type": "integer"
+            },
+            "action": {
+              "$ref": "#/$defs/JoinAction"
+            }
+          },
+          "title": "RaidRule",
+          "type": "object"
+        },
+        "RuleAction": {
+          "description": "Was bei einem Treffer passiert. Die Teile lassen sich kombinieren.",
+          "properties": {
+            "delete": {
+              "default": true,
+              "title": "Delete",
+              "type": "boolean"
+            },
+            "warn": {
+              "default": false,
+              "title": "Warn",
+              "type": "boolean"
+            },
+            "timeout_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 2419200,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Timeout Seconds"
+            }
+          },
+          "title": "RuleAction",
+          "type": "object"
+        },
+        "SpamRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "messages": {
+              "default": 5,
+              "maximum": 30,
+              "minimum": 2,
+              "title": "Messages",
+              "type": "integer"
+            },
+            "seconds": {
+              "default": 5,
+              "maximum": 60,
+              "minimum": 1,
+              "title": "Seconds",
+              "type": "integer"
+            }
+          },
+          "title": "SpamRule",
+          "type": "object"
+        },
+        "WordEntry": {
+          "properties": {
+            "type": {
+              "enum": [
+                "word",
+                "wildcard",
+                "regex"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "pattern": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Pattern",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "pattern"
+          ],
+          "title": "WordEntry",
+          "type": "object"
+        },
+        "WordsRule": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "action": {
+              "$ref": "#/$defs/RuleAction"
+            },
+            "exempt_channels": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "channel"
+              },
+              "maxItems": 100,
+              "title": "Exempt Channels",
+              "type": "array"
+            },
+            "exempt_roles": {
+              "items": {
+                "pattern": "^[0-9]{1,20}$",
+                "type": "string",
+                "x-picker": "role"
+              },
+              "maxItems": 100,
+              "title": "Exempt Roles",
+              "type": "array"
+            },
+            "entries": {
+              "items": {
+                "$ref": "#/$defs/WordEntry"
+              },
+              "maxItems": 200,
+              "title": "Entries",
+              "type": "array"
+            }
+          },
+          "title": "WordsRule",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "spam": {
+          "$ref": "#/$defs/SpamRule"
+        },
+        "duplicates": {
+          "$ref": "#/$defs/DuplicatesRule"
+        },
+        "caps": {
+          "$ref": "#/$defs/CapsRule"
+        },
+        "invites": {
+          "$ref": "#/$defs/InvitesRule"
+        },
+        "links": {
+          "$ref": "#/$defs/LinksRule"
+        },
+        "mentions": {
+          "$ref": "#/$defs/MentionsRule"
+        },
+        "words": {
+          "$ref": "#/$defs/WordsRule"
+        },
+        "raid": {
+          "$ref": "#/$defs/RaidRule"
+        },
+        "accountage": {
+          "$ref": "#/$defs/AccountAgeRule"
+        },
+        "exempt_channels": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "channel"
+          },
+          "maxItems": 100,
+          "title": "Exempt Channels",
+          "type": "array"
+        },
+        "exempt_roles": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "role"
+          },
+          "maxItems": 100,
+          "title": "Exempt Roles",
+          "type": "array"
+        },
+        "exempt_moderators": {
+          "default": true,
+          "title": "Exempt Moderators",
+          "type": "boolean"
+        },
+        "log_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Log Channel Id"
+        }
+      },
+      "title": "AutomodSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "spam": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "messages": 5,
+        "seconds": 5
+      },
+      "duplicates": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "count": 3,
+        "seconds": 30
+      },
+      "caps": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "min_length": 10,
+        "max_percent": 70
+      },
+      "invites": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "allowed_codes": []
+      },
+      "links": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "mode": "blacklist",
+        "domains": []
+      },
+      "mentions": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "max_mentions": 5
+      },
+      "words": {
+        "enabled": false,
+        "action": {
+          "delete": true,
+          "warn": false,
+          "timeout_seconds": null
+        },
+        "exempt_channels": [],
+        "exempt_roles": [],
+        "entries": []
+      },
+      "raid": {
+        "enabled": false,
+        "joins": 5,
+        "seconds": 10,
+        "mode_minutes": 10,
+        "action": {
+          "action": "kick",
+          "timeout_seconds": null
+        }
+      },
+      "accountage": {
+        "enabled": false,
+        "min_days": 7,
+        "action": {
+          "action": "kick",
+          "timeout_seconds": null
+        }
+      },
+      "exempt_channels": [],
+      "exempt_roles": [],
+      "exempt_moderators": true,
+      "log_channel_id": null
+    }
+  },
+  "logging": {
+    "schema": {
+      "properties": {
+        "channels": {
+          "additionalProperties": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "channel"
+          },
+          "title": "Channels",
+          "type": "object",
+          "x-keys": [
+            "message_delete",
+            "message_edit",
+            "message_bulk",
+            "member_join",
+            "member_leave",
+            "member_update",
+            "member_ban",
+            "member_unban",
+            "role_create",
+            "role_delete",
+            "role_update",
+            "channel_create",
+            "channel_delete",
+            "channel_update",
+            "voice",
+            "invite_create",
+            "invite_delete"
+          ]
+        },
+        "ignored_channels": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "channel"
+          },
+          "maxItems": 100,
+          "title": "Ignored Channels",
+          "type": "array"
+        },
+        "ignore_bots": {
+          "default": true,
+          "title": "Ignore Bots",
+          "type": "boolean"
+        }
+      },
+      "title": "LoggingSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "channels": {},
+      "ignored_channels": [],
+      "ignore_bots": true
+    }
+  },
+  "leveling": {
+    "schema": {
+      "$defs": {
+        "CardStyle": {
+          "description": "Farben als RGB-Zahl; die Vorlagen werden im Code gezeichnet, es gibt keine Uploads.",
+          "properties": {
+            "accent": {
+              "default": 5793266,
+              "maximum": 16777215,
+              "minimum": 0,
+              "title": "Accent",
+              "type": "integer",
+              "x-widget": "color"
+            },
+            "background": {
+              "default": 2303786,
+              "maximum": 16777215,
+              "minimum": 0,
+              "title": "Background",
+              "type": "integer",
+              "x-widget": "color"
+            },
+            "template": {
+              "default": "gradient",
+              "enum": [
+                "solid",
+                "gradient",
+                "stripes",
+                "dots"
+              ],
+              "title": "Template",
+              "type": "string"
+            }
+          },
+          "title": "CardStyle",
+          "type": "object"
+        },
+        "VoiceXp": {
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "Enabled",
+              "type": "boolean"
+            },
+            "xp_min": {
+              "default": 10,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Xp Min",
+              "type": "integer"
+            },
+            "xp_max": {
+              "default": 20,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Xp Max",
+              "type": "integer"
+            },
+            "requires_company": {
+              "default": true,
+              "title": "Requires Company",
+              "type": "boolean"
+            }
+          },
+          "title": "VoiceXp",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "xp_min": {
+          "default": 15,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Xp Min",
+          "type": "integer"
+        },
+        "xp_max": {
+          "default": 25,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Xp Max",
+          "type": "integer"
+        },
+        "cooldown_seconds": {
+          "default": 60,
+          "maximum": 3600,
+          "minimum": 0,
+          "title": "Cooldown Seconds",
+          "type": "integer"
+        },
+        "multiplier": {
+          "default": 1.0,
+          "maximum": 10.0,
+          "minimum": 0.1,
+          "title": "Multiplier",
+          "type": "number"
+        },
+        "voice": {
+          "$ref": "#/$defs/VoiceXp"
+        },
+        "announce": {
+          "default": "current",
+          "enum": [
+            "off",
+            "current",
+            "channel",
+            "dm"
+          ],
+          "title": "Announce",
+          "type": "string"
+        },
+        "announce_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Announce Channel Id"
+        },
+        "announce_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Announce Message",
+          "x-widget": "textarea"
+        },
+        "rewards": {
+          "additionalProperties": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "role"
+          },
+          "maxProperties": 50,
+          "title": "Rewards",
+          "type": "object",
+          "x-key-label": "level",
+          "x-key-type": "integer"
+        },
+        "reward_mode": {
+          "default": "stack",
+          "enum": [
+            "stack",
+            "replace"
+          ],
+          "title": "Reward Mode",
+          "type": "string"
+        },
+        "role_multipliers": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "maxProperties": 50,
+          "title": "Role Multipliers",
+          "type": "object",
+          "x-key-picker": "role"
+        },
+        "channel_multipliers": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "maxProperties": 50,
+          "title": "Channel Multipliers",
+          "type": "object",
+          "x-key-picker": "channel"
+        },
+        "no_xp_channels": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "channel"
+          },
+          "maxItems": 100,
+          "title": "No Xp Channels",
+          "type": "array"
+        },
+        "no_xp_roles": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "role"
+          },
+          "maxItems": 100,
+          "title": "No Xp Roles",
+          "type": "array"
+        },
+        "card": {
+          "$ref": "#/$defs/CardStyle"
+        }
+      },
+      "title": "LevelingSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "xp_min": 15,
+      "xp_max": 25,
+      "cooldown_seconds": 60,
+      "multiplier": 1.0,
+      "voice": {
+        "enabled": false,
+        "xp_min": 10,
+        "xp_max": 20,
+        "requires_company": true
+      },
+      "announce": "current",
+      "announce_channel_id": null,
+      "announce_message": null,
+      "rewards": {},
+      "reward_mode": "stack",
+      "role_multipliers": {},
+      "channel_multipliers": {},
+      "no_xp_channels": [],
+      "no_xp_roles": [],
+      "card": {
+        "accent": 5793266,
+        "background": 2303786,
+        "template": "gradient"
+      }
+    }
+  },
+  "welcome": {
+    "schema": {
+      "$defs": {
+        "CardStyle": {
+          "description": "Farben als RGB-Zahl; die Vorlagen werden im Code gezeichnet, es gibt keine Uploads.",
+          "properties": {
+            "accent": {
+              "default": 5793266,
+              "maximum": 16777215,
+              "minimum": 0,
+              "title": "Accent",
+              "type": "integer",
+              "x-widget": "color"
+            },
+            "background": {
+              "default": 2303786,
+              "maximum": 16777215,
+              "minimum": 0,
+              "title": "Background",
+              "type": "integer",
+              "x-widget": "color"
+            },
+            "template": {
+              "default": "gradient",
+              "enum": [
+                "solid",
+                "gradient",
+                "stripes",
+                "dots"
+              ],
+              "title": "Template",
+              "type": "string"
+            }
+          },
+          "title": "CardStyle",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "join_enabled": {
+          "default": false,
+          "title": "Join Enabled",
+          "type": "boolean"
+        },
+        "join_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Join Channel Id"
+        },
+        "join_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Join Message",
+          "x-widget": "textarea"
+        },
+        "join_card": {
+          "default": true,
+          "title": "Join Card",
+          "type": "boolean"
+        },
+        "leave_enabled": {
+          "default": false,
+          "title": "Leave Enabled",
+          "type": "boolean"
+        },
+        "leave_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Leave Channel Id"
+        },
+        "leave_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Leave Message",
+          "x-widget": "textarea"
+        },
+        "dm_enabled": {
+          "default": false,
+          "title": "Dm Enabled",
+          "type": "boolean"
+        },
+        "dm_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dm Message",
+          "x-widget": "textarea"
+        },
+        "autoroles": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "role"
+          },
+          "maxItems": 10,
+          "title": "Autoroles",
+          "type": "array"
+        },
+        "bot_autoroles": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "role"
+          },
+          "maxItems": 10,
+          "title": "Bot Autoroles",
+          "type": "array"
+        },
+        "card": {
+          "$ref": "#/$defs/CardStyle"
+        }
+      },
+      "title": "WelcomeSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "join_enabled": false,
+      "join_channel_id": null,
+      "join_message": null,
+      "join_card": true,
+      "leave_enabled": false,
+      "leave_channel_id": null,
+      "leave_message": null,
+      "dm_enabled": false,
+      "dm_message": null,
+      "autoroles": [],
+      "bot_autoroles": [],
+      "card": {
+        "accent": 5793266,
+        "background": 2303786,
+        "template": "gradient"
+      }
+    }
+  },
+  "tickets": {
+    "schema": {
+      "properties": {
+        "log_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Log Channel Id"
+        },
+        "max_open_per_user": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Open Per User",
+          "type": "integer"
+        },
+        "auto_close_hours": {
+          "default": 0,
+          "maximum": 720,
+          "minimum": 0,
+          "title": "Auto Close Hours",
+          "type": "integer"
+        },
+        "close_delay_seconds": {
+          "default": 10,
+          "maximum": 300,
+          "minimum": 0,
+          "title": "Close Delay Seconds",
+          "type": "integer"
+        },
+        "feedback": {
+          "default": true,
+          "title": "Feedback",
+          "type": "boolean"
+        },
+        "dm_transcript": {
+          "default": true,
+          "title": "Dm Transcript",
+          "type": "boolean"
+        },
+        "creators_may_close": {
+          "default": true,
+          "title": "Creators May Close",
+          "type": "boolean"
+        },
+        "ping_support": {
+          "default": true,
+          "title": "Ping Support",
+          "type": "boolean"
+        },
+        "retention_days": {
+          "default": 0,
+          "maximum": 3650,
+          "minimum": 0,
+          "title": "Retention Days",
+          "type": "integer"
+        },
+        "name_template": {
+          "default": "ticket-{number}",
+          "title": "Name Template",
+          "type": "string"
+        }
+      },
+      "title": "TicketSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "log_channel_id": null,
+      "max_open_per_user": 3,
+      "auto_close_hours": 0,
+      "close_delay_seconds": 10,
+      "feedback": true,
+      "dm_transcript": true,
+      "creators_may_close": true,
+      "ping_support": true,
+      "retention_days": 0,
+      "name_template": "ticket-{number}"
+    }
+  },
+  "birthday": {
+    "schema": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel Id"
+        },
+        "role_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "role"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Id"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message",
+          "x-widget": "textarea"
+        }
+      },
+      "title": "BirthdaySettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "channel_id": null,
+      "role_id": null,
+      "message": null
+    }
+  },
+  "starboard": {
+    "schema": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel Id"
+        },
+        "emoji": {
+          "default": "⭐",
+          "title": "Emoji",
+          "type": "string"
+        },
+        "threshold": {
+          "default": 3,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Threshold",
+          "type": "integer"
+        },
+        "self_star": {
+          "default": false,
+          "title": "Self Star",
+          "type": "boolean"
+        },
+        "ignore_nsfw": {
+          "default": true,
+          "title": "Ignore Nsfw",
+          "type": "boolean"
+        },
+        "ignored_channels": {
+          "items": {
+            "pattern": "^[0-9]{1,20}$",
+            "type": "string",
+            "x-picker": "channel"
+          },
+          "maxItems": 50,
+          "title": "Ignored Channels",
+          "type": "array"
+        }
+      },
+      "title": "StarboardSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "channel_id": null,
+      "emoji": "⭐",
+      "threshold": 3,
+      "self_star": false,
+      "ignore_nsfw": true,
+      "ignored_channels": []
+    }
+  }
+}

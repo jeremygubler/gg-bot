@@ -40,7 +40,9 @@ class LoggingSettings(SettingsModel):
     module: ClassVar[str] = "logging"
 
     # Ereignisart -> Kanal. Eine Art ohne Eintrag ist aus.
-    channels: dict[str, ChannelId] = Field(default_factory=dict)
+    channels: dict[str, ChannelId] = Field(
+        default_factory=dict, json_schema_extra={"x-keys": list(EVENT_TYPES)}
+    )
     # Aus diesen Kanälen werden keine Nachrichten-Ereignisse protokolliert.
     ignored_channels: list[ChannelId] = Field(default_factory=list, max_length=MAX_IGNORED)
     # Nachrichten und Sprachwechsel von Bots weglassen (sonst füllen Musik- und Spielbots das Log).

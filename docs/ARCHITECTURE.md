@@ -607,3 +607,37 @@ Umgesetzt in `src/ggbot/api/`. Abweichungen und Ergänzungen zu Abschnitt 9:
   mit gelöschten Kanälen ohnehin umgehen können, die Auswahl der Oberfläche kommt aus dem Snapshot.
 - **Fehlerformat:** `{"detail": {"error": "<schlüssel>"}}`; Texte und Übersetzung gehören der Oberfläche.
 
+## 23. Dashboard-Oberfläche (Phase 10b)
+
+Umgesetzt in `web/src/` (React 18, Vite, Tailwind, nur `react`/`react-dom` zur Laufzeit).
+
+- **Schema-getriebene Formulare:** `schema.ts` übersetzt das JSON-Schema eines Moduls in eine
+  kleine Beschreibung (`compile`), `form/SchemaForm.tsx` rendert sie. Verstanden wird genau,
+  was die Modelle erzeugen: `$ref`, „Wert oder null“ (`anyOf`), Enums, Zahlen mit Grenzen, Text,
+  Listen (Auswahl-Chips, Textzeilen, Objektkarten), Zuordnungen, verschachtelte Objekte
+  (einklappbar, `enabled` in der Kopfzeile). Alles andere wirft einen `SchemaError`, statt ein
+  Feld stillschweigend zu verlieren; der Test „jedes Modul lässt sich bauen“ fängt neue
+  Schemaformen schon im CI.
+- **Hinweise vom Server** (`core/settings/`): `x-picker` (`channel`/`role`), `x-key-picker`,
+  `x-keys` (feste Schlüssel, z. B. Ereignisarten), `x-key-type`/`x-key-label` (Level als Schlüssel),
+  `x-widget` (`color`, `textarea`). Sie ändern die Validierung nicht.
+- **Fixture-Abgleich:** `web/src/test/schemas.json` enthält die echten Schemas und Standardwerte;
+  `tests/unit/test_web_schema_fixtures.py` schlägt fehl, wenn sie veralten
+  (`UPDATE_FIXTURES=1 pytest tests/unit/test_web_schema_fixtures.py` schreibt neu).
+- **Auswahlfelder** kommen aus dem Bot-Snapshot. Eine gespeicherte ID, die es nicht mehr gibt
+  (gelöschter Kanal), bleibt als „Unbekannt (ID)“ sichtbar und wird beim Speichern nicht verworfen.
+  `@everyone` wird nie als Rolle angeboten. IDs bleiben in der Oberfläche **immer Strings**.
+- **Speichern:** sendet den vollständigen Modulstand; 422 wird pro Feld angezeigt (Pfad aus
+  der API, Gruppen klappen auf), Modellregeln ohne Ort stehen oben. Ungespeicherte Änderungen
+  werden bei Navigation und beim Schliessen des Tabs abgefragt.
+- **Sitzung:** jede 401 führt zurück zum Login; „Login nicht eingerichtet“ ist ein eigener Zustand.
+- **Einladungslink** für Server ohne Bot: `GET /me` liefert `client_id` und die benötigten Rechte
+  (`INVITE_PERMISSIONS`, per Test mit `discord.Permissions` abgeglichen).
+- **Texte:** Deutsch/Englisch (`i18n.tsx`, Browsersprache, umschaltbar, in `localStorage`).
+  Ein Test erzwingt Beschriftungen für jedes Formularfeld, jede Auswahl und jedes Modul sowie
+  für jeden Fehlerschlüssel der API.
+- **Routing** ohne Bibliothek (`/`, `/g/<id>`, `/g/<id>/m/<modul>`, `/g/<id>/audit`); Pfade
+  werden streng geparst. nginx liefert dafür `index.html` für alle unbekannten Pfade.
+- **Bewusst nicht in 10b:** Panels (Rollen/Tickets), Kartenvorschau, öffentliches Leaderboard
+  (alles 10c); Beschreibungstexte/Platzhalterhilfen zu einzelnen Feldern.
+

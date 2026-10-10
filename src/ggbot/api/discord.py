@@ -13,6 +13,29 @@ AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
 SCOPES = "identify guilds"
 
 
+# Rechte, die der Bot laut README braucht; das Dashboard hängt sie an den Einladungslink.
+# Als Zahl (Discord-Bits), damit die API discord.py nicht importieren muss; ein Test gleicht
+# sie mit discord.Permissions ab.
+INVITE_PERMISSION_BITS = {
+    "manage_channels": 1 << 4,
+    "add_reactions": 1 << 6,
+    "view_audit_log": 1 << 7,
+    "view_channel": 1 << 10,
+    "send_messages": 1 << 11,
+    "manage_messages": 1 << 13,
+    "embed_links": 1 << 14,
+    "attach_files": 1 << 15,
+    "read_message_history": 1 << 16,
+    "manage_roles": 1 << 28,
+    "manage_threads": 1 << 34,
+    "kick_members": 1 << 1,
+    "ban_members": 1 << 2,
+    "moderate_members": 1 << 40,
+    "use_application_commands": 1 << 31,
+}
+INVITE_PERMISSIONS = sum(INVITE_PERMISSION_BITS.values())
+
+
 class DiscordError(Exception):
     """Discord hat abgelehnt oder war nicht erreichbar. `status` 401 = Token ungültig."""
 

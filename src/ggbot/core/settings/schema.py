@@ -24,7 +24,9 @@ class GeneralSettings(SettingsModel):
     module: ClassVar[str] = "general"
 
     # Akzentfarbe der Embeds des Bots (RGB als Zahl).
-    embed_color: int = Field(default=0x5865F2, ge=0, le=0xFFFFFF)
+    embed_color: int = Field(
+        default=0x5865F2, ge=0, le=0xFFFFFF, json_schema_extra={"x-widget": "color"}
+    )
 
 
 EscalationAction = Literal["timeout", "kick", "ban", "tempban"]

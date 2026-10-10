@@ -1,5 +1,6 @@
 import httpx
 
+from ggbot.api.discord import INVITE_PERMISSIONS
 from ggbot.api.sessions import COOKIE_NAME, STATE_COOKIE
 from tests.api.conftest import (
     BIG_CHANNEL,
@@ -197,3 +198,35 @@ async def test_grosse_ids_gehen_als_string_raus(api: Api) -> None:
 
     assert snapshot["guild_id"] == str(GUILD_A)
     assert snapshot["channels"][0]["id"] == str(BIG_CHANNEL)
+
+
+async def test_me_liefert_daten_fuer_den_einladungslink(api: Api) -> None:
+    await login(api)
+
+    me = (await api.client.get("/me")).json()
+
+    assert me["client_id"] == "1234"
+    assert int(me["invite_permissions"]) == INVITE_PERMISSIONS
+
+
+def test_einladungsrechte_entsprechen_discord_py() -> None:
+    import discord
+
+    expected = discord.Permissions(
+        manage_channels=True,
+        add_reactions=True,
+        view_audit_log=True,
+        view_channel=True,
+        send_messages=True,
+        manage_messages=True,
+        embed_links=True,
+        attach_files=True,
+        read_message_history=True,
+        manage_roles=True,
+        manage_threads=True,
+        kick_members=True,
+        ban_members=True,
+        moderate_members=True,
+        use_application_commands=True,
+    )
+    assert expected.value == INVITE_PERMISSIONS

@@ -2,7 +2,7 @@
 
 from typing import ClassVar, Self
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from ggbot.core import messages
 from ggbot.core.settings.schema import SettingsModel
@@ -17,7 +17,7 @@ class BirthdaySettings(SettingsModel):
     enabled: bool = False
     channel_id: ChannelId | None = None
     role_id: RoleId | None = None  # Rolle nur für den Tag
-    message: str | None = None
+    message: str | None = Field(default=None, json_schema_extra={"x-widget": "textarea"})
 
     @model_validator(mode="after")
     def _check(self) -> Self:

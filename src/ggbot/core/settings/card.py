@@ -12,6 +12,10 @@ class CardStyle(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    accent: int = Field(default=0x5865F2, ge=0, le=0xFFFFFF)
-    background: int = Field(default=0x23272A, ge=0, le=0xFFFFFF)
+    accent: int = Field(
+        default=0x5865F2, ge=0, le=0xFFFFFF, json_schema_extra={"x-widget": "color"}
+    )
+    background: int = Field(
+        default=0x23272A, ge=0, le=0xFFFFFF, json_schema_extra={"x-widget": "color"}
+    )
     template: Literal["solid", "gradient", "stripes", "dots"] = "gradient"

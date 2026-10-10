@@ -45,10 +45,14 @@ class LevelingSettings(SettingsModel):
 
     announce: AnnounceMode = "current"
     announce_channel_id: ChannelId | None = None
-    announce_message: str | None = None
+    announce_message: str | None = Field(default=None, json_schema_extra={"x-widget": "textarea"})
 
     # Level → Rolle.
-    rewards: dict[int, int] = Field(default_factory=dict, max_length=MAX_REWARDS)
+    rewards: dict[int, RoleId] = Field(
+        default_factory=dict,
+        max_length=MAX_REWARDS,
+        json_schema_extra={"x-key-type": "integer", "x-key-label": "level"},
+    )
     reward_mode: Literal["stack", "replace"] = "stack"
 
     role_multipliers: dict[int, float] = Field(
@@ -79,7 +83,7 @@ class LevelingSettings(SettingsModel):
 
     @field_validator("rewards")
     @classmethod
-    def _rewards(cls, rewards: dict[int, int]) -> dict[int, int]:
+    def _rewards(cls, rewards: dict[int, RoleId]) -> dict[int, RoleId]:
         if any(not 1 <= level <= MAX_LEVEL for level in rewards):
             raise ValueError(f"Belohnungs-Level müssen zwischen 1 und {MAX_LEVEL} liegen")
         if any(role_id <= 0 for role_id in rewards.values()):

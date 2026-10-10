@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 10a (Dashboard-API) fertig**. Als Nächstes die Oberfläche (10b) und Panels/Vorschau/Leaderboard (10c). Die weiteren Feature-Phasen folgen.
+Stand: **Phase 10b (Dashboard-Oberfläche) fertig**. Als Nächstes Panels, Vorschau und Leaderboard (10c). Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -412,10 +412,15 @@ das Geburtstagskind. Bots haben keinen Geburtstag.
 *Server verwalten*, bis 25 aktive. `\n` im Text ergibt einen Zeilenumbruch. Eine geplante Nachricht pingt **nie** (auch kein `@everyone` im Text). War der Bot länger aus, werden verpasste
 Wiederholungen nicht nachgeholt (keine Flut), die nächste kommt im alten Raster. Zeiten sind relativ ("in 2h"); feste Uhrzeiten wie "jeden Tag um 9" gibt es nicht.
 
-## Dashboard-API (Phase 10a)
+## Dashboard (Phase 10a und 10b)
 
-Die API (`api`-Dienst, im Browser unter `/api/…`) meldet über Discord an und liest und schreibt
-die Server-Einstellungen aller Module. Die Oberfläche folgt in 10b.
+Das Dashboard läuft unter `http://<host>:8080`. Die API (`api`-Dienst, im Browser unter `/api/…`)
+meldet über Discord an und liest und schreibt die Server-Einstellungen aller Module; die
+Oberfläche baut ihre Formulare aus den Schemas der Einstellungsmodelle. Sie umfasst Serverauswahl
+(mit Einladungslink für Server ohne Bot), ein Formular je Modul (General, Moderation, Automod,
+Server-Log, Leveling, Willkommen, Tickets, Geburtstage, Starboard), Kanal- und Rollenauswahl aus
+dem Bot-Snapshot, Fehleranzeige am Feld und das Änderungsprotokoll. Panels, Kartenvorschau und das
+öffentliche Leaderboard folgen in 10c.
 
 Einrichten:
 
@@ -427,7 +432,7 @@ Einrichten:
 3. Zugriff haben Server-Eigentümer und Mitglieder mit *Server verwalten* oder *Administrator*,
    aber nur auf Servern, auf denen der Bot ist. Entzogene Rechte wirken nach höchstens einer Minute.
 
-Jede Änderung wird mit Vorher/Nachher protokolliert (`GET /guilds/{id}/audit`).
+Jede Änderung wird mit Vorher/Nachher protokolliert (im Dashboard unter *Änderungsprotokoll*, `GET /guilds/{id}/audit`).
 Discord-IDs stehen im JSON als Strings (JavaScript verfälscht Zahlen über 2^53).
 
 ## Einstellungen
@@ -504,7 +509,7 @@ uv run alembic upgrade head
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run pytest          # braucht Postgres (DB ggbot_test) und Redis (DB 15)
 
-cd web && npm ci && npm test && npm run build
+cd web && npm ci && npm run lint && npm test && npm run build
 ```
 
 Testdatenbanken lassen sich über `GGBOT_TEST_DATABASE_URL` und `GGBOT_TEST_REDIS_URL` umstellen.

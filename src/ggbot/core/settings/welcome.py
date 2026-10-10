@@ -21,16 +21,16 @@ class WelcomeSettings(SettingsModel):
 
     join_enabled: bool = False
     join_channel_id: ChannelId | None = None
-    join_message: str | None = None
+    join_message: str | None = Field(default=None, json_schema_extra={"x-widget": "textarea"})
     # Bild mit Avatar und Namen unter die Nachricht hängen.
     join_card: bool = True
 
     leave_enabled: bool = False
     leave_channel_id: ChannelId | None = None
-    leave_message: str | None = None
+    leave_message: str | None = Field(default=None, json_schema_extra={"x-widget": "textarea"})
 
     dm_enabled: bool = False
-    dm_message: str | None = None
+    dm_message: str | None = Field(default=None, json_schema_extra={"x-widget": "textarea"})
 
     # Rollen für neue Mitglieder, erst nach dem Mitglieder-Screening vergeben.
     autoroles: list[RoleId] = Field(default_factory=list, max_length=MAX_AUTOROLES)

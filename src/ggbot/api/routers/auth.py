@@ -15,7 +15,7 @@ from ggbot.api.access import (
     current_session,
     current_user,
 )
-from ggbot.api.discord import DiscordError, DiscordOAuth
+from ggbot.api.discord import INVITE_PERMISSIONS, DiscordError, DiscordOAuth
 from ggbot.api.sessions import (
     COOKIE_NAME,
     STATE_COOKIE,
@@ -44,6 +44,9 @@ class MeGuild(BaseModel):
 
 
 class Me(BaseModel):
+    # Für den Einladungslink der Oberfläche; beides ist öffentlich.
+    client_id: str
+    invite_permissions: str
     id: str
     username: str
     avatar: str | None
@@ -143,6 +146,8 @@ async def me(request: Request, auth: Annotated[Authed, Depends(current_user)]) -
         if can_manage(g)
     ]
     return Me(
+        client_id=request.app.state.config.discord_client_id,
+        invite_permissions=str(INVITE_PERMISSIONS),
         id=str(auth.session.user_id),
         username=auth.session.username,
         avatar=auth.session.avatar,
