@@ -117,7 +117,7 @@ bei Snowflakes < 2^63).
 | 7 | `ticket_panels`, `ticket_categories` (Support-Rollen, Fragen, Begrüssung als JSONB), `ticket_counters` (Nummer je Server), `tickets` (Kategorie-Name und Support-Rollen als Kopie, damit sie das Löschen der Kategorie überleben), `ticket_transcripts` (HTML), `ticket_feedback`. Keine `ticket_messages`: das Transkript entsteht beim Schliessen aus dem Kanalverlauf, siehe Abschnitt 18 |
 | 8 | `notify_subscriptions` (guild_id, provider, ref, Zielkanal, Vorlage, Rolle; **dazu der Zustand pro Abo:** `last_key`, `live`, `misses`, `seen`, `message_id`). Kein getrenntes `notify_state`: der Zustand gehört zum Abo, so ist "Zustand ändern" eine Zeile und atomar, siehe Abschnitt 19 |
 | 9a | `custom_commands`, `giveaways`, `giveaway_entries`, `reminders`. **Keine** `polls`/`poll_votes`: Umfragen sind native Discord-Umfragen, siehe Abschnitt 20 |
-| 9b | `scheduled_messages`, `stat_channels`, `starboard_entries`, `birthdays` (folgt) |
+| 9b | `starboard_entries`, `starboard_votes`, `birthdays` (nur Tag und Monat), `stat_channels`, `scheduled_messages`; dazu `/privacy` zum Einsehen und Löschen, siehe Abschnitt 21 |
 | 10 | `dashboard_sessions` (falls Server-Sessions, siehe 9.), keine weiteren Fachtabellen |
 
 Migrationen: Alembic, **eine oder mehrere Revisionen pro Phase**, jede mit `downgrade`.
@@ -545,3 +545,26 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   `(giveaway_id, user_id)`, also auch bei gleichzeitigen Klicks nie doppelt.
 - **Erinnerungen:** Ein Scheduler-Job je Erinnerung. Ausliefern ist atomar (`UPDATE … WHERE state='pending' RETURNING`): doppelte Läufe und abgebrochene Erinnerungen liefern nichts. Kanal vor DM;
   ist beides unmöglich, gilt sie als ausgeliefert (sonst liefe der Scheduler endlos im Backoff). Gepingt wird nur der Ersteller; der Text kann `@everyone` enthalten, ohne dass es wirkt.
+
+## 21. Engagement, Teil b (Phase 9b)
+
+- **Starboard zählt selbst, statt Reaktionen abzufragen:** `starboard_votes` hat den Primärschlüssel `(guild_id, message_id, user_id)`, jeder Stern zählt also genau einmal und die Zahl kommt aus
+  der Datenbank, nicht aus REST-Abfragen der Reaktionsliste. Preis: Sterne vor dem Einschalten sind dem Bot unbekannt. Die Frühprüfung (Emoji, Einstellung) endet für fast alle Reaktionen
+  ohne Datenbank- oder REST-Zugriff. Welche Sterne zählen, ist eine reine Funktion (`core/community/starboard.py`): keine Bots, nie der Starboard-Kanal selbst, keine ignorierten oder
+  (wählbar) NSFW-Kanäle, kein Autoren-Stern.
+- **Schwelle auch bei Gleichzeitigkeit:** Jede Transaktion sieht beim Zählen nur ihren eigenen Stand; zählten gleichzeitige Sterne mit diesem Wert, könnte die Schwelle knapp verpasst werden.
+  Darum wird **nach dem Commit neu gezählt**, und die zuletzt abgeschlossene Transaktion sieht alle. Gepostet wird genau einmal (`claim_post`: `UPDATE … WHERE star_message_id IS NULL AND NOT posting`);
+  scheitert das Senden, wird der Anspruch freigegeben, und der nächste Stern versucht es erneut.
+- **Bearbeitungen werden gedrosselt:** Höchstens eine Änderung der Sternzahl alle 3 s je Nachricht (Redis `SET NX`); der Rest wird mit **einem** Job (`starboard.refresh`, 6 s später) auf den Endstand gezogen.
+  Wird die Kopie von Hand gelöscht, wird sie beim nächsten Stern neu gepostet.
+- **Geburtstage speichern kein Jahr** (`birthdays`: Tag, Monat). Der Tag wechselt nach der Zeitzone des Servers; der 29. Februar rückt in Nicht-Schaltjahren auf den 28. (Regel in `core/community/birthday.py`,
+  dieselbe Regel in der Abfrage). Eine Ankündigung je Server und Tag wird per Redis-Tor (`SET NX`, 3 Tage) beansprucht, bevor gesendet wird. Die Rolle wird bei jedem Durchlauf abgeglichen:
+  genau die Geburtstagskinder von heute haben sie.
+- **`/privacy`** löst das Versprechen aus Abschnitt 12.7 ein: zeigt XP, Geburtstag und offene Erinnerungen des Nutzers auf diesem Server und löscht sie auf ausdrückliche Bestätigung (das Wort `DELETE`).
+  Andere Nutzer und andere Server bleiben unberührt.
+- **Stat-Kanäle:** Umbenennung höchstens alle 10 Minuten und nur bei geänderter Zahl (Discord erlaubt etwa zwei Umbenennungen je Kanal und zehn Minuten). `humans`/`bots` nur mit Members-Intent,
+  sonst gäbe der unvollständige Cache falsche Zahlen. Vorlage und Kanal werden **vor** dem Anlegen geprüft (kein Kanal, der gleich wieder verschwindet); scheitert der Eintrag danach, wird der Kanal
+  gelöscht. Ein gelöschter Stat-Kanal räumt seinen Eintrag beim nächsten Durchlauf auf.
+- **Geplante Nachrichten:** Ein Scheduler-Job je Termin mit dem Termin im Payload. `claim_run` schreibt den Termin atomar fort (`UPDATE … WHERE next_run = :alt`): doppelte Jobs, abgebrochene und
+  veraltete Termine senden nichts. Wiederkehrende planen den nächsten Termin im alten Raster **nach jetzt** (`core/community/schedule.py`), verpasste Runden werden nicht nachgeholt. Gesendet wird nie mit
+  Erwähnungen.

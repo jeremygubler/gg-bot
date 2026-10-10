@@ -55,6 +55,11 @@ class GuildService:
         await self._redis.delete(self._key(guild_id))
         await events.publish(self._redis, events.SettingsChanged(guild_id=guild_id, module="guild"))
 
+    async def get_timezone(self, guild_id: int) -> str:
+        async with self._db.session() as session:
+            guild = await repo.get(session, guild_id)
+        return guild.timezone if guild is not None else "UTC"
+
     async def set_timezone(self, guild_id: int, name: str) -> str:
         try:
             ZoneInfo(name)

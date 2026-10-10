@@ -9,6 +9,7 @@ from redis.asyncio import Redis
 from ggbot.bot.checks import ensure_bot_permissions, ensure_user_permissions
 from ggbot.bot.client import GGBot
 from ggbot.bot.cogs.automod_config import AutomodConfigCog
+from ggbot.bot.cogs.birthday import BirthdayCog, PrivacyCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
 from ggbot.bot.cogs.customcmd import CustomCommandCog
@@ -22,6 +23,9 @@ from ggbot.bot.cogs.notify import NotifyCog
 from ggbot.bot.cogs.poll import PollCog
 from ggbot.bot.cogs.reminder import ReminderCog
 from ggbot.bot.cogs.rolepanels import RolePanelsCog
+from ggbot.bot.cogs.schedule import ScheduleCog
+from ggbot.bot.cogs.starboard import StarboardCog
+from ggbot.bot.cogs.statchannels import StatChannelCog
 from ggbot.bot.cogs.ticketpanel import TicketPanelCog
 from ggbot.bot.cogs.tickets import TicketsCog
 from ggbot.bot.cogs.welcome import WelcomeCog
@@ -55,6 +59,11 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(GiveawayCog(instance))
     await instance.add_cog(ReminderCog(instance))
     await instance.add_cog(PollCog(instance))
+    await instance.add_cog(StarboardCog(instance))
+    await instance.add_cog(BirthdayCog(instance))
+    await instance.add_cog(PrivacyCog(instance))
+    await instance.add_cog(StatChannelCog(instance))
+    await instance.add_cog(ScheduleCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -136,11 +145,17 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
         return [c.qualified_name for c in visible_commands(commands_, permissions, in_guild)]
 
     assert names(plain) == [
+        "birthday remove",
+        "birthday set",
+        "birthday show",
+        "birthday upcoming",
         "c",
         "card reset",
         "card set",
         "help",
         "leaderboard",
+        "privacy delete",
+        "privacy show",
         "rank",
         "remind cancel",
         "remind list",
@@ -385,6 +400,13 @@ EXPECTED_PERMISSIONS = {
     },
     **{f"customcmd {name}": "manage_guild" for name in ("add", "edit", "remove", "list", "info")},
     **{f"giveaway {name}": "manage_guild" for name in ("start", "end", "reroll", "cancel", "list")},
+    **{
+        f"starboard {name}": "manage_guild"
+        for name in ("set", "off", "options", "ignore", "status")
+    },
+    **{f"birthdayconfig {name}": "manage_guild" for name in ("set", "off", "clear_role")},
+    **{f"statchannel {name}": "manage_channels" for name in ("add", "remove", "list")},
+    **{f"schedule {name}": "manage_guild" for name in ("once", "repeat", "list", "remove")},
     "poll create": "send_polls",
     "poll end": "send_polls",
     "modconfig warn_expiry": "manage_guild",
@@ -421,7 +443,11 @@ def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
         "ticket transcript",
     }
     # Für alle: eigene Befehle ausführen und eigene Erinnerungen verwalten.
-    for_members = {"c", "remind me", "remind list", "remind cancel"}
+    for_members = {
+        "c", "remind me", "remind list", "remind cancel",
+        "birthday set", "birthday remove", "birthday show", "birthday upcoming",
+        "privacy show", "privacy delete",
+    }  # fmt: skip
     everyone = {"help", "rank", "leaderboard", "card set", "card reset"} | in_ticket | for_members
     assert open_commands == everyone
     known = set(EXPECTED_PERMISSIONS) | everyone | {"config language", "config timezone"}

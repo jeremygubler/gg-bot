@@ -151,6 +151,22 @@ poll_duplicate = "Two answers are the same."
 poll_question = "The question must be 1–{limit} characters long."
 poll_duration = "A poll runs between {low} hour and {high} hours."
 poll_not_found = "I can't find a poll of mine with that message ID in this channel."
+bd_invalid = "{day}.{month}. is not a valid date."
+bd_none = "You have not saved a birthday here."
+bd_unknown_user = "No birthday is saved for that member."
+birthday_invalid = "That setting is not valid: {detail}"
+privacy_confirm = "To delete your data type the word {word} as confirmation."
+starboard_invalid = "That setting is not valid: {detail}"
+sm_text = "The message must be 1–{limit} characters long."
+sm_delay = "The first run must be between 1 minute and 1 year from now."
+sm_interval = "The interval must be between 5 minutes and 30 days."
+sm_limit = "This server already has {limit} scheduled messages."
+sm_unknown = "There is no scheduled message #{message_id}."
+st_kind = "Unknown kind of statistic."
+st_template = "The name is not valid: {detail}"
+st_limit = "This server already has {limit} stat channels."
+st_needs_members = "This statistic needs the Server Members intent (ENABLE_MEMBERS_INTENT=true)."
+st_unknown = "That channel is not a stat channel."
 card_nothing_to_change = "Give at least one of accent, background or template."
 import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
 import_failed = "The import failed and nothing was changed."
@@ -1402,3 +1418,184 @@ cancelled = "Reminder #{id} cancelled."
 
 [poll]
 ended = "Poll ended."
+
+[cmd.starboard]
+desc = "Copy popular messages into a starboard channel"
+
+[cmd.starboard.set]
+desc = "Turn the starboard on and pick its channel"
+
+[cmd.starboard.off]
+desc = "Turn the starboard off"
+
+[cmd.starboard.options]
+desc = "Starboard rules: own stars and NSFW channels"
+
+[cmd.starboard.ignore]
+desc = "Toggle: stars in a channel do (not) count"
+
+[cmd.starboard.status]
+desc = "Show the starboard settings"
+
+[cmd.birthday]
+desc = "Birthdays"
+
+[cmd.birthday.set]
+desc = "Save your birthday (day and month only)"
+
+[cmd.birthday.remove]
+desc = "Delete your birthday"
+
+[cmd.birthday.show]
+desc = "Show a birthday"
+
+[cmd.birthday.upcoming]
+desc = "Show the next birthdays"
+
+[cmd.birthdayconfig]
+desc = "Set up birthday announcements"
+
+[cmd.birthdayconfig.set]
+desc = "Turn announcements on, pick channel, role, text"
+
+[cmd.birthdayconfig.off]
+desc = "Turn birthday announcements off"
+
+[cmd.birthdayconfig.clear_role]
+desc = "Stop giving a role on birthdays"
+
+[cmd.privacy]
+desc = "What the bot stores about you"
+
+[cmd.privacy.show]
+desc = "Show what is stored about you on this server"
+
+[cmd.privacy.delete]
+desc = "Delete your data on this server"
+
+[cmd.statchannel]
+desc = "Voice channels that show server numbers"
+
+[cmd.statchannel.add]
+desc = "Create a stat channel"
+
+[cmd.statchannel.remove]
+desc = "Stop updating a stat channel"
+
+[cmd.statchannel.list]
+desc = "List the stat channels"
+
+[cmd.schedule]
+desc = "Scheduled messages"
+
+[cmd.schedule.once]
+desc = "Post a message once, later"
+
+[cmd.schedule.repeat]
+desc = "Post a message again and again"
+
+[cmd.schedule.list]
+desc = "List scheduled messages"
+
+[cmd.schedule.remove]
+desc = "Cancel a scheduled message"
+
+[cmd.arg.sb_emoji]
+desc = "Emoji that counts (default ⭐)"
+
+[cmd.arg.sb_threshold]
+desc = "Stars needed (1-100, default 3)"
+
+[cmd.arg.sb_self]
+desc = "Authors may star their own message"
+
+[cmd.arg.sb_nsfw]
+desc = "Ignore stars in NSFW channels"
+
+[cmd.arg.bd_day]
+desc = "Day of the month"
+
+[cmd.arg.bd_month]
+desc = "Month"
+
+[cmd.arg.bd_role]
+desc = "Role for the birthday child (optional)"
+
+[cmd.arg.bd_message]
+desc = "Text: {user} {name} {server}"
+
+[cmd.arg.privacy_confirm]
+desc = "Type DELETE to confirm"
+
+[cmd.arg.st_kind]
+desc = "What to show"
+
+[cmd.arg.st_template]
+desc = "Channel name with {count}, e.g. Members: {count}"
+
+[cmd.arg.sm_when]
+desc = "In how long, e.g. 2h or 1d"
+
+[cmd.arg.sm_every]
+desc = "Interval, e.g. 6h or 1d (5 minutes to 30 days)"
+
+[cmd.arg.sm_first]
+desc = "When the first one is sent (default: after one interval)"
+
+[cmd.arg.sm_text]
+desc = "The message (\\n makes a new line, nobody gets pinged)"
+
+[cmd.arg.sm_id]
+desc = "Scheduled message to cancel"
+
+[starboard]
+set = "Starboard is on. Popular messages go to {channel}."
+off = "Starboard is off."
+options = "Starboard rules saved."
+ignored = "Stars in {channel} no longer count."
+unignored = "Stars in {channel} count again."
+source = "Original"
+jump = "Jump to message"
+status = """**Starboard**
+Channel: {channel} · emoji: {emoji} · stars needed: {threshold}
+Own stars count: {self_star} · ignore NSFW channels: {nsfw}
+Ignored channels: {ignored}"""
+
+[birthday]
+default = "🎂 Happy birthday {user}!"
+saved = "Saved: your birthday is on {day}.{month}. Only day and month are stored, no year."
+removed = "Your birthday is deleted."
+show = "{user} has their birthday on {day}.{month}."
+upcoming_empty = "No birthdays saved yet."
+upcoming_line = "{user} · {day}.{month}. · in {days} days"
+config_set = "Birthday announcements go to {channel}."
+config_off = "Birthday announcements are off."
+role_cleared = "No role is given on birthdays any more."
+
+[privacy]
+show = """**Your data on this server**
+XP: {xp}
+Birthday: {birthday}
+Open reminders: {reminders}
+Delete it all with `/privacy delete` (type the word {word})."""
+deleted = "Your XP, rank card, birthday and open reminders on this server are deleted."
+
+[statchannel]
+default_members = "👥 Members: {count}"
+default_humans = "🧑 People: {count}"
+default_bots = "🤖 Bots: {count}"
+default_channels = "💬 Channels: {count}"
+default_roles = "🎭 Roles: {count}"
+default_boosts = "🚀 Boosts: {count}"
+added = "Stat channel {channel} created. The name updates every 10 minutes."
+removed = "{channel} is no longer updated (the channel itself stays)."
+list_empty = "There are no stat channels."
+list_line = "{channel} · {kind} · `{template}`"
+
+[schedule]
+added_once = "Message #{id} will be posted {when} in {channel}."
+added_repeat = "Message #{id} will be posted from {when} on, repeatedly, in {channel}."
+once_label = "once"
+removed = "Scheduled message #{id} cancelled."
+list_empty = "There are no scheduled messages."
+list_line = "`#{id}` {when} · {every} · {channel}: {text}"

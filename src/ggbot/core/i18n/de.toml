@@ -151,6 +151,22 @@ poll_duplicate = "Zwei Antworten sind gleich."
 poll_question = "Die Frage muss 1–{limit} Zeichen lang sein."
 poll_duration = "Eine Umfrage läuft zwischen {low} Stunde und {high} Stunden."
 poll_not_found = "Mit dieser Nachrichten-ID finde ich hier keine Umfrage von mir."
+bd_invalid = "{day}.{month}. ist kein gültiges Datum."
+bd_none = "Du hast hier keinen Geburtstag gespeichert."
+bd_unknown_user = "Für dieses Mitglied ist kein Geburtstag gespeichert."
+birthday_invalid = "Diese Einstellung ist ungültig: {detail}"
+privacy_confirm = "Zum Löschen deiner Daten tippe zur Bestätigung das Wort {word}."
+starboard_invalid = "Diese Einstellung ist ungültig: {detail}"
+sm_text = "Die Nachricht muss 1–{limit} Zeichen lang sein."
+sm_delay = "Der erste Termin muss zwischen 1 Minute und 1 Jahr ab jetzt liegen."
+sm_interval = "Der Abstand muss zwischen 5 Minuten und 30 Tagen liegen."
+sm_limit = "Dieser Server hat bereits {limit} geplante Nachrichten."
+sm_unknown = "Es gibt keine geplante Nachricht #{message_id}."
+st_kind = "Unbekannte Art der Statistik."
+st_template = "Der Name ist ungültig: {detail}"
+st_limit = "Dieser Server hat bereits {limit} Stat-Kanäle."
+st_needs_members = "Diese Statistik braucht den Server-Members-Intent (ENABLE_MEMBERS_INTENT=true)."
+st_unknown = "Dieser Kanal ist kein Stat-Kanal."
 card_nothing_to_change = "Gib mindestens eines von accent, background oder template an."
 import_empty = "Die Datei enthält keine brauchbaren Einträge (pro Zeile eine Nutzer-ID und XP oder Level)."
 import_failed = "Der Import ist fehlgeschlagen, es wurde nichts geändert."
@@ -1402,3 +1418,184 @@ cancelled = "Erinnerung #{id} abgebrochen."
 
 [poll]
 ended = "Umfrage beendet."
+
+[cmd.starboard]
+desc = "Beliebte Nachrichten in einen Starboard-Kanal kopieren"
+
+[cmd.starboard.set]
+desc = "Das Starboard einschalten und den Kanal wählen"
+
+[cmd.starboard.off]
+desc = "Das Starboard ausschalten"
+
+[cmd.starboard.options]
+desc = "Starboard-Regeln: eigene Sterne und NSFW-Kanäle"
+
+[cmd.starboard.ignore]
+desc = "Umschalten: Sterne in einem Kanal zählen (nicht)"
+
+[cmd.starboard.status]
+desc = "Die Starboard-Einstellungen anzeigen"
+
+[cmd.birthday]
+desc = "Geburtstage"
+
+[cmd.birthday.set]
+desc = "Deinen Geburtstag speichern (nur Tag und Monat)"
+
+[cmd.birthday.remove]
+desc = "Deinen Geburtstag löschen"
+
+[cmd.birthday.show]
+desc = "Einen Geburtstag anzeigen"
+
+[cmd.birthday.upcoming]
+desc = "Die nächsten Geburtstage anzeigen"
+
+[cmd.birthdayconfig]
+desc = "Geburtstags-Ankündigungen einrichten"
+
+[cmd.birthdayconfig.set]
+desc = "Ankündigungen einschalten, Kanal, Rolle, Text wählen"
+
+[cmd.birthdayconfig.off]
+desc = "Geburtstags-Ankündigungen ausschalten"
+
+[cmd.birthdayconfig.clear_role]
+desc = "Keine Rolle mehr am Geburtstag vergeben"
+
+[cmd.privacy]
+desc = "Was der Bot über dich speichert"
+
+[cmd.privacy.show]
+desc = "Zeigen, was auf diesem Server über dich gespeichert ist"
+
+[cmd.privacy.delete]
+desc = "Deine Daten auf diesem Server löschen"
+
+[cmd.statchannel]
+desc = "Sprachkanäle, die Zahlen des Servers zeigen"
+
+[cmd.statchannel.add]
+desc = "Einen Stat-Kanal anlegen"
+
+[cmd.statchannel.remove]
+desc = "Einen Stat-Kanal nicht mehr aktualisieren"
+
+[cmd.statchannel.list]
+desc = "Die Stat-Kanäle auflisten"
+
+[cmd.schedule]
+desc = "Geplante Nachrichten"
+
+[cmd.schedule.once]
+desc = "Eine Nachricht einmal später senden"
+
+[cmd.schedule.repeat]
+desc = "Eine Nachricht immer wieder senden"
+
+[cmd.schedule.list]
+desc = "Geplante Nachrichten auflisten"
+
+[cmd.schedule.remove]
+desc = "Eine geplante Nachricht abbrechen"
+
+[cmd.arg.sb_emoji]
+desc = "Emoji, das zählt (Standard ⭐)"
+
+[cmd.arg.sb_threshold]
+desc = "Nötige Sterne (1-100, Standard 3)"
+
+[cmd.arg.sb_self]
+desc = "Autoren dürfen die eigene Nachricht mit einem Stern versehen"
+
+[cmd.arg.sb_nsfw]
+desc = "Sterne in NSFW-Kanälen ignorieren"
+
+[cmd.arg.bd_day]
+desc = "Tag des Monats"
+
+[cmd.arg.bd_month]
+desc = "Monat"
+
+[cmd.arg.bd_role]
+desc = "Rolle für das Geburtstagskind (optional)"
+
+[cmd.arg.bd_message]
+desc = "Text: {user} {name} {server}"
+
+[cmd.arg.privacy_confirm]
+desc = "Zur Bestätigung DELETE tippen"
+
+[cmd.arg.st_kind]
+desc = "Was angezeigt wird"
+
+[cmd.arg.st_template]
+desc = "Kanalname mit {count}, z. B. Mitglieder: {count}"
+
+[cmd.arg.sm_when]
+desc = "In welcher Zeit, z. B. 2h oder 1d"
+
+[cmd.arg.sm_every]
+desc = "Abstand, z. B. 6h oder 1d (5 Minuten bis 30 Tage)"
+
+[cmd.arg.sm_first]
+desc = "Wann die erste gesendet wird (Standard: nach einem Abstand)"
+
+[cmd.arg.sm_text]
+desc = "Die Nachricht (\\n ergibt eine neue Zeile, niemand wird gepingt)"
+
+[cmd.arg.sm_id]
+desc = "Abzubrechende geplante Nachricht"
+
+[starboard]
+set = "Das Starboard ist an. Beliebte Nachrichten kommen nach {channel}."
+off = "Das Starboard ist aus."
+options = "Starboard-Regeln gespeichert."
+ignored = "Sterne in {channel} zählen nicht mehr."
+unignored = "Sterne in {channel} zählen wieder."
+source = "Original"
+jump = "Zur Nachricht"
+status = """**Starboard**
+Kanal: {channel} · Emoji: {emoji} · nötige Sterne: {threshold}
+Eigene Sterne zählen: {self_star} · NSFW-Kanäle ignorieren: {nsfw}
+Ignorierte Kanäle: {ignored}"""
+
+[birthday]
+default = "🎂 Alles Gute zum Geburtstag, {user}!"
+saved = "Gespeichert: dein Geburtstag ist am {day}.{month}. Es werden nur Tag und Monat gespeichert, kein Jahr."
+removed = "Dein Geburtstag ist gelöscht."
+show = "{user} hat am {day}.{month}. Geburtstag."
+upcoming_empty = "Noch keine Geburtstage gespeichert."
+upcoming_line = "{user} · {day}.{month}. · in {days} Tagen"
+config_set = "Geburtstags-Ankündigungen gehen nach {channel}."
+config_off = "Geburtstags-Ankündigungen sind aus."
+role_cleared = "Am Geburtstag wird keine Rolle mehr vergeben."
+
+[privacy]
+show = """**Deine Daten auf diesem Server**
+XP: {xp}
+Geburtstag: {birthday}
+Offene Erinnerungen: {reminders}
+Alles löschen mit `/privacy delete` (tippe das Wort {word})."""
+deleted = "Deine XP, Rank-Card, dein Geburtstag und offene Erinnerungen auf diesem Server sind gelöscht."
+
+[statchannel]
+default_members = "👥 Mitglieder: {count}"
+default_humans = "🧑 Menschen: {count}"
+default_bots = "🤖 Bots: {count}"
+default_channels = "💬 Kanäle: {count}"
+default_roles = "🎭 Rollen: {count}"
+default_boosts = "🚀 Boosts: {count}"
+added = "Stat-Kanal {channel} angelegt. Der Name wird alle 10 Minuten aktualisiert."
+removed = "{channel} wird nicht mehr aktualisiert (der Kanal selbst bleibt)."
+list_empty = "Es gibt keine Stat-Kanäle."
+list_line = "{channel} · {kind} · `{template}`"
+
+[schedule]
+added_once = "Nachricht #{id} wird {when} in {channel} gepostet."
+added_repeat = "Nachricht #{id} wird ab {when} immer wieder in {channel} gepostet."
+once_label = "einmalig"
+removed = "Geplante Nachricht #{id} abgebrochen."
+list_empty = "Es gibt keine geplanten Nachrichten."
+list_line = "`#{id}` {when} · {every} · {channel}: {text}"

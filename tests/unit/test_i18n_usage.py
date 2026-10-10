@@ -31,11 +31,24 @@ KEY_PREFIXES = (
     "giveaway.",
     "remind.",
     "poll.",
+    "starboard.",
+    "birthday.",
+    "privacy.",
+    "statchannel.",
+    "schedule.",
 )
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).
 NOT_KEYS = frozenset(
-    {"mod.unban", "welcome.png", "ticket.delete_channel", "giveaway.end", "reminder.fire"}
+    {
+        "mod.unban",
+        "welcome.png",
+        "ticket.delete_channel",
+        "giveaway.end",
+        "reminder.fire",
+        "starboard.refresh",
+        "schedule.send",
+    }
 )
 
 # Zusammengesetzte Schlüssel (f"…{wert}"): hier stehen alle Werte, die vorkommen können.
@@ -58,6 +71,7 @@ DYNAMIC_FAMILIES: dict[str, list[str]] = {
     "leveling.reward_mode_{}": ["stack", "replace"],
     "roles.mode_hint_{}": ["normal", "unique", "verify"],
     "error.notify_{}": ["not_found", "unavailable", "not_configured"],
+    "statchannel.default_{}": ["members", "humans", "bots", "channels", "roles", "boosts"],
 }  # fmt: skip
 
 

@@ -359,6 +359,10 @@ class EngagementService:
             if not await repo.rm_cancel(session, guild_id, user_id, reminder_id):
                 raise UserError("error.rm_unknown", reminder_id=reminder_id)
 
+    async def cancel_all_reminders(self, guild_id: int, user_id: int) -> int:
+        async with self._db.session() as session:
+            return await repo.rm_cancel_all(session, guild_id, user_id)
+
     async def fire_reminder(self, guild_id: int, reminder_id: int) -> ReminderView | None:
         """Die fällige Erinnerung, genau einmal; None, wenn abgebrochen oder schon ausgeliefert."""
         async with self._db.session() as session:

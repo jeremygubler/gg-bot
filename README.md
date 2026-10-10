@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 9a (Eigene Befehle, Umfragen, Giveaways, Erinnerungen)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 9 (Engagement) komplett**. Als Nächstes das Dashboard (Phase 10). Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -373,6 +373,45 @@ einmal gezogen. `reroll` zieht neue Gewinner, nie die alten. Höchstens 10 laufe
 `/remind me <when> <text>` (z. B. `30m`, `2h`, `1d`; 1 Minute bis 1 Jahr), `/remind list`, `/remind cancel`. Die Erinnerung kommt in den Kanal, in dem du sie angelegt hast (nur du
 wirst gepingt); geht das nicht, per DM. Bis 25 offene pro Person und Server.
 
+### Starboard (Phase 9b)
+
+Nachrichten mit genug Sternen werden in einen eigenen Kanal kopiert (Text, Autor, erstes Bild, Link zum Original, Sternzahl). Standardmässig **aus**. Standardrecht *Server verwalten*.
+
+| Befehl | Zweck |
+|---|---|
+| `/starboard set <channel> [emoji] [threshold]` | Einschalten; Emoji (Standard ⭐, auch eigene Emojis) und Schwelle (Standard 3) |
+| `/starboard options [self_star] [ignore_nsfw]` | Dürfen Autoren die eigene Nachricht sternen (Standard nein)? NSFW-Kanäle ignorieren (Standard ja) |
+| `/starboard ignore <channel>` | Umschalten: Sterne in diesem Kanal zählen nicht |
+| `/starboard off`, `status` | Ausschalten, Übersicht |
+
+Gezählt wird **jeder Nutzer höchstens einmal**; Bots, der Starboard-Kanal selbst (sonst kopierten sich Kopien endlos) und ignorierte Kanäle zählen nicht. Fällt der Stand unter die
+Schwelle, verschwindet die Kopie und kommt bei genug Sternen wieder. Wird das Original gelöscht, wird auch die Kopie gelöscht. **Gezählt werden nur Sterne ab dem Einschalten**: ältere
+Reaktionen kennt der Bot nicht. Ohne *Message Content Intent* zeigt die Kopie keinen Text, nur Autor, Bild und Link.
+
+### Geburtstage und Privatsphäre (Phase 9b)
+
+| Befehl | Zweck |
+|---|---|
+| `/birthday set <day> <month>`, `remove`, `show [member]`, `upcoming` | Für alle. Gespeichert werden **nur Tag und Monat, kein Jahr**: aus den Daten lässt sich kein Alter ableiten |
+| `/birthdayconfig set <channel> [role] [message]`, `off`, `clear_role` | Standardrecht *Server verwalten*: Kanal der Glückwünsche, optional eine Rolle für den Tag, Text mit `{user}` `{name}` `{server}` |
+| `/privacy show`, `/privacy delete <confirm>` | Zeigt, was über dich auf diesem Server gespeichert ist (XP, Geburtstag, offene Erinnerungen), und löscht es (Bestätigung: das Wort `DELETE`) |
+
+Der Tag wechselt nach der **Zeitzone des Servers** (`/config timezone`). Pro Tag und Server gibt es genau eine Ankündigung, auch nach einem Neustart. Wer am 29. Februar geboren ist,
+feiert in anderen Jahren am 28. Februar. Die Rolle haben genau die Geburtstagskinder von heute (der Bot braucht dafür *Rollen verwalten*, seine Rolle muss über ihr stehen). Gepingt wird nur
+das Geburtstagskind. Bots haben keinen Geburtstag.
+
+### Stat-Kanäle (Phase 9b)
+
+`/statchannel add <kind> [template]` legt einen Sprachkanal an (niemand kann beitreten), dessen Name eine Zahl zeigt: `members`, `humans`, `bots`, `channels`, `roles`, `boosts`. Die Vorlage braucht
+`{count}`, z. B. `Mitglieder: {count}`. Der Name wird alle 10 Minuten aktualisiert (Discord erlaubt nur wenige Umbenennungen), und nur, wenn er sich geändert hat. `humans` und `bots` brauchen den
+*Server Members Intent* (`ENABLE_MEMBERS_INTENT=true`), weil Discord diese Zahlen sonst nicht verlässlich liefert. `/statchannel remove`, `list`. Standardrecht *Kanäle verwalten*, bis 5 pro Server.
+
+### Geplante Nachrichten (Phase 9b)
+
+`/schedule once <when> <channel> <text>` sendet einmal später, `/schedule repeat <every> <channel> <text> [first]` immer wieder (Abstand 5 Minuten bis 30 Tage), `list`, `remove`. Standardrecht
+*Server verwalten*, bis 25 aktive. `\n` im Text ergibt einen Zeilenumbruch. Eine geplante Nachricht pingt **nie** (auch kein `@everyone` im Text). War der Bot länger aus, werden verpasste
+Wiederholungen nicht nachgeholt (keine Flut), die nächste kommt im alten Raster. Zeiten sind relativ ("in 2h"); feste Uhrzeiten wie "jeden Tag um 9" gibt es nicht.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -407,6 +446,9 @@ Dashboard bearbeitet.
 | *Attach Files*, *Embed Links* | Leveling: `/rank` (Bild), `/leaderboard` |
 | *Manage Messages* | Automod löscht Nachrichten; Reaktions-Panels im Modus `unique` (räumen die übrigen Reaktionen des Mitglieds auf) |
 | *Send Messages*, *Embed Links* im Zielkanal | Benachrichtigungen (mit *Mention Roles* oder einer erwähnbaren Rolle, wenn eine Rolle erwähnt werden soll) |
+| *Manage Channels* | Stat-Kanäle: Kanal anlegen und umbenennen |
+| *Manage Roles* | Geburtstagsrolle (Rolle des Bots über ihr) |
+| *Send Messages*, *Embed Links* im Starboard- und Geburtstagskanal | Starboard-Kopien, Glückwünsche |
 | *Manage Channels*, *Manage Roles*, *Manage Messages* | Tickets: private Kanäle mit Rechten anlegen, löschen und die Panel-Rechte setzen |
 | *Send Messages*, *Embed Links*, *Attach Files*, *Read Message History* im Log-Kanal und im Ticket | Tickets: Begrüssung, Transkript-Datei |
 | *Manage Roles* | Rollen-Panels und Autorollen: die Rolle des Bots muss **über** den vergebenen Rollen stehen |

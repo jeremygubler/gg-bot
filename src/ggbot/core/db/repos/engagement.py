@@ -226,3 +226,14 @@ async def rm_purge(session: AsyncSession, before: datetime) -> int:
         delete(Reminder).where(Reminder.state != "pending", Reminder.due_at < before)
     )
     return int(result.rowcount)  # type: ignore[attr-defined]
+
+
+async def rm_cancel_all(session: AsyncSession, guild_id: int, user_id: int) -> int:
+    result = await session.execute(
+        update(Reminder)
+        .where(
+            Reminder.guild_id == guild_id, Reminder.user_id == user_id, Reminder.state == "pending"
+        )
+        .values(state="cancelled")
+    )
+    return int(result.rowcount)  # type: ignore[attr-defined]

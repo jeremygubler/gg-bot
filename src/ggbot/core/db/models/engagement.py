@@ -8,6 +8,7 @@ from sqlalchemy import (
     Identity,
     Index,
     Integer,
+    SmallInteger,
     String,
     Text,
     UniqueConstraint,
@@ -75,4 +76,68 @@ class Reminder(Base):
     text: Mapped[str] = mapped_column(String(500))
     due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     state: Mapped[str] = mapped_column(String(10), default="pending")  # pending|done|cancelled
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class StarboardEntry(Base):
+    """Eine Nachricht, die Sterne bekommen hat, und ihre Kopie im Starboard-Kanal."""
+
+    __tablename__ = "starboard_entries"
+
+    guild_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    channel_id: Mapped[int] = mapped_column(BigInteger)
+    author_id: Mapped[int] = mapped_column(BigInteger)
+    star_message_id: Mapped[int | None] = mapped_column(BigInteger)
+    # Verhindert, dass zwei gleichzeitige Sterne dieselbe Nachricht zweimal posten.
+    posting: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class StarboardVote(Base):
+    """Wer eine Nachricht mit dem Stern markiert hat. Der Primärschlüssel zählt jeden einmal."""
+
+    __tablename__ = "starboard_votes"
+
+    guild_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+
+
+class Birthday(Base):
+    """Nur Tag und Monat, bewusst ohne Jahr: so lässt sich daraus kein Alter ableiten."""
+
+    __tablename__ = "birthdays"
+    __table_args__ = (Index("ix_birthdays_guild_month_day", "guild_id", "month", "day"),)
+
+    guild_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    day: Mapped[int] = mapped_column(SmallInteger)
+    month: Mapped[int] = mapped_column(SmallInteger)
+
+
+class StatChannel(Base):
+    __tablename__ = "stat_channels"
+    __table_args__ = (UniqueConstraint("channel_id"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    guild_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    channel_id: Mapped[int] = mapped_column(BigInteger)
+    kind: Mapped[str] = mapped_column(String(16))
+    template: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ScheduledMessage(Base):
+    __tablename__ = "scheduled_messages"
+    __table_args__ = (Index("ix_scheduled_messages_guild_state", "guild_id", "state"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    guild_id: Mapped[int] = mapped_column(BigInteger)
+    channel_id: Mapped[int] = mapped_column(BigInteger)
+    text: Mapped[str] = mapped_column(String(1500))
+    next_run: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    interval_seconds: Mapped[int | None] = mapped_column(Integer)
+    created_by: Mapped[int] = mapped_column(BigInteger)
+    state: Mapped[str] = mapped_column(String(10), default="active")  # active | done
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
