@@ -17,6 +17,8 @@ from ggbot.bot.cogs.leveling_config import LevelingConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
 from ggbot.bot.cogs.rolepanels import RolePanelsCog
+from ggbot.bot.cogs.ticketpanel import TicketPanelCog
+from ggbot.bot.cogs.tickets import TicketsCog
 from ggbot.bot.cogs.welcome import WelcomeCog
 from ggbot.bot.errors import to_message
 from ggbot.bot.i18n import CommandTranslator, command_key
@@ -41,6 +43,8 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(LevelingConfigCog(instance))
     await instance.add_cog(RolePanelsCog(instance))
     await instance.add_cog(WelcomeCog(instance))
+    await instance.add_cog(TicketsCog(instance))
+    await instance.add_cog(TicketPanelCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -121,7 +125,19 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
     def names(permissions: discord.Permissions, in_guild: bool = True) -> list[str]:
         return [c.qualified_name for c in visible_commands(commands_, permissions, in_guild)]
 
-    assert names(plain) == ["card reset", "card set", "help", "leaderboard", "rank"]
+    assert names(plain) == [
+        "card reset",
+        "card set",
+        "help",
+        "leaderboard",
+        "rank",
+        "ticket add",
+        "ticket claim",
+        "ticket close",
+        "ticket remove",
+        "ticket transcript",
+        "ticket unclaim",
+    ]
     assert "config language" in names(manager)
     assert "modconfig dm" in names(manager)
     assert "warn" not in names(manager)  # Manage Server ist kein Moderator-Recht
@@ -327,6 +343,21 @@ EXPECTED_PERMISSIONS = {
             "status",
         )
     },
+    **{
+        f"ticketpanel {name}": "manage_guild"
+        for name in (
+            "create",
+            "list",
+            "publish",
+            "delete",
+            "settings",
+            "status",
+            "category add",
+            "category remove",
+            "category role_add",
+            "category role_remove",
+        )
+    },
     "modconfig warn_expiry": "manage_guild",
     "modconfig dm": "manage_guild",
     "modconfig escalation add": "manage_guild",
@@ -351,7 +382,16 @@ def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
         c.qualified_name for c in leaf_commands(bot) if required_permissions(c) is None
     }
     # Für alle gedacht: Hilfe und die Leveling-Anzeige. Alles andere braucht eine Berechtigung.
-    everyone = {"help", "rank", "leaderboard", "card set", "card reset"}
+    # Die /ticket-Befehle prüfen im Ticket selbst, wer Support ist (das hängt von der Kategorie ab).
+    in_ticket = {
+        "ticket close",
+        "ticket claim",
+        "ticket unclaim",
+        "ticket add",
+        "ticket remove",
+        "ticket transcript",
+    }
+    everyone = {"help", "rank", "leaderboard", "card set", "card reset"} | in_ticket
     assert open_commands == everyone
     known = set(EXPECTED_PERMISSIONS) | everyone | {"config language", "config timezone"}
     assert {c.qualified_name for c in leaf_commands(bot)} == known

@@ -74,6 +74,44 @@ panel_unique_many = "Dieses Panel erlaubt nur eine Rolle."
 role_unassignable = "{role} kann ich nicht vergeben: Sie wird verwaltet oder liegt nicht unter meiner höchsten Rolle."
 autorole_unknown = "{role} ist keine Autorolle."
 welcome_invalid = "Diese Einstellung ist ungültig: {detail}"
+tpanel_not_found = "Auf diesem Server gibt es kein Ticket-Panel #{panel_id}."
+tpanel_title = "Der Titel muss 1–256 Zeichen lang sein."
+tpanel_description = "Die Beschreibung darf höchstens 1000 Zeichen lang sein."
+tpanel_limit = "Dieser Server hat bereits die höchstmögliche Zahl von {limit} Ticket-Panels."
+tpanel_empty = "Füge mit /ticketpanel category add mindestens eine Kategorie hinzu, bevor du veröffentlichst."
+tcat_name = "Der Kategoriename muss 1–80 Zeichen lang sein."
+tcat_description = "Die Beschreibung darf höchstens 100 Zeichen lang sein."
+tcat_welcome = "Der Begrüssungstext darf höchstens 1000 Zeichen lang sein."
+tcat_welcome_invalid = "Der Begrüssungstext ist ungültig: {detail}. Erlaubt: {{user}}, {{category}}, {{number}}."
+tcat_questions = "Die Fragen sind ungültig: {detail}. Trenne sie mit ;"
+tcat_limit = "Ein Panel kann höchstens {limit} Kategorien haben."
+tcat_duplicate = "In diesem Panel gibt es schon eine Kategorie \"{name}\"."
+tcat_not_found = "In diesem Panel gibt es keine Kategorie \"{name}\"."
+tcat_gone = "Diese Kategorie gibt es nicht mehr. Bitte das Team, das Panel neu zu veröffentlichen."
+tcat_role_duplicate = "Diese Rolle ist schon Support-Rolle der Kategorie."
+tcat_role_missing = "Diese Rolle ist keine Support-Rolle der Kategorie."
+tcat_roles_limit = "Eine Kategorie kann höchstens {limit} Support-Rollen haben."
+tcat_last_role = "Das ist die letzte Support-Rolle. Füge zuerst eine andere hinzu."
+tcat_role_everyone = "@everyone kann keine Support-Rolle sein: Jedes Ticket wäre für alle sichtbar."
+ticket_limit = "Du hast bereits {limit} offene Tickets. Schliesse zuerst eines."
+ticket_not_here = "Dieser Kanal ist kein Ticket."
+ticket_unknown = "Es gibt kein Ticket #{number}."
+ticket_closed = "Dieses Ticket ist bereits geschlossen."
+ticket_not_closed = "Dieses Ticket ist noch offen."
+ticket_claimed = "Dieses Ticket hat bereits {user} übernommen."
+ticket_claimed_by_you = "Du hast dieses Ticket schon übernommen."
+ticket_claim_lost = "Jemand anderes war schneller."
+ticket_not_claimed = "Niemand hat dieses Ticket übernommen."
+ticket_support_only = "Das darf nur das Support-Team dieses Tickets."
+ticket_cannot_close = "Du darfst dieses Ticket nicht schliessen."
+ticket_reason = "Der Grund darf höchstens 300 Zeichen lang sein."
+ticket_remove_creator = "Wer das Ticket eröffnet hat, lässt sich nicht entfernen."
+ticket_no_transcript = "Ticket #{number} hat (noch) kein Transkript."
+ticket_rating = "Eine Bewertung geht von 1 bis 5 Sternen."
+ticket_rated = "Du hast dieses Ticket bereits bewertet."
+ticket_create_forbidden = "Ich darf keine Kanäle anlegen. Gib mir „Kanäle verwalten“ und „Rollen verwalten“."
+ticket_create_failed = "Ich konnte den Ticket-Kanal nicht anlegen. Die Kategorie ist evtl. voll (50 Kanäle) oder der Server hat sein Kanal-Limit erreicht."
+ticket_settings_invalid = "Diese Einstellung ist ungültig: {detail}"
 card_nothing_to_change = "Gib mindestens eines von accent, background oder template an."
 import_empty = "Die Datei enthält keine brauchbaren Einträge (pro Zeile eine Nutzer-ID und XP oder Level)."
 import_failed = "Der Import ist fehlgeschlagen, es wurde nichts geändert."
@@ -940,3 +978,160 @@ Autorollen für Bots: {bot_autoroles}"""
 [welcome.card]
 title = "WILLKOMMEN"
 member = "Mitglied Nr. {count}"
+
+[cmd.ticketpanel]
+desc = "Ticket-Panels und Kategorien einrichten"
+
+[cmd.ticketpanel.category]
+desc = "Kategorien eines Ticket-Panels"
+
+[cmd.ticketpanel.category.add]
+desc = "Eine Kategorie (einen Button) zu einem Panel hinzufügen"
+
+[cmd.ticketpanel.category.remove]
+desc = "Eine Kategorie aus einem Panel entfernen"
+
+[cmd.ticketpanel.category.role_add]
+desc = "Eine Support-Rolle zu einer Kategorie hinzufügen"
+
+[cmd.ticketpanel.category.role_remove]
+desc = "Eine Support-Rolle aus einer Kategorie entfernen"
+
+[cmd.ticketpanel.create]
+desc = "Ein neues Ticket-Panel anlegen"
+
+[cmd.ticketpanel.list]
+desc = "Ticket-Panels und Kategorien auflisten"
+
+[cmd.ticketpanel.publish]
+desc = "Ein Ticket-Panel in einen Kanal posten"
+
+[cmd.ticketpanel.delete]
+desc = "Ein Ticket-Panel samt Nachricht löschen"
+
+[cmd.ticketpanel.settings]
+desc = "Die Ticket-Einstellungen ändern"
+
+[cmd.ticketpanel.status]
+desc = "Ticket-Einstellungen und Statistik anzeigen"
+
+[cmd.ticket]
+desc = "Mit dem Ticket arbeiten, in dem du bist"
+
+[cmd.ticket.close]
+desc = "Dieses Ticket schliessen und das Transkript speichern"
+
+[cmd.ticket.claim]
+desc = "Dieses Ticket übernehmen"
+
+[cmd.ticket.unclaim]
+desc = "Dieses Ticket wieder abgeben"
+
+[cmd.ticket.add]
+desc = "Ein Mitglied zu diesem Ticket hinzufügen"
+
+[cmd.ticket.remove]
+desc = "Ein Mitglied aus diesem Ticket entfernen"
+
+[cmd.ticket.transcript]
+desc = "Das Transkript eines geschlossenen Tickets abrufen"
+
+[cmd.arg.support_role]
+desc = "Rolle, die die Tickets sieht und beantwortet"
+
+[cmd.arg.ticket_category]
+desc = "Name der Kategorie"
+
+[cmd.arg.ticket_parent]
+desc = "Discord-Kategorie für die Ticket-Kanäle"
+
+[cmd.arg.ticket_welcome]
+desc = "Begrüssungstext: {user} {category} {number}"
+
+[cmd.arg.ticket_questions]
+desc = "Fragen für ein Formular, getrennt durch ; (bis 5)"
+
+[cmd.arg.ticket_number]
+desc = "Ticketnummer"
+
+[cmd.arg.ticket_log]
+desc = "Kanal für Transkripte und Schliess-Meldungen"
+
+[cmd.arg.ticket_max_open]
+desc = "Offene Tickets pro Mitglied (1-10)"
+
+[cmd.arg.ticket_auto_close]
+desc = "Nach so vielen Stunden ohne Aktivität schliessen (0 = aus)"
+
+[cmd.arg.ticket_close_delay]
+desc = "Sekunden bis der Kanal gelöscht wird"
+
+[cmd.arg.ticket_feedback]
+desc = "Per DM um eine Bewertung bitten"
+
+[cmd.arg.ticket_dm]
+desc = "Das Transkript per DM an das Mitglied senden"
+
+[cmd.arg.ticket_creators_close]
+desc = "Mitglieder dürfen eigene Tickets schliessen"
+
+[cmd.arg.ticket_ping]
+desc = "Support-Rollen in neuen Tickets erwähnen"
+
+[cmd.arg.ticket_retention]
+desc = "Transkripte nach so vielen Tagen löschen (0 = behalten)"
+
+[cmd.arg.ticket_name]
+desc = "Kanalname: {number} {category} {user}"
+
+[ticket]
+modal_title = "Ticket: {category}"
+created = "Dein Ticket ist bereit: {channel}"
+default_welcome = "Hallo {user}! Das Support-Team meldet sich gleich. Beschreibe bitte dein Anliegen."
+welcome_title = "Ticket #{number} · {category}"
+btn_close = "Schliessen"
+btn_claim = "Übernehmen"
+claimed = "{user} kümmert sich um dieses Ticket."
+unclaimed = "{user} hat das Ticket wieder abgegeben."
+close_modal = "Ticket schliessen"
+close_reason = "Grund (optional)"
+closing = "Das Ticket wird geschlossen …"
+closed_notice = "Ticket von {user} geschlossen. Dieser Kanal wird in {seconds} s gelöscht."
+no_reason = "Kein Grund angegeben"
+log_title = "Ticket #{number} geschlossen · {category}"
+log_creator = "Eröffnet von"
+log_closed_by = "Geschlossen von"
+log_claimed = "Übernommen von"
+log_reason = "Grund"
+dm_closed = "Dein Ticket #{number} auf {server} wurde geschlossen. Das Transkript hängt an."
+dm_rate = "Wie war der Support? Bewerte ihn:"
+feedback_thanks = "Danke für deine Bewertung: {rating}"
+transcript_title = "Ticket #{number} · {category}"
+transcript_meta = "Eröffnet von {creator} am {created} · {count} Nachrichten"
+transcript_truncated = "Es werden nur die ersten {limit} Nachrichten gezeigt."
+transcript_attachment = "Anhang"
+transcript_embeds = "Embeds"
+auto_close_reason = "Seit {hours} Stunden keine Aktivität"
+channel_deleted = "Der Kanal wurde gelöscht"
+member_added = "{member} wurde zum Ticket hinzugefügt."
+member_removed = "{member} wurde aus dem Ticket entfernt."
+panel_created = "Ticket-Panel #{panel_id} \"{title}\" angelegt. Füge Kategorien mit /ticketpanel category add hinzu und veröffentliche es dann."
+panel_list_empty = "Es gibt noch keine Ticket-Panels. Beginne mit /ticketpanel create."
+panel_list_line = "`#{id}` **{title}** · {where}"
+unpublished = "nicht veröffentlicht"
+panel_published = "Panel #{panel_id} in {channel} gepostet."
+panel_deleted = "Panel #{panel_id} \"{title}\" gelöscht. Bestehende Tickets bleiben."
+category_added = "Kategorie \"{name}\" zu Panel #{panel_id} hinzugefügt."
+category_removed = "Kategorie \"{name}\" aus Panel #{panel_id} entfernt. Bestehende Tickets bleiben."
+role_added = "{role} ist jetzt Support-Rolle von \"{name}\"."
+role_removed = "{role} ist keine Support-Rolle von \"{name}\" mehr."
+settings_saved = "Ticket-Einstellungen gespeichert."
+status_hours = "{hours} h"
+status_days = "{days} Tage"
+status_forever = "unbegrenzt"
+status = """**Tickets**
+Log-Kanal: {log}
+Offen pro Mitglied: {max_open} · automatisch schliessen: {auto} · Löschen nach: {delay} s
+Bewertung per DM: {feedback} · Transkript per DM: {dm} · Mitglieder dürfen schliessen: {creators} · Support erwähnen: {ping}
+Aufbewahrung der Transkripte: {retention} · Kanalname: `{name}`
+Jetzt offen: {open} · Bewertungen: {ratings} (Schnitt {average}/5)"""

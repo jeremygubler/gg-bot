@@ -14,6 +14,7 @@ from ggbot.core.services.guilds import GuildService
 from ggbot.core.services.leveling import LevelingService
 from ggbot.core.services.moderation import ModerationService
 from ggbot.core.services.rolepanels import RolePanelService
+from ggbot.core.services.tickets import TicketService
 from ggbot.core.services.welcome import WelcomeService
 from ggbot.core.settings.store import SettingsStore
 
@@ -37,6 +38,7 @@ class Services:
     leveling: LevelingService
     rolepanels: RolePanelService
     welcome: WelcomeService
+    tickets: TicketService
 
     @classmethod
     def build(cls, config: AppConfig, db: Database, redis: Redis) -> "Services":
@@ -59,4 +61,5 @@ class Services:
             leveling=LevelingService(db, settings, redis),
             rolepanels=RolePanelService(db),
             welcome=WelcomeService(settings, redis),
+            tickets=TicketService(db, settings, redis),
         )

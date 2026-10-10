@@ -30,6 +30,8 @@ COGS = (
     "ggbot.bot.cogs.leveling_config",
     "ggbot.bot.cogs.rolepanels",
     "ggbot.bot.cogs.welcome",
+    "ggbot.bot.cogs.tickets",
+    "ggbot.bot.cogs.ticketpanel",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10

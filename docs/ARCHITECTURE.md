@@ -114,7 +114,7 @@ bei Snowflakes < 2^63).
 | 4 | Keine eigenen Tabellen: Einstellungen (Modul `logging`, Kanal pro Ereignisart). Nachrichteninhalte werden **nicht** in der Datenbank gespeichert |
 | 5 | `xp_members` (guild_id, user_id, xp, msg_count, voice_seconds, last_xp_at; **kein** gespeichertes Level), `rank_card_styles` (guild_id, user_id, JSONB). Belohnungen, Faktoren und Ausnahmen liegen in den Settings (Modul `leveling`). Keine `xp_voice_sessions`, siehe Abschnitt 16 |
 | 6 | `role_panels` (guild_id, channel_id, message_id, kind button\|select\|reaction, mode, title, description, external), `role_panel_items` (panel_id → CASCADE, role_id, label, emoji, emoji_key, description, position; Unique `(panel_id, role_id)` und `(panel_id, emoji_key)`). Reaktions-Rollen sind Panels der Art `reaction`, keine eigene Tabelle. Willkommen, Abschied und Autorollen liegen in den Settings (Modul `welcome`) |
-| 7 | `ticket_panels`, `ticket_categories`, `tickets`, `ticket_messages` (nur für Transkript), `ticket_feedback`, `ticket_transcripts` |
+| 7 | `ticket_panels`, `ticket_categories` (Support-Rollen, Fragen, Begrüssung als JSONB), `ticket_counters` (Nummer je Server), `tickets` (Kategorie-Name und Support-Rollen als Kopie, damit sie das Löschen der Kategorie überleben), `ticket_transcripts` (HTML), `ticket_feedback`. Keine `ticket_messages`: das Transkript entsteht beim Schliessen aus dem Kanalverlauf, siehe Abschnitt 18 |
 | 8 | `notify_subscriptions` (Twitch/YouTube), `notify_state` (laufende Streams, Message-ID) |
 | 9 | `custom_commands`, `scheduled_messages`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `reminders`, `stat_channels`, `starboard_entries`, `birthdays` |
 | 10 | `dashboard_sessions` (falls Server-Sessions, siehe 9.), keine weiteren Fachtabellen |
@@ -481,3 +481,26 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   Der Kartenstil (`core/settings/card.py`) ist für Rank-Card und Willkommensbild derselbe Typ.
 - **Intents:** Reaktionen: `guild_reactions` (nicht privilegiert). Beitritt, Austritt und Screening brauchen den privilegierten *Server Members Intent*
   (`ENABLE_MEMBERS_INTENT`); ohne ihn bleibt Willkommen stumm, was das README sagt.
+
+## 18. Tickets (Phase 7)
+
+- **Ein privater Kanal pro Ticket.** Sichtbar für Ersteller, Support-Rollen der Kategorie und den Bot; `@everyone` ist verdeckt und lässt sich nicht als Support-Rolle eintragen.
+  Die Support-Rollen werden ins Ticket kopiert: spätere Änderungen an der Kategorie (oder deren Löschung) betreffen offene Tickets nicht.
+- **Anlegen in drei Schritten:** (1) `reserve` prüft die Grenze und zieht eine Nummer (atomar: `INSERT … ON CONFLICT DO UPDATE … RETURNING`), (2) der Cog legt den
+  Kanal an, (3) `register` trägt das Ticket ein. Die Grenze "offene Tickets pro Mitglied" gilt in Schritt 3 endgültig, unter einer Postgres-Advisory-Sperre je (Server, Nutzer):
+  fünf gleichzeitige Klicks ergeben genau ein Ticket. Scheitert Schritt 3, wird der Kanal wieder gelöscht (kein Kanal ohne Ticket); Nummern können dabei Lücken lassen,
+  doppelt vergeben werden sie nie. Zusätzlich 5 s Klick-Cooldown.
+- **Schliessen ist eine Transaktion:** Status auf `closed` (nur wenn noch `open`, `UPDATE … WHERE status='open' RETURNING`) und Transkript speichern gehören zusammen. Wer zu spät kommt,
+  bekommt "bereits geschlossen" und erzeugt kein zweites Transkript, keine zweite DM, keinen zweiten Job. Das Transkript wird **vor** der Transaktion erzeugt: scheitert das Rendern,
+  bleibt das Ticket offen und der Kanal bestehen. Das Löschen des Kanals ist ein Scheduler-Job (`ticket.delete_channel`), er überlebt also Neustarts; der Job löscht nur Kanäle
+  geschlossener Tickets.
+- **Übernehmen:** `UPDATE … WHERE claimed_by IS NULL`: bei gleichzeitigem Klick gewinnt genau ein Support-Mitglied. Abgeben darf der Bearbeiter oder ein Verwalter.
+- **Berechtigung im Ticket** ist eine reine Funktion (`core/tickets/rules.py`): Support = Support-Rolle der Kategorie oder *Server verwalten*; Schliessen zusätzlich der Ersteller
+  (abschaltbar). Fremde Tickets sehen für andere Nutzer wie "gibt es nicht" aus (Transkript, Bewertung).
+- **Transkript** (`core/tickets/transcript.py`): eigenständiges HTML ohne Skripte und ohne fremde Ressourcen (Content-Security-Policy `default-src 'none'`). Alles Nutzergeschriebene ist
+  maskiert, Anhangslinks gibt es nur für http(s), höchstens 2000 Nachrichten und 4000 Zeichen je Nachricht. Es braucht den Message Content Intent, sonst sind fremde Inhalte leer.
+- **Auto-Close:** Ein Takt alle 5 Minuten; Aktivität kommt aus `channel.last_message_id` (Zeit steckt in der Snowflake), es gibt keine Schreibzugriffe pro Nachricht. Ein Ticket ohne
+  Nachricht gilt ab Erstellung. Fehlt der Kanal, schliesst `on_guild_channel_delete` das Ticket (ohne Transkript, denn der Verlauf liegt nur auf Discord). Aufbewahrung der Transkripte
+  (`retention_days`) prüft derselbe Takt einmal täglich.
+- **Bewertung:** Fünf persistente Knöpfe in der DM (`gg:tkfb:{guild}:{ticket}:{stars}`); nur der Ersteller des geschlossenen Tickets, nur einmal (Primärschlüssel `ticket_id`).
+- **Komponenten:** `DynamicItem`s `gg:tkopen:{category}`, `gg:tk:close|claim`, `gg:tkfb:…`. Formulare (Fragen, Schliessgrund) sind Modals. Fehler laufen durch `component_error`.

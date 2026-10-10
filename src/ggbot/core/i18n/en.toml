@@ -74,6 +74,44 @@ panel_unique_many = "This panel allows only one role."
 role_unassignable = "I can't hand out {role}: it is managed, or not below my highest role."
 autorole_unknown = "{role} is not an autorole."
 welcome_invalid = "That setting is not valid: {detail}"
+tpanel_not_found = "There is no ticket panel #{panel_id} on this server."
+tpanel_title = "The title must be 1–256 characters long."
+tpanel_description = "The description may be at most 1000 characters long."
+tpanel_limit = "This server already has the maximum of {limit} ticket panels."
+tpanel_empty = "Add at least one category with /ticketpanel category add before publishing."
+tcat_name = "The category name must be 1–80 characters long."
+tcat_description = "The description may be at most 100 characters long."
+tcat_welcome = "The welcome text may be at most 1000 characters long."
+tcat_welcome_invalid = "The welcome text is not valid: {detail}. Allowed: {{user}}, {{category}}, {{number}}."
+tcat_questions = "The questions are not valid: {detail}. Separate them with ;"
+tcat_limit = "A panel can have at most {limit} categories."
+tcat_duplicate = "There is already a category called \"{name}\" in this panel."
+tcat_not_found = "There is no category called \"{name}\" in this panel."
+tcat_gone = "This category no longer exists. Ask the team to publish the panel again."
+tcat_role_duplicate = "That role is already a support role of the category."
+tcat_role_missing = "That role is not a support role of the category."
+tcat_roles_limit = "A category can have at most {limit} support roles."
+tcat_last_role = "That is the last support role. Add another one first."
+tcat_role_everyone = "@everyone can't be a support role: every ticket would be visible to everybody."
+ticket_limit = "You already have {limit} open tickets. Close one first."
+ticket_not_here = "This channel is not a ticket."
+ticket_unknown = "There is no ticket #{number}."
+ticket_closed = "This ticket is already closed."
+ticket_not_closed = "This ticket is still open."
+ticket_claimed = "This ticket is already claimed by {user}."
+ticket_claimed_by_you = "You have already claimed this ticket."
+ticket_claim_lost = "Someone else was faster."
+ticket_not_claimed = "Nobody has claimed this ticket."
+ticket_support_only = "Only the support team of this ticket can do that."
+ticket_cannot_close = "You are not allowed to close this ticket."
+ticket_reason = "The reason may be at most 300 characters long."
+ticket_remove_creator = "You can't remove the person who opened the ticket."
+ticket_no_transcript = "Ticket #{number} has no transcript (yet)."
+ticket_rating = "A rating is 1 to 5 stars."
+ticket_rated = "You have already rated this ticket."
+ticket_create_forbidden = "I'm not allowed to create channels. Give me Manage Channels and Manage Roles."
+ticket_create_failed = "I couldn't create the ticket channel. The category may be full (50 channels) or the server has reached its channel limit."
+ticket_settings_invalid = "That setting is not valid: {detail}"
 card_nothing_to_change = "Give at least one of accent, background or template."
 import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
 import_failed = "The import failed and nothing was changed."
@@ -940,3 +978,160 @@ Autoroles for bots: {bot_autoroles}"""
 [welcome.card]
 title = "WELCOME"
 member = "Member #{count}"
+
+[cmd.ticketpanel]
+desc = "Set up ticket panels and categories"
+
+[cmd.ticketpanel.category]
+desc = "Categories of a ticket panel"
+
+[cmd.ticketpanel.category.add]
+desc = "Add a category (a button) to a panel"
+
+[cmd.ticketpanel.category.remove]
+desc = "Remove a category from a panel"
+
+[cmd.ticketpanel.category.role_add]
+desc = "Add a support role to a category"
+
+[cmd.ticketpanel.category.role_remove]
+desc = "Remove a support role from a category"
+
+[cmd.ticketpanel.create]
+desc = "Create a new ticket panel"
+
+[cmd.ticketpanel.list]
+desc = "List ticket panels and categories"
+
+[cmd.ticketpanel.publish]
+desc = "Post a ticket panel into a channel"
+
+[cmd.ticketpanel.delete]
+desc = "Delete a ticket panel and its message"
+
+[cmd.ticketpanel.settings]
+desc = "Change the ticket settings"
+
+[cmd.ticketpanel.status]
+desc = "Show the ticket settings and statistics"
+
+[cmd.ticket]
+desc = "Work with the ticket you are in"
+
+[cmd.ticket.close]
+desc = "Close this ticket and save the transcript"
+
+[cmd.ticket.claim]
+desc = "Take over this ticket"
+
+[cmd.ticket.unclaim]
+desc = "Hand this ticket back"
+
+[cmd.ticket.add]
+desc = "Add a member to this ticket"
+
+[cmd.ticket.remove]
+desc = "Remove a member from this ticket"
+
+[cmd.ticket.transcript]
+desc = "Get the transcript of a closed ticket"
+
+[cmd.arg.support_role]
+desc = "Role that sees and answers the tickets"
+
+[cmd.arg.ticket_category]
+desc = "Name of the category"
+
+[cmd.arg.ticket_parent]
+desc = "Discord category for the ticket channels"
+
+[cmd.arg.ticket_welcome]
+desc = "Welcome text: {user} {category} {number}"
+
+[cmd.arg.ticket_questions]
+desc = "Questions for a form, separated by ; (up to 5)"
+
+[cmd.arg.ticket_number]
+desc = "Ticket number"
+
+[cmd.arg.ticket_log]
+desc = "Channel for transcripts and close messages"
+
+[cmd.arg.ticket_max_open]
+desc = "Open tickets per member (1-10)"
+
+[cmd.arg.ticket_auto_close]
+desc = "Close after this many idle hours (0 = off)"
+
+[cmd.arg.ticket_close_delay]
+desc = "Seconds before the channel is deleted"
+
+[cmd.arg.ticket_feedback]
+desc = "Ask for a rating by DM"
+
+[cmd.arg.ticket_dm]
+desc = "Send the transcript to the member by DM"
+
+[cmd.arg.ticket_creators_close]
+desc = "Members may close their own tickets"
+
+[cmd.arg.ticket_ping]
+desc = "Mention the support roles in new tickets"
+
+[cmd.arg.ticket_retention]
+desc = "Delete transcripts after this many days (0 = keep)"
+
+[cmd.arg.ticket_name]
+desc = "Channel name: {number} {category} {user}"
+
+[ticket]
+modal_title = "Ticket: {category}"
+created = "Your ticket is ready: {channel}"
+default_welcome = "Hello {user}! The support team will be with you soon. Please describe your request."
+welcome_title = "Ticket #{number} · {category}"
+btn_close = "Close"
+btn_claim = "Claim"
+claimed = "{user} is taking care of this ticket."
+unclaimed = "{user} handed the ticket back."
+close_modal = "Close ticket"
+close_reason = "Reason (optional)"
+closing = "Closing the ticket…"
+closed_notice = "Ticket closed by {user}. This channel will be deleted in {seconds} s."
+no_reason = "No reason given"
+log_title = "Ticket #{number} closed · {category}"
+log_creator = "Opened by"
+log_closed_by = "Closed by"
+log_claimed = "Claimed by"
+log_reason = "Reason"
+dm_closed = "Your ticket #{number} on {server} was closed. The transcript is attached."
+dm_rate = "How did we do? Rate the support:"
+feedback_thanks = "Thank you for your rating: {rating}"
+transcript_title = "Ticket #{number} · {category}"
+transcript_meta = "Opened by {creator} on {created} · {count} messages"
+transcript_truncated = "Only the first {limit} messages are shown."
+transcript_attachment = "Attachment"
+transcript_embeds = "Embeds"
+auto_close_reason = "No activity for {hours} hours"
+channel_deleted = "The channel was deleted"
+member_added = "{member} was added to the ticket."
+member_removed = "{member} was removed from the ticket."
+panel_created = "Ticket panel #{panel_id} \"{title}\" created. Add categories with /ticketpanel category add, then publish it."
+panel_list_empty = "There are no ticket panels yet. Start with /ticketpanel create."
+panel_list_line = "`#{id}` **{title}** · {where}"
+unpublished = "not published"
+panel_published = "Panel #{panel_id} posted in {channel}."
+panel_deleted = "Panel #{panel_id} \"{title}\" deleted. Existing tickets stay."
+category_added = "Category \"{name}\" added to panel #{panel_id}."
+category_removed = "Category \"{name}\" removed from panel #{panel_id}. Existing tickets stay."
+role_added = "{role} is now a support role of \"{name}\"."
+role_removed = "{role} is no longer a support role of \"{name}\"."
+settings_saved = "Ticket settings saved."
+status_hours = "{hours} h"
+status_days = "{days} days"
+status_forever = "kept"
+status = """**Tickets**
+Log channel: {log}
+Open per member: {max_open} · automatic close: {auto} · delete after: {delay} s
+Rating by DM: {feedback} · transcript by DM: {dm} · members may close: {creators} · mention support: {ping}
+Transcript retention: {retention} · channel name: `{name}`
+Open now: {open} · ratings: {ratings} (average {average}/5)"""

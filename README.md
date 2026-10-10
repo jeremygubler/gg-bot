@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 6 (Rollen & Willkommen)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 7 (Tickets)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -279,6 +279,38 @@ Standardmässig **aus**. Standardrecht für alle `/welcome`-Befehle: *Server ver
 - Erwähnt wird nur das neue Mitglied, nie @everyone oder Rollen (ein Nickname wie `@everyone` pingt nicht).
 - Das Willkommensbild nutzt Farben und eingebaute Vorlagen (`solid`, `gradient`, `stripes`, `dots`), keine hochgeladenen Bilder.
 
+### Tickets (Phase 7)
+
+Jedes Ticket ist ein **privater Kanal**, den nur der Ersteller, die Support-Rollen der Kategorie und der Bot sehen. Aufbau:
+`/ticketpanel create`, dann `/ticketpanel category add` (ein Button pro Kategorie, bis 10), dann `/ticketpanel publish`.
+Standardrecht für `/ticketpanel`: *Server verwalten*. Die `/ticket`-Befehle gelten im Ticket; wer sie nutzen darf, prüft der Bot dort.
+
+| Befehl | Zweck |
+|---|---|
+| `/ticketpanel create <title> [description]` | Panel anlegen (bis 10 pro Server) |
+| `/ticketpanel category add <panel> <name> <role> [emoji] [description] [parent] [welcome] [questions]` | Kategorie: `role` ist die Support-Rolle, `parent` die Discord-Kategorie für die Kanäle, `welcome` der Begrüssungstext (`{user}` `{category}` `{number}`), `questions` bis zu 5 Fragen getrennt durch `;` (erscheinen als Formular vor dem Ticket) |
+| `/ticketpanel category remove\|role_add\|role_remove` | Kategorie entfernen; weitere Support-Rollen (bis 10; die letzte lässt sich nicht entfernen; `@everyone` ist nicht erlaubt) |
+| `/ticketpanel list`, `publish <panel> [channel]`, `delete <panel>` | Übersicht; posten (ersetzt die alte Nachricht); löschen (bestehende Tickets bleiben) |
+| `/ticketpanel settings …`, `status` | Einstellungen und Statistik, siehe unten |
+| `/ticket close [reason]` oder Button | Ticket schliessen (Ersteller, Support, Verwalter) |
+| `/ticket claim`, `unclaim` | Ticket übernehmen / abgeben (nur Support; ein Ticket hat höchstens einen Bearbeiter, bei gleichzeitigem Klick gewinnt genau einer) |
+| `/ticket add <member>`, `remove <member>` | Mitglied zum Ticket holen / entfernen (nur Support; der Ersteller bleibt) |
+| `/ticket transcript <number>` | Transkript eines geschlossenen Tickets (Ersteller, Support, Verwalter) |
+
+**Einstellungen** (`/ticketpanel settings`, jeder Parameter einzeln änderbar): `log_channel` (Transkript und Schliess-Meldung),
+`max_open` (offene Tickets pro Mitglied, Standard 3), `auto_close_hours` (0 = aus), `close_delay` (Sekunden bis der Kanal gelöscht wird,
+Standard 10), `feedback` (Bewertung per DM, 1–5 Sterne), `dm_transcript`, `creators_may_close`, `ping_support`, `retention_days`
+(Transkripte nach so vielen Tagen löschen, 0 = behalten), `name_template` (`{number}` `{category}` `{user}`, Standard `ticket-{number}`).
+
+**Schliessen:** Der Bot liest den Kanalverlauf (bis 2000 Nachrichten), erzeugt eine eigenständige HTML-Datei, speichert sie zusammen mit dem
+Geschlossen-Status in einer Transaktion und schickt sie in den Log-Kanal und (wenn eingestellt) per DM an den Ersteller. **Erst danach** wird der
+Kanal gelöscht (nach `close_delay`). Scheitert das Transkript, bleibt das Ticket offen und der Kanal erhalten. Wird ein Ticket-Kanal von Hand
+gelöscht, wird das Ticket ohne Transkript geschlossen. Ohne *Message Content Intent* sind fremde Nachrichten im Transkript leer
+(`ENABLE_MESSAGE_CONTENT_INTENT=true`, siehe Intents).
+
+**Datenschutz:** Transkripte enthalten die Ticket-Nachrichten und liegen in der Datenbank, bis `retention_days` abläuft (oder für immer bei 0).
+Das Transkript ist eine Datei ohne Skripte; Nutzereingaben sind maskiert.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -311,6 +343,8 @@ Dashboard bearbeitet.
 | *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone); Leveling-Belohnungsrollen (die Rolle des Bots muss **über** den Belohnungsrollen stehen) |
 | *Attach Files*, *Embed Links* | Leveling: `/rank` (Bild), `/leaderboard` |
 | *Manage Messages* | Automod löscht Nachrichten; Reaktions-Panels im Modus `unique` (räumen die übrigen Reaktionen des Mitglieds auf) |
+| *Manage Channels*, *Manage Roles*, *Manage Messages* | Tickets: private Kanäle mit Rechten anlegen, löschen und die Panel-Rechte setzen |
+| *Send Messages*, *Embed Links*, *Attach Files*, *Read Message History* im Log-Kanal und im Ticket | Tickets: Begrüssung, Transkript-Datei |
 | *Manage Roles* | Rollen-Panels und Autorollen: die Rolle des Bots muss **über** den vergebenen Rollen stehen |
 | *Send Messages*, *Embed Links*, *Add Reactions* im Panel-Kanal | `/rolepanel publish` (Reaktionen nur bei Reaktions-Panels) |
 | *Send Messages*, *Attach Files* im Willkommenskanal | Willkommensnachricht mit Bild, Abschied |
@@ -327,7 +361,7 @@ Gateway Intents* freischalten **und** per Umgebungsvariable einschalten (ohne Fr
 
 | Intent | Variable | Wofür |
 |---|---|---|
-| *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`/`links`, Log der Nachrichten-Arten |
+| *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`/`links`, Log der Nachrichten-Arten, **Inhalt der Ticket-Transkripte** |
 | *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen; zuverlässigere Voice-XP und `/leveling sync`; **Willkommen, Abschied und Autorollen** (ohne den Intent bleiben sie stumm) |
 
 ## Entwicklung
