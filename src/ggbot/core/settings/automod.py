@@ -8,6 +8,7 @@ from ggbot.core.automod.rules import normalize_domain, validate_entry
 from ggbot.core.duration import MAX_TIMEOUT
 from ggbot.core.errors import UserError
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId, RoleId
 
 MESSAGE_RULES = ("spam", "duplicates", "caps", "invites", "links", "mentions", "words")
 JOIN_RULES = ("raid", "accountage")
@@ -40,8 +41,8 @@ class MessageRule(BaseModel):
 
     enabled: bool = False
     action: RuleAction = Field(default_factory=RuleAction)
-    exempt_channels: list[int] = _ids()
-    exempt_roles: list[int] = _ids()
+    exempt_channels: list[ChannelId] = _ids()
+    exempt_roles: list[RoleId] = _ids()
 
 
 class SpamRule(MessageRule):
@@ -153,11 +154,11 @@ class AutomodSettings(SettingsModel):
     accountage: AccountAgeRule = Field(default_factory=AccountAgeRule)
 
     # Gelten für alle Regeln.
-    exempt_channels: list[int] = _ids()
-    exempt_roles: list[int] = _ids()
+    exempt_channels: list[ChannelId] = _ids()
+    exempt_roles: list[RoleId] = _ids()
     # Wer Nachrichten verwalten darf, wird nicht automatisch moderiert.
     exempt_moderators: bool = True
-    log_channel_id: int | None = None
+    log_channel_id: ChannelId | None = None
 
     def message_rule(self, name: str) -> MessageRule:
         if name not in MESSAGE_RULES:

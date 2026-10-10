@@ -11,7 +11,7 @@ from ggbot.bot.cache import build_snapshot
 from ggbot.bot.client import GGBot
 from ggbot.core import events
 from ggbot.core.logging import get_logger
-from ggbot.core.snapshot import save_snapshot
+from ggbot.core.snapshot import delete_snapshot, save_snapshot
 
 log = get_logger(__name__)
 
@@ -50,6 +50,8 @@ class LifecycleCog(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild) -> None:
         await self.bot.services.guilds.mark_left(guild.id, datetime.now(UTC))
+        # Ohne Snapshot gilt der Bot im Dashboard als nicht (mehr) auf dem Server.
+        await delete_snapshot(self.bot.services.redis, guild.id)
 
     async def _register(self, guild: discord.Guild) -> None:
         await self.bot.services.guilds.ensure(guild.id)
@@ -99,7 +101,9 @@ class LifecycleCog(commands.Cog):
             await asyncio.sleep(DEBOUNCE_SECONDS)
         finally:
             self._pending.pop(guild.id, None)
-        await self._snapshot(guild)
+        # Zwischenzeitlich entfernt: sonst legte der späte Snapshot den Server wieder an.
+        if self.bot.get_guild(guild.id) is not None:
+            await self._snapshot(guild)
 
     async def _snapshot(self, guild: discord.Guild) -> None:
         await save_snapshot(self.bot.services.redis, build_snapshot(guild))

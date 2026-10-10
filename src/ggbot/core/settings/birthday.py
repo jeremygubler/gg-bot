@@ -6,6 +6,7 @@ from pydantic import model_validator
 
 from ggbot.core import messages
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId, RoleId
 
 FIELDS = ("user", "name", "server")
 
@@ -14,8 +15,8 @@ class BirthdaySettings(SettingsModel):
     module: ClassVar[str] = "birthday"
 
     enabled: bool = False
-    channel_id: int | None = None
-    role_id: int | None = None  # Rolle nur für den Tag
+    channel_id: ChannelId | None = None
+    role_id: RoleId | None = None  # Rolle nur für den Tag
     message: str | None = None
 
     @model_validator(mode="after")

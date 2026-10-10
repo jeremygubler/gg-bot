@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 9 (Engagement) komplett**. Als Nächstes das Dashboard (Phase 10). Die weiteren Feature-Phasen folgen.
+Stand: **Phase 10a (Dashboard-API) fertig**. Als Nächstes die Oberfläche (10b) und Panels/Vorschau/Leaderboard (10c). Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -412,10 +412,28 @@ das Geburtstagskind. Bots haben keinen Geburtstag.
 *Server verwalten*, bis 25 aktive. `\n` im Text ergibt einen Zeilenumbruch. Eine geplante Nachricht pingt **nie** (auch kein `@everyone` im Text). War der Bot länger aus, werden verpasste
 Wiederholungen nicht nachgeholt (keine Flut), die nächste kommt im alten Raster. Zeiten sind relativ ("in 2h"); feste Uhrzeiten wie "jeden Tag um 9" gibt es nicht.
 
+## Dashboard-API (Phase 10a)
+
+Die API (`api`-Dienst, im Browser unter `/api/…`) meldet über Discord an und liest und schreibt
+die Server-Einstellungen aller Module. Die Oberfläche folgt in 10b.
+
+Einrichten:
+
+1. Im Developer Portal unter *OAuth2* einen Redirect eintragen:
+   `<DASHBOARD_URL>/api/auth/callback`; Client-ID und -Secret in die `.env`
+   (`DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`).
+2. `DASHBOARD_URL` auf die öffentliche Adresse setzen (https), `SESSION_SECRET` mit
+   `openssl rand -hex 32` erzeugen. Ohne diese Werte läuft die API, bietet aber kein Login an.
+3. Zugriff haben Server-Eigentümer und Mitglieder mit *Server verwalten* oder *Administrator*,
+   aber nur auf Servern, auf denen der Bot ist. Entzogene Rechte wirken nach höchstens einer Minute.
+
+Jede Änderung wird mit Vorher/Nachher protokolliert (`GET /guilds/{id}/audit`).
+Discord-IDs stehen im JSON als Strings (JavaScript verfälscht Zahlen über 2^53).
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
-Pro Server gespeicherte Einstellungen (Modul `general`: `embed_color`) werden später im
+Pro Server gespeicherte Einstellungen (Modul `general`: `embed_color`) werden im
 Dashboard bearbeitet.
 
 | Variable | Bedeutung |
@@ -429,6 +447,10 @@ Dashboard bearbeitet.
 | `ENABLE_MEMBERS_INTENT` | `true` schaltet den privilegierten *Server Members Intent* ein (nur nach Freigabe). Für Anti-Raid und Konto-Alter |
 | `DEV_GUILD_ID` | Befehle sofort auf einer Test-Guild statt global (Entwicklung) |
 | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | Zugang zur Twitch-API für die Twitch-Benachrichtigungen (das Secret wird nie geloggt) |
+| `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | OAuth2-Zugang des Dashboards (Secret wird nie geloggt) |
+| `DASHBOARD_URL` | öffentliche Adresse des Dashboards, daraus entsteht der Redirect `<URL>/api/auth/callback` |
+| `SESSION_SECRET` | signiert das Sitzungs-Cookie, mind. 32 Zeichen (wird nie geloggt) |
+| `COOKIE_SECURE` | `false` nur für lokale Entwicklung ohne https |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
 
 ## Benötigte Bot-Rechte

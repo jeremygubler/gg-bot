@@ -7,6 +7,7 @@ from pydantic import Field, field_validator, model_validator
 from ggbot.core import messages
 from ggbot.core.settings.card import CardStyle
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId, RoleId
 
 MAX_AUTOROLES = 10
 JOIN_FIELDS = ("user", "name", "server", "count")
@@ -19,21 +20,21 @@ class WelcomeSettings(SettingsModel):
     module: ClassVar[str] = "welcome"
 
     join_enabled: bool = False
-    join_channel_id: int | None = None
+    join_channel_id: ChannelId | None = None
     join_message: str | None = None
     # Bild mit Avatar und Namen unter die Nachricht hängen.
     join_card: bool = True
 
     leave_enabled: bool = False
-    leave_channel_id: int | None = None
+    leave_channel_id: ChannelId | None = None
     leave_message: str | None = None
 
     dm_enabled: bool = False
     dm_message: str | None = None
 
     # Rollen für neue Mitglieder, erst nach dem Mitglieder-Screening vergeben.
-    autoroles: list[int] = Field(default_factory=list, max_length=MAX_AUTOROLES)
-    bot_autoroles: list[int] = Field(default_factory=list, max_length=MAX_AUTOROLES)
+    autoroles: list[RoleId] = Field(default_factory=list, max_length=MAX_AUTOROLES)
+    bot_autoroles: list[RoleId] = Field(default_factory=list, max_length=MAX_AUTOROLES)
 
     card: CardStyle = Field(default_factory=CardStyle)
 

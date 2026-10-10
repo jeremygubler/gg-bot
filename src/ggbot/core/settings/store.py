@@ -49,6 +49,7 @@ class SettingsStore:
         after = settings.model_dump(mode="json")
         async with self._db.session() as session:
             if audit_user_id is not None:
+                await repo.lock(session, guild_id, module)
                 before = await repo.get(session, guild_id, module)
                 await repo.add_audit(session, guild_id, audit_user_id, module, before, after)
             await repo.upsert(session, guild_id, module, after, settings.schema_version)

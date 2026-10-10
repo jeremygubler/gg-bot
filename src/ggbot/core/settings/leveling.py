@@ -8,6 +8,7 @@ from ggbot.core.leveling.announce import validate_template
 from ggbot.core.leveling.xp import MAX_LEVEL
 from ggbot.core.settings.card import CardStyle
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId, RoleId
 
 MAX_LIST = 100
 MAX_REWARDS = 50
@@ -43,17 +44,21 @@ class LevelingSettings(SettingsModel):
     voice: VoiceXp = Field(default_factory=VoiceXp)
 
     announce: AnnounceMode = "current"
-    announce_channel_id: int | None = None
+    announce_channel_id: ChannelId | None = None
     announce_message: str | None = None
 
     # Level → Rolle.
     rewards: dict[int, int] = Field(default_factory=dict, max_length=MAX_REWARDS)
     reward_mode: Literal["stack", "replace"] = "stack"
 
-    role_multipliers: dict[int, float] = Field(default_factory=dict, max_length=MAX_BOOSTS)
-    channel_multipliers: dict[int, float] = Field(default_factory=dict, max_length=MAX_BOOSTS)
-    no_xp_channels: list[int] = Field(default_factory=list, max_length=MAX_LIST)
-    no_xp_roles: list[int] = Field(default_factory=list, max_length=MAX_LIST)
+    role_multipliers: dict[int, float] = Field(
+        json_schema_extra={"x-key-picker": "role"}, default_factory=dict, max_length=MAX_BOOSTS
+    )
+    channel_multipliers: dict[int, float] = Field(
+        json_schema_extra={"x-key-picker": "channel"}, default_factory=dict, max_length=MAX_BOOSTS
+    )
+    no_xp_channels: list[ChannelId] = Field(default_factory=list, max_length=MAX_LIST)
+    no_xp_roles: list[RoleId] = Field(default_factory=list, max_length=MAX_LIST)
 
     card: CardStyle = Field(default_factory=CardStyle)
 

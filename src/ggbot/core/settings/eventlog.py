@@ -5,6 +5,7 @@ from typing import ClassVar
 from pydantic import Field, field_validator
 
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId
 
 # Reihenfolge = Reihenfolge in /logging status.
 EVENT_TYPES = (
@@ -39,15 +40,15 @@ class LoggingSettings(SettingsModel):
     module: ClassVar[str] = "logging"
 
     # Ereignisart -> Kanal. Eine Art ohne Eintrag ist aus.
-    channels: dict[str, int] = Field(default_factory=dict)
+    channels: dict[str, ChannelId] = Field(default_factory=dict)
     # Aus diesen Kanälen werden keine Nachrichten-Ereignisse protokolliert.
-    ignored_channels: list[int] = Field(default_factory=list, max_length=MAX_IGNORED)
+    ignored_channels: list[ChannelId] = Field(default_factory=list, max_length=MAX_IGNORED)
     # Nachrichten und Sprachwechsel von Bots weglassen (sonst füllen Musik- und Spielbots das Log).
     ignore_bots: bool = True
 
     @field_validator("channels")
     @classmethod
-    def _known_types(cls, channels: dict[str, int]) -> dict[str, int]:
+    def _known_types(cls, channels: dict[str, ChannelId]) -> dict[str, int]:
         unknown = set(channels) - set(EVENT_TYPES)
         if unknown:
             raise ValueError(f"unbekannte Ereignisart: {sorted(unknown)[0]}")

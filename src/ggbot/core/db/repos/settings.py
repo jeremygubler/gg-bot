@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,4 +44,27 @@ async def add_audit(
         DashboardAudit(
             guild_id=guild_id, user_id=user_id, module=module, before=before, after=after
         )
+    )
+
+
+async def list_audit(
+    session: AsyncSession, guild_id: int, *, limit: int, before_id: int | None = None
+) -> list[DashboardAudit]:
+    """Neueste zuerst; `before_id` blättert (Einträge mit kleinerer id)."""
+    stmt = select(DashboardAudit).where(DashboardAudit.guild_id == guild_id)
+    if before_id is not None:
+        stmt = stmt.where(DashboardAudit.id < before_id)
+    result = await session.execute(stmt.order_by(DashboardAudit.id.desc()).limit(limit))
+    return list(result.scalars())
+
+
+async def lock(session: AsyncSession, guild_id: int, module: str) -> None:
+    """Serialisiert Schreiber desselben (Server, Modul) bis zum Ende der Transaktion.
+
+    Ohne das könnten zwei gleichzeitige Dashboard-Speicherungen beide denselben
+    „Vorher"-Stand lesen; das Änderungsprotokoll zeigte dann eine Kette, die es nie gab.
+    """
+    await session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:name, 0))"),
+        {"name": f"settings:{guild_id}:{module}"},
     )

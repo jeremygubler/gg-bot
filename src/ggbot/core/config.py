@@ -6,6 +6,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+MIN_SESSION_SECRET = 32
+
 
 class AppConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -38,6 +40,17 @@ class AppConfig(BaseSettings):
     twitch_client_id: str = ""
     twitch_client_secret: SecretStr = SecretStr("")
 
+    # Dashboard: Discord-OAuth2-Anwendung (dieselbe wie der Bot) und Sitzungen.
+    # Ohne Client-Secret und Session-Secret startet die API, bietet aber kein Login an.
+    discord_client_id: str = ""
+    discord_client_secret: SecretStr = SecretStr("")
+    # Öffentliche Adresse des Dashboards, z. B. https://bot.example.org (ohne Slash am Ende).
+    dashboard_url: str = "http://localhost:8080"
+    # Signiert das Sitzungs-Cookie. Mindestens 32 Zeichen; bei Wechsel sind alle abgemeldet.
+    session_secret: SecretStr = SecretStr("")
+    # Nur hinter reinem http (lokale Entwicklung) ausschalten.
+    cookie_secure: bool = True
+
     # Nur für die Entwicklung: Slash-Commands sofort auf einer Test-Guild statt global.
     dev_guild_id: int | None = None
 
@@ -60,6 +73,18 @@ class AppConfig(BaseSettings):
     @property
     def twitch_enabled(self) -> bool:
         return bool(self.twitch_client_id and self.twitch_client_secret.get_secret_value())
+
+    @property
+    def dashboard_enabled(self) -> bool:
+        return bool(
+            self.discord_client_id
+            and self.discord_client_secret.get_secret_value()
+            and len(self.session_secret.get_secret_value()) >= MIN_SESSION_SECRET
+        )
+
+    @property
+    def oauth_redirect_uri(self) -> str:
+        return f"{self.dashboard_url.rstrip('/')}/api/auth/callback"
 
     def require_token(self) -> str:
         token = self.discord_token.get_secret_value()

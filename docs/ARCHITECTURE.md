@@ -568,3 +568,42 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
 - **Geplante Nachrichten:** Ein Scheduler-Job je Termin mit dem Termin im Payload. `claim_run` schreibt den Termin atomar fort (`UPDATE … WHERE next_run = :alt`): doppelte Jobs, abgebrochene und
   veraltete Termine senden nichts. Wiederkehrende planen den nächsten Termin im alten Raster **nach jetzt** (`core/community/schedule.py`), verpasste Runden werden nicht nachgeholt. Gesendet wird nie mit
   Erwähnungen.
+
+## 22. Dashboard-API (Phase 10a)
+
+Umgesetzt in `src/ggbot/api/`. Abweichungen und Ergänzungen zu Abschnitt 9:
+
+- **Routen** (nginx entfernt das Präfix `/api`): `GET /auth/login`, `GET /auth/callback`,
+  `POST /auth/logout`, `GET /me`, `GET /modules`, `GET /modules/{m}/schema`,
+  `GET /guilds/{id}/snapshot`, `GET|PUT /guilds/{id}/settings/{m}`, `GET /guilds/{id}/audit`.
+- **Schema-getriebene Formulare:** `/modules/{m}/schema` liefert `model_json_schema()` des
+  Pydantic-Modells aus `core/settings/registry.py`; die Oberfläche baut daraus das Formular.
+  Ein Test erzwingt, dass jedes `SettingsModel` im Register steht. Kanal- und Rollenfelder
+  tragen `x-picker: "channel" | "role"` (Schlüssel von Zuordnungen: `x-key-picker`); die Auswahl
+  kommt aus dem Redis-Snapshot.
+- **IDs sind Strings im JSON.** Discord-IDs liegen über 2^53; JavaScript würde eine JSON-Zahl
+  stillschweigend verfälschen. `core/settings/types.py` (`Snowflake`, `ChannelId`, `RoleId`)
+  liest Zahl *und* Ziffernstring (alte gespeicherte Stände bleiben gültig), prüft den String
+  streng (`\A[0-9]{1,20}\Z`, sonst liesse Pydantics Zahlenparser `" 1"` oder `"-1"` durch) und
+  schreibt im JSON einen String. Im Python-Objekt bleibt es `int`. Das gilt auch für den Snapshot.
+- **Sitzung:** Cookie `gg_session` = `<sid>.<HMAC-SHA256>` (Geheimnis `SESSION_SECRET`),
+  Daten in Redis (7 Tage, fest; ein Neuladen der Server-Liste verlängert nicht). Das
+  Access-Token bleibt serverseitig und dient dazu, die Server-Liste **höchstens 60 s alt** zu
+  halten: entzogene Rechte wirken innerhalb einer Minute. Antwortet Discord mit 401, wird die
+  Sitzung gelöscht; bei anderen Fehlern wird abgelehnt (503), statt mit einer womöglich
+  veralteten Rechteliste weiterzuarbeiten. Abmelden widerruft das Token bei Discord (best effort).
+- **Login-CSRF:** der OAuth-`state` liegt signiert in einem kurzlebigen Cookie und wird beim
+  Rücksprung verglichen; ein untergeschobener Code trägt den State des Angreifers nicht.
+- **CSRF bei Schreibzugriffen:** Header `X-Requested-With: ggbot` Pflicht (ohne eigenes Token;
+  eine fremde Origin kann ihn nur über einen CORS-Preflight setzen, den die API nicht freigibt).
+- **Zugriff:** Eigentümer oder `Manage Server`/`Administrator` **und** Snapshot vorhanden
+  (= Bot auf dem Server). Beides ergibt 404, damit niemand über 403 erfährt, wo der Bot ist.
+  Der Bot löscht den Snapshot beim Verlassen.
+- **Schreiben:** validiert über das Modell (422 mit Feldpfad und Grund, **ohne** Eingabewerte),
+  begrenzt auf 30 Schreibvorgänge/Minute und Nutzer, ohne Änderung kein Audit und kein Event.
+  Audit-Eintrag und Speichern liegen in einer Transaktion unter einem Advisory-Lock je
+  (Server, Modul), damit das Protokoll bei gleichzeitigem Speichern eine lückenlose Kette bleibt.
+- **Nicht geprüft:** ob eine gesetzte Kanal-/Rollen-ID auf dem Server existiert. Der Bot muss
+  mit gelöschten Kanälen ohnehin umgehen können, die Auswahl der Oberfläche kommt aus dem Snapshot.
+- **Fehlerformat:** `{"detail": {"error": "<schlüssel>"}}`; Texte und Übersetzung gehören der Oberfläche.
+

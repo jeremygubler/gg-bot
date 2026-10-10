@@ -6,6 +6,7 @@ from pydantic import Field, field_validator
 
 from ggbot.core import messages
 from ggbot.core.settings.schema import SettingsModel
+from ggbot.core.settings.types import ChannelId
 
 NAME_FIELDS = ("number", "category", "user")
 MAX_NAME_TEMPLATE = 50
@@ -15,7 +16,7 @@ class TicketSettings(SettingsModel):
     module: ClassVar[str] = "tickets"
 
     # Hierhin gehen Transkript und Schliess-Meldung (None = nur DM, falls eingeschaltet).
-    log_channel_id: int | None = None
+    log_channel_id: ChannelId | None = None
     max_open_per_user: int = Field(default=3, ge=1, le=10)
     # 0 = nie automatisch schliessen.
     auto_close_hours: int = Field(default=0, ge=0, le=720)
