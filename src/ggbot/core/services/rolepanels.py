@@ -171,6 +171,34 @@ class RolePanelService:
         self.invalidate(guild_id)
         return view
 
+    async def update(
+        self,
+        guild_id: int,
+        panel_id: int,
+        *,
+        title: str,
+        description: str | None,
+        mode: str,
+    ) -> PanelView:
+        """Titel, Beschreibung und Modus ändern. Die Art (Buttons/Menü/Reaktionen) bleibt."""
+        title = title.strip()
+        if not title or len(title) > MAX_TITLE:
+            raise UserError("error.panel_title", limit=MAX_TITLE)
+        description = description.strip() if description else None
+        if description and len(description) > MAX_DESCRIPTION:
+            raise UserError("error.panel_description", limit=MAX_DESCRIPTION)
+        async with self._db.session() as session:
+            panel = await repo.get_panel(session, guild_id, panel_id)
+            if panel is None:
+                raise UserError("error.panel_not_found", panel_id=panel_id)
+            panel.title = title
+            panel.description = description or None
+            panel.mode = mode
+            await session.flush()
+            view = await self._view(session, panel)
+        self.invalidate(guild_id)
+        return view
+
     async def add_item(
         self,
         guild_id: int,

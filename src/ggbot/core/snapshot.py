@@ -41,6 +41,9 @@ class GuildSnapshot(BaseModel):
     channels: list[ChannelInfo]
     roles: list[RoleInfo]
     emojis: list[EmojiInfo]
+    # Höchste Rolle des Bots: nur darunter darf er Rollen vergeben. Die API prüft damit, ob ein
+    # Panel eine Rolle anbieten kann, ohne den Bot zu fragen. 0 = unbekannt (alter Snapshot).
+    bot_top_position: int = 0
 
 
 def _key(guild_id: Snowflake) -> str:

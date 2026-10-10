@@ -24,6 +24,7 @@ export const snapshot: Snapshot = {
     { id: "11", name: "Member", color: 0, position: 1, managed: false },
   ],
   emojis: [],
+  bot_top_position: 10,
 };
 
 /** Rendert das Formular eines echten Moduls mit Zustand und liefert den jeweils aktuellen Wert. */

@@ -180,6 +180,23 @@ class TicketService:
             panel = await repo.create_panel(session, guild_id, title, description or None)
             return await self._panel_view(session, guild_id, panel)
 
+    async def update_panel(
+        self, guild_id: int, panel_id: int, *, title: str, description: str | None
+    ) -> TicketPanelView:
+        title = title.strip()
+        if not 1 <= len(title) <= MAX_TITLE:
+            raise UserError("error.tpanel_title")
+        if description is not None and len(description) > MAX_DESCRIPTION:
+            raise UserError("error.tpanel_description")
+        async with self._db.session() as session:
+            panel = await repo.get_panel(session, guild_id, panel_id)
+            if panel is None:
+                raise UserError("error.tpanel_not_found", panel_id=panel_id)
+            panel.title = title
+            panel.description = description or None
+            await session.flush()
+            return await self._panel_view(session, guild_id, panel)
+
     async def get_panel(self, guild_id: int, panel_id: int) -> TicketPanelView:
         async with self._db.session() as session:
             panel = await repo.get_panel(session, guild_id, panel_id)

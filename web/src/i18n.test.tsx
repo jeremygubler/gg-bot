@@ -45,6 +45,7 @@ describe("Übersetzungen", () => {
     const codes = [
       "unauthenticated", "dashboard_disabled", "guild_not_found", "module_not_found", "csrf",
       "rate_limited", "discord_unavailable", "oauth_state", "invalid_settings", "network",
+      "needs_administrator", "not_found", "board_unavailable", "user_error",
     ];
     const tr = makeTranslator("de");
     for (const code of codes) expect(tr.error(code), code).not.toBe(tr.t("err.unknown"));

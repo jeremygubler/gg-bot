@@ -36,6 +36,7 @@ def make_guild() -> MagicMock:
         SimpleNamespace(id=5, name="Mod", color=SimpleNamespace(value=0), position=1, managed=False)
     ]
     guild.emojis = []
+    guild.me.top_role.position = 3
     return guild
 
 

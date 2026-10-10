@@ -28,4 +28,5 @@ def build_snapshot(guild: discord.Guild) -> GuildSnapshot:
             for role in guild.roles
         ],
         emojis=[EmojiInfo(id=e.id, name=e.name, animated=e.animated) for e in guild.emojis],
+        bot_top_position=guild.me.top_role.position if guild.me is not None else 0,
     )

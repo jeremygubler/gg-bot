@@ -1003,6 +1003,11 @@
         },
         "card": {
           "$ref": "#/$defs/CardStyle"
+        },
+        "public_leaderboard": {
+          "default": false,
+          "title": "Public Leaderboard",
+          "type": "boolean"
         }
       },
       "title": "LevelingSettings",
@@ -1033,7 +1038,8 @@
         "accent": 5793266,
         "background": 2303786,
         "template": "gradient"
-      }
+      },
+      "public_leaderboard": false
     }
   },
   "welcome": {

@@ -10,10 +10,13 @@ describe("parseRoute", () => {
     expect(parseRoute("/g/123/audit")).toEqual({ name: "audit", guild: "123" });
     expect(parseRoute("/g/123/m/starboard")).toEqual({ name: "module", guild: "123", module: "starboard" });
     expect(parseRoute("/g/123/m/starboard/")).toEqual({ name: "module", guild: "123", module: "starboard" });
+    expect(parseRoute("/g/123/panels/roles")).toEqual({ name: "panels", guild: "123", kind: "roles" });
+    expect(parseRoute("/g/123/panels/tickets")).toEqual({ name: "panels", guild: "123", kind: "tickets" });
+    expect(parseRoute("/leaderboard/123")).toEqual({ name: "public", guild: "123" });
   });
 
   it("weist alles andere ab, auch gefährlich Aussehendes", () => {
-    for (const bad of ["/x", "/g", "/g/abc", "/g/1/m", "/g/1/m/a/b", "/g/1/m/../x", "/g/1/m/A", "/g/" + "1".repeat(21), "/g/1/zzz"]) {
+    for (const bad of ["/x", "/g", "/g/abc", "/g/1/m", "/g/1/m/a/b", "/g/1/m/../x", "/g/1/m/A", "/g/" + "1".repeat(21), "/g/1/zzz", "/g/1/panels", "/g/1/panels/x", "/g/1/panels/roles/x", "/leaderboard", "/leaderboard/abc", "/leaderboard/1/2"]) {
       expect(parseRoute(bad), bad).toEqual({ name: "notfound" });
     }
   });
@@ -23,6 +26,8 @@ describe("parseRoute", () => {
     expect(parseRoute(paths.audit("5"))).toEqual({ name: "audit", guild: "5" });
     expect(parseRoute(paths.guild("5"))).toEqual({ name: "guild", guild: "5" });
     expect(parseRoute(paths.home())).toEqual({ name: "home" });
+    expect(parseRoute(paths.panels("5", "tickets"))).toEqual({ name: "panels", guild: "5", kind: "tickets" });
+    expect(parseRoute(paths.publicLeaderboard("5"))).toEqual({ name: "public", guild: "5" });
   });
 });
 

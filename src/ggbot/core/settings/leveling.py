@@ -66,6 +66,10 @@ class LevelingSettings(SettingsModel):
 
     card: CardStyle = Field(default_factory=CardStyle)
 
+    # Öffentliche Rangliste im Dashboard (ohne Anmeldung lesbar). Aus, solange der Server sie nicht
+    # ausdrücklich freigibt; angezeigt werden dann Anzeigename und Avatar der Top 100.
+    public_leaderboard: bool = False
+
     @model_validator(mode="after")
     def _ordered(self) -> Self:
         if self.xp_min > self.xp_max:

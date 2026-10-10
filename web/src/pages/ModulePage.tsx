@@ -3,7 +3,8 @@ import { ApiError } from "../api";
 import { useApi, useGuild } from "../context";
 import { SchemaForm } from "../form/SchemaForm";
 import { useTr } from "../i18n";
-import { useLeaveGuard } from "../router";
+import { CardPreview } from "../CardPreview";
+import { paths, useLeaveGuard } from "../router";
 import { compile, equal, indexErrors, SchemaError, type FieldError, type JsonObject } from "../schema";
 import { ErrorBox, Spinner } from "../ui";
 import { useAsync } from "../useAsync";
@@ -101,6 +102,7 @@ export function ModuleForm(props: { module: string; schema: object; initial: Jso
         snapshot={snapshot}
         errors={errors}
       />
+      <Extras module={props.module} guild={id} value={value} />
       <div className="sticky bottom-0 -mx-1 mt-6 flex flex-wrap items-center gap-3 border-t border-slate-700 bg-slate-900/95 px-1 py-3">
         <button
           type="submit"
@@ -133,4 +135,27 @@ export function ModuleForm(props: { module: string; schema: object; initial: Jso
       </div>
     </form>
   );
+}
+
+/** Zusätze unter dem Formular, die zu einzelnen Modulen gehören (Kartenvorschau, öffentliche Seite). */
+function Extras({ module, guild, value }: { module: string; guild: string; value: JsonObject }) {
+  const tr = useTr();
+  if (module === "leveling") {
+    const link = paths.publicLeaderboard(guild);
+    return (
+      <>
+        {value["public_leaderboard"] === true && (
+          <p className="mt-4 text-sm text-slate-300">
+            {tr.t("form.publicLink")}{" "}
+            <a href={link} target="_blank" rel="noopener noreferrer" className="text-indigo-300 underline">
+              {`${window.location.origin}${link}`}
+            </a>
+          </p>
+        )}
+        <CardPreview kind="rank" value={value["card"]} />
+      </>
+    );
+  }
+  if (module === "welcome") return <CardPreview kind="welcome" value={value["card"]} />;
+  return null;
 }

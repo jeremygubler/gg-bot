@@ -272,7 +272,7 @@ Pydantic-Modellen (`model_json_schema()`), damit Bot und Dashboard nie auseinand
   bei schreibenden Routen.
 - **Audit-Log:** Jede Änderung über das Dashboard schreibt in `dashboard_audit`
   (Nutzer, Modul, Vorher/Nachher als JSON-Diff).
-- **Öffentliches Leaderboard:** Unauthentifizierte Route `GET /public/{guild_id}/leaderboard`,
+- **Öffentliches Leaderboard** (umgesetzt in Abschnitt 24): Unauthentifizierte Route `GET /public/{guild_id}/leaderboard`,
   nur wenn der Server es im Dashboard aktiviert hat; Rate-Limit pro IP, keine privaten Felder.
 
 ## 10. Betrieb
@@ -640,4 +640,44 @@ Umgesetzt in `web/src/` (React 18, Vite, Tailwind, nur `react`/`react-dom` zur L
   werden streng geparst. nginx liefert dafür `index.html` für alle unbekannten Pfade.
 - **Bewusst nicht in 10b:** Panels (Rollen/Tickets), Kartenvorschau, öffentliches Leaderboard
   (alles 10c); Beschreibungstexte/Platzhalterhilfen zu einzelnen Feldern.
+
+## 24. Panels, Kartenvorschau, öffentliche Rangliste (Phase 10c)
+
+- **Panels im Dashboard** (`api/routers/panels.py`): Rollen- und Ticket-Panels anlegen, bearbeiten,
+  löschen, Einträge/Kategorien/Support-Rollen pflegen, veröffentlichen. Alles läuft durch dieselben
+  Dienste wie die Slash-Befehle (`RolePanelService`, `TicketService`), `UserError` kommt als 422 mit
+  übersetzter Meldung zurück (Kopf `X-Locale`, sonst Standardsprache). Die Formulare sind hier bewusst
+  **nicht** schema-getrieben: Panels sind Tabellenzeilen mit eigener Logik, keine Einstellungsmodule.
+- **Wer darf was:** Ticket-Panels: *Server verwalten* (wie `/ticketpanel`). **Rollen-Panels:
+  Eigentümer oder Administrator**, weil ein Panel Rollen vergibt und die API die Rollenhierarchie des
+  Nutzers nicht kennt (Slash-Befehle prüfen sie über das Mitglied). Lesen dürfen alle mit Zugriff.
+- **Prüfungen ohne Discord-Objekte** (`api/policy.py`, rein): vergebbare Rolle = nicht @everyone, nicht
+  verwaltet, **unter** der höchsten Rolle des Bots; Kanal muss ein Textkanal sein, die Ticket-Kategorie
+  ein Kanal-Container, Emoji muss wie eines aussehen, Fragen wie bei `/ticketpanel`. Grundlage ist der
+  Snapshot, der dafür `bot_top_position` trägt (0 = unbekannt = nichts vergebbar).
+- **Veröffentlichen läuft über den Bot:** die API prüft, setzt den Status `pending` und schickt
+  `panel.publish` (`kind`, `action` = `publish`/`refresh`/`delete`, Kanal, Nachricht). Der Bot führt aus,
+  prüft seine Rechte im Kanal wie bei `/rolepanel publish` und schreibt das Ergebnis in Redis
+  (`core/panelstatus.py`, 10 Minuten): `done`, `done` mit Hinweis (abgelehnte Reaktionen) oder `error`
+  mit i18n-Schlüssel. Die Oberfläche fragt den Status ab. Nach jeder Änderung an einem veröffentlichten
+  Panel folgt ein `refresh`; beim Löschen ein `delete` mit Kanal und Nachricht (das Panel ist dann weg).
+  Slash-Befehl und Event teilen sich `_check_publishable` und `_publish`.
+- **Kartenvorschau** (`api/routers/preview.py`): `POST /guilds/{id}/preview/{rank|welcome}` mit dem
+  `CardStyle` aus dem Formular liefert ein PNG, gezeichnet von `ggbot.render` wie im Bot, mit
+  Beispieldaten und ohne Avatar (kein Abruf bei Discord). Limit 60/min und Nutzer; Zeichnen im Thread.
+  Die Oberfläche zeigt die Vorschau unter Leveling und Willkommen und fragt nach 400 ms Ruhe.
+- **Öffentliche Rangliste:** `GET /public/{guild_id}/leaderboard`, Seite `/leaderboard/<id>`. Nur wenn
+  `LevelingSettings.enabled` **und** `public_leaderboard` (Standard aus); ein nicht freigegebener Server
+  und ein unbekannter sind für Besucher gleich (404). Namen und Avatare kennt nur der Bot: er legt die
+  Top 100 für 2 Stunden in Redis (`core/publicboard.py`), aufgefrischt alle 10 Minuten und sofort bei
+  Änderung der Einstellung; Ausschalten löscht den Zwischenspeicher. **Nichts davon steht in der
+  Datenbank.** Mitglieder, die nicht mehr auf dem Server sind, fehlen; wer `/privacy delete` nutzt,
+  verschwindet (seine XP-Zeile ist weg). Pro Lauf höchstens 25 Nachfragen nach unbekannten Mitgliedern,
+  der Rest erscheint ohne Namen. Antwort ohne Nutzer-IDs (nur die Avatar-URL enthält die ID, wie in
+  Discord selbst öffentlich). Limit 60/min pro Besucher; Besucher = Eintrag in `X-Forwarded-For`, `PROXY_HOPS`
+  von rechts (Standard 1 = der nginx aus Compose; hinter einem weiteren Proxy 2), weil alles davor vom
+  Client stammt.
+- **Nicht umgesetzt:** Eintrag eines Panels nachträglich ändern (wie bei den Slash-Befehlen: entfernen und
+  neu anlegen), Reihenfolge ändern, Reaktions-Panels an fremden Nachrichten anlegen (nur per Slash-Befehl,
+  weil sie die Nachricht prüfen müssen), persönliches Ausblenden aus der öffentlichen Liste.
 

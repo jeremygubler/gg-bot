@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, createApi, type Api, type Me } from "./api";
 import { ApiContext, MeContext } from "./context";
 import { useSetLocale, useTr } from "./i18n";
 import { AuditPage } from "./pages/AuditPage";
+import { PanelsPage } from "./pages/PanelsPage";
+import { PublicLeaderboardPage } from "./pages/PublicLeaderboard";
 import { GuildLayout } from "./pages/GuildLayout";
 import { ModulePage } from "./pages/ModulePage";
 import { ServersPage } from "./pages/Servers";
@@ -15,8 +17,18 @@ export function App({ api: injected }: { api?: Api }) {
   const tr = useTr();
   const setLocale = useSetLocale();
   const [session, setSession] = useState<Session>({ status: "loading" });
+  const route = useRoute();
+  // Der Wächter der Sprache liest den aktuellen Wert beim Aufruf, nicht beim Erzeugen der API.
+  const localeRef = useRef(tr.locale);
+  localeRef.current = tr.locale;
   const api = useMemo(
-    () => injected ?? createApi(undefined, () => setSession({ status: "anonymous", code: "unauthenticated" })),
+    () =>
+      injected ??
+      createApi(
+        undefined,
+        () => setSession({ status: "anonymous", code: "unauthenticated" }),
+        () => localeRef.current,
+      ),
     [injected],
   );
 
@@ -31,7 +43,12 @@ export function App({ api: injected }: { api?: Api }) {
       },
     );
   };
-  useEffect(load, [api]);
+  useEffect(() => {
+    // Die öffentliche Rangliste braucht keine Sitzung; /me würde dort nur eine unnötige 401 holen.
+    if (route.name !== "public") load();
+  }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (route.name === "public") return <PublicLeaderboardPage guild={route.guild} />;
 
   const logout = () => {
     api.logout().then(
@@ -125,6 +142,14 @@ function Routes() {
           <AuditPage />
         </GuildLayout>
       );
+    case "panels":
+      return (
+        <GuildLayout guild={route.guild}>
+          <PanelsPage kind={route.kind} />
+        </GuildLayout>
+      );
+    case "public":
+      return null; // wird oben in App behandelt
     case "notfound":
       return <ErrorBox code="module_not_found" />;
   }

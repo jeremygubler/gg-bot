@@ -6,7 +6,7 @@ from ggbot.api.access import api_error
 from ggbot.core.redis import key
 
 
-async def hit(redis: Redis, bucket: str, subject: int, *, limit: int, window: int) -> None:
+async def hit(redis: Redis, bucket: str, subject: int | str, *, limit: int, window: int) -> None:
     """Zählt einen Aufruf; wirft 429, wenn `limit` im Fenster überschritten ist."""
     name = key("ratelimit", bucket, subject)
     count = await redis.incr(name)

@@ -1,4 +1,7 @@
 [error]
+dashboard_role_missing = "The role does not exist on this server."
+panel_publish_failed = "I could not publish the panel. Check my permissions in that channel."
+panel_channel_invalid = "That channel is not available for panels."
 generic = "Something went wrong (error ID: {error_id}). Please try again later."
 missing_bot_permissions = "I am missing permissions for that: {permissions}"
 missing_permissions = "You are missing permissions for that: {permissions}"

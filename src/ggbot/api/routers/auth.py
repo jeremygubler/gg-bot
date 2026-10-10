@@ -14,6 +14,7 @@ from ggbot.api.access import (
     can_manage,
     current_session,
     current_user,
+    is_administrator,
 )
 from ggbot.api.discord import INVITE_PERMISSIONS, DiscordError, DiscordOAuth
 from ggbot.api.sessions import (
@@ -40,6 +41,9 @@ class MeGuild(BaseModel):
     name: str
     icon: str | None
     owner: bool
+    # Darf Rollen-Panels ändern (Eigentümer oder Administrator); die Oberfläche blendet sonst die
+    # Bearbeitung aus. Durchgesetzt wird es in der API, nicht hier.
+    administrator: bool
     bot_present: bool
 
 
@@ -140,6 +144,7 @@ async def me(request: Request, auth: Annotated[Authed, Depends(current_user)]) -
             name=g.name,
             icon=g.icon,
             owner=g.owner,
+            administrator=is_administrator(g),
             bot_present=await snapshot_exists(redis, g.id),
         )
         for g in auth.session.guilds

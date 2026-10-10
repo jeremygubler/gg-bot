@@ -200,6 +200,15 @@ class LevelingService:
             voice = row.voice_seconds if row else 0
         return RankInfo(progress(xp), position, total, msgs, voice)
 
+    async def top(self, guild_id: int, limit: int) -> list[LeaderboardRow]:
+        """Die ersten `limit` Plätze (für die öffentliche Rangliste)."""
+        async with self._db.session() as session:
+            members = await repo.top(session, guild_id, limit=limit, offset=0)
+        return [
+            LeaderboardRow(index + 1, m.user_id, m.xp, level_from_xp(m.xp))
+            for index, m in enumerate(members)
+        ]
+
     async def leaderboard(self, guild_id: int, page: int = 1) -> LeaderboardPage:
         async with self._db.session() as session:
             total = await repo.count(session, guild_id)

@@ -8,13 +8,16 @@ import httpx
 from fastapi import FastAPI, Response
 from sqlalchemy import text
 
+from ggbot.api import errors
 from ggbot.api.discord import DiscordOAuth
-from ggbot.api.routers import auth, guilds
+from ggbot.api.routers import auth, guilds, panels, preview, public
 from ggbot.api.sessions import SessionStore
 from ggbot.core.config import AppConfig, get_config
 from ggbot.core.db.engine import Database
 from ggbot.core.logging import configure_logging, get_logger, register_secret
 from ggbot.core.redis import create_redis
+from ggbot.core.services.rolepanels import RolePanelService
+from ggbot.core.services.tickets import TicketService
 from ggbot.core.settings.store import SettingsStore
 
 log = get_logger(__name__)
@@ -38,6 +41,8 @@ def create_app(
         app.state.config = config
         app.state.clock = time.time
         app.state.settings = SettingsStore(app.state.db, app.state.redis)
+        app.state.rolepanels = RolePanelService(app.state.db)
+        app.state.tickets = TicketService(app.state.db, app.state.settings, app.state.redis)
         app.state.oauth = DiscordOAuth(app.state.http, config)
         app.state.sessions = (
             SessionStore(app.state.redis, config.session_secret.get_secret_value())
@@ -57,6 +62,10 @@ def create_app(
 
     app.include_router(auth.router)
     app.include_router(guilds.router)
+    app.include_router(panels.router)
+    app.include_router(preview.router)
+    app.include_router(public.router)
+    errors.install(app, config.default_locale)
 
     @app.get("/healthz")
     async def healthz(response: Response) -> dict[str, str]:

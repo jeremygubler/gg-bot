@@ -30,6 +30,10 @@ def can_manage(guild: UserGuild) -> bool:
     return guild.owner or bool(guild.permissions & (ADMINISTRATOR | MANAGE_GUILD))
 
 
+def is_administrator(guild: UserGuild) -> bool:
+    return guild.owner or bool(guild.permissions & ADMINISTRATOR)
+
+
 @dataclass(frozen=True)
 class Authed:
     sid: str

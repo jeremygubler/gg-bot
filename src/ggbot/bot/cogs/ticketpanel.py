@@ -13,12 +13,17 @@ from ggbot.bot import tickets as tk
 from ggbot.bot.checks import ensure_guild
 from ggbot.bot.client import GGBot
 from ggbot.bot.i18n import d
+from ggbot.core import events
 from ggbot.core.errors import UserError
 from ggbot.core.i18n import translator
+from ggbot.core.logging import get_logger
+from ggbot.core.panelstatus import PanelStatus, set_status
 from ggbot.core.roles.plan import is_emoji
 from ggbot.core.services.tickets import TicketPanelView
 from ggbot.core.settings.tickets import TicketSettings
 from ggbot.core.tickets.rules import clean_questions
+
+log = get_logger(__name__)
 
 PostChannel = discord.TextChannel
 NEEDS = ("view_channel", "send_messages", "embed_links")
@@ -136,13 +141,26 @@ class TicketPanelCog(commands.Cog):
     ) -> None:
         guild = ensure_guild(interaction)
         view = await self.bot.services.tickets.get_panel(guild.id, panel)
-        if not view.categories:
-            raise UserError("error.tpanel_empty")
         target = channel or (
             interaction.channel if isinstance(interaction.channel, discord.TextChannel) else None
         )
         if target is None:
             raise UserError("error.panel_channel_needed")
+        self._check_publishable(guild, view, target)
+        await interaction.response.defer(ephemeral=True)
+        await self._publish(guild, view, target)
+        locale = await self._locale(guild.id)
+        await interaction.followup.send(
+            translator.t(locale, "ticket.panel_published", panel_id=panel, channel=target.mention),
+            ephemeral=True,
+        )
+
+    @staticmethod
+    def _check_publishable(
+        guild: discord.Guild, view: TicketPanelView, target: discord.TextChannel
+    ) -> None:
+        if not view.categories:
+            raise UserError("error.tpanel_empty")
         have = target.permissions_for(guild.me)
         missing = [name for name in NEEDS if not getattr(have, name)]
         if missing:
@@ -157,7 +175,10 @@ class TicketPanelCog(commands.Cog):
             raise UserError(
                 "error.missing_bot_permissions", permissions="Manage Channels, Manage Roles"
             )
-        await interaction.response.defer(ephemeral=True)
+
+    async def _publish(
+        self, guild: discord.Guild, view: TicketPanelView, target: discord.TextChannel
+    ) -> None:
         await self._delete_message(guild, view)
         color = await tk.embed_color(self.bot, guild.id)
         message = await target.send(
@@ -165,12 +186,45 @@ class TicketPanelCog(commands.Cog):
             view=tk.panel_view(view),
             allowed_mentions=discord.AllowedMentions.none(),
         )
-        await self.bot.services.tickets.set_panel_message(guild.id, panel, target.id, message.id)
-        locale = await self._locale(guild.id)
-        await interaction.followup.send(
-            translator.t(locale, "ticket.panel_published", panel_id=panel, channel=target.mention),
-            ephemeral=True,
-        )
+        await self.bot.services.tickets.set_panel_message(guild.id, view.id, target.id, message.id)
+
+    # --- Aufträge aus dem Dashboard ---
+
+    @commands.Cog.listener()
+    async def on_ggbot_panel_publish(self, event: events.PanelPublish) -> None:
+        if event.kind != "ticket":
+            return
+        try:
+            await self._handle_panel_event(event)
+            status = PanelStatus(state="done")
+        except UserError as exc:
+            status = PanelStatus(state="error", error_key=exc.key, error_params=exc.params)
+        except discord.HTTPException:
+            log.warning(
+                "ticketpanel_dashboard_failed", guild_id=event.guild_id, panel_id=event.panel_id
+            )
+            status = PanelStatus(state="error", error_key="error.panel_publish_failed")
+        await set_status(self.bot.services.redis, "ticket", event.guild_id, event.panel_id, status)
+
+    async def _handle_panel_event(self, event: events.PanelPublish) -> None:
+        guild = self.bot.get_guild(event.guild_id)
+        if guild is None:
+            raise UserError("error.panel_publish_failed")
+        if event.action == "delete":
+            channel = guild.get_channel(event.channel_id) if event.channel_id else None
+            if isinstance(channel, discord.TextChannel) and event.message_id is not None:
+                with contextlib.suppress(discord.HTTPException):
+                    await channel.get_partial_message(event.message_id).delete()
+            return
+        view = await self.bot.services.tickets.get_panel(guild.id, event.panel_id)
+        if event.action == "refresh":
+            await self._refresh(guild, view)
+            return
+        target = guild.get_channel(event.channel_id) if event.channel_id else None
+        if not isinstance(target, discord.TextChannel):
+            raise UserError("error.panel_channel_invalid")
+        self._check_publishable(guild, view, target)
+        await self._publish(guild, view, target)
 
     @panel.command(name="delete", description=d("cmd.ticketpanel.delete.desc"))
     @app_commands.describe(panel=d("cmd.arg.panel.desc"))

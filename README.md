@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 10b (Dashboard-Oberfläche) fertig**. Als Nächstes Panels, Vorschau und Leaderboard (10c). Die weiteren Feature-Phasen folgen.
+Stand: **Phase 10 (Dashboard) komplett**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -412,7 +412,7 @@ das Geburtstagskind. Bots haben keinen Geburtstag.
 *Server verwalten*, bis 25 aktive. `\n` im Text ergibt einen Zeilenumbruch. Eine geplante Nachricht pingt **nie** (auch kein `@everyone` im Text). War der Bot länger aus, werden verpasste
 Wiederholungen nicht nachgeholt (keine Flut), die nächste kommt im alten Raster. Zeiten sind relativ ("in 2h"); feste Uhrzeiten wie "jeden Tag um 9" gibt es nicht.
 
-## Dashboard (Phase 10a und 10b)
+## Dashboard (Phase 10)
 
 Das Dashboard läuft unter `http://<host>:8080`. Die API (`api`-Dienst, im Browser unter `/api/…`)
 meldet über Discord an und liest und schreibt die Server-Einstellungen aller Module; die
@@ -420,7 +420,24 @@ Oberfläche baut ihre Formulare aus den Schemas der Einstellungsmodelle. Sie umf
 (mit Einladungslink für Server ohne Bot), ein Formular je Modul (General, Moderation, Automod,
 Server-Log, Leveling, Willkommen, Tickets, Geburtstage, Starboard), Kanal- und Rollenauswahl aus
 dem Bot-Snapshot, Fehleranzeige am Feld und das Änderungsprotokoll. Panels, Kartenvorschau und das
-öffentliche Leaderboard folgen in 10c.
+öffentliche Leaderboard sind in 10c dazugekommen (unten).
+
+### Panels, Vorschau und öffentliche Rangliste (Phase 10c)
+
+- **Panels** (*Rollen-Panels*, *Ticket-Panels* in der Seitenleiste): anlegen, bearbeiten, löschen, Einträge
+  bzw. Kategorien und Support-Rollen pflegen und in einem Kanal veröffentlichen. Der Bot setzt die Nachricht
+  und meldet Erfolg oder Fehler (z. B. fehlende Rechte im Kanal) zurück ins Dashboard. Änderungen an einem
+  veröffentlichten Panel aktualisieren die Discord-Nachricht. **Rollen-Panels dürfen nur Eigentümer und
+  Administratoren ändern** (sie vergeben Rollen); Ticket-Panels jeder mit *Server verwalten*. Angeboten werden
+  nur Rollen, die der Bot vergeben darf (nicht @everyone, nicht verwaltet, unter seiner höchsten Rolle).
+- **Kartenvorschau:** unter *Leveling* und *Willkommen & Abschied* zeigt das Dashboard die Karte so, wie der
+  Bot sie zeichnet (mit Beispieldaten), und folgt den Farben und der Vorlage im Formular.
+- **Öffentliche Rangliste:** *Leveling → Öffentliche Rangliste* gibt die Top 100 unter
+  `<DASHBOARD_URL>/leaderboard/<Server-ID>` ohne Anmeldung frei (standardmässig aus). Angezeigt werden Platz,
+  Anzeigename, Avatar, Level und XP; der Bot legt sie nur kurz im Zwischenspeicher ab, in der Datenbank
+  steht nichts davon. Mitglieder, die den Server verlassen haben, fehlen; wer `/privacy delete` nutzt,
+  ebenfalls. Steht ein weiterer Reverse Proxy vor dem Dashboard, `PROXY_HOPS=2` setzen, sonst teilen sich alle
+  Besucher ein Abruflimit.
 
 Einrichten:
 
@@ -455,6 +472,7 @@ Dashboard bearbeitet.
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | OAuth2-Zugang des Dashboards (Secret wird nie geloggt) |
 | `DASHBOARD_URL` | öffentliche Adresse des Dashboards, daraus entsteht der Redirect `<URL>/api/auth/callback` |
 | `SESSION_SECRET` | signiert das Sitzungs-Cookie, mind. 32 Zeichen (wird nie geloggt) |
+| `PROXY_HOPS` | Proxys vor der API, die ihre Adresse an `X-Forwarded-For` anhängen (1 = nginx aus Compose, 2 = zusätzlich dein Reverse Proxy); für das Limit der öffentlichen Rangliste |
 | `COOKIE_SECURE` | `false` nur für lokale Entwicklung ohne https |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
 

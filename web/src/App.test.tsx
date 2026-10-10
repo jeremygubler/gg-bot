@@ -224,6 +224,20 @@ describe("Modul bearbeiten", () => {
     await screen.findByLabelText("Log-Kanal");
   });
 
+  it("die Seitenleiste führt zu den Panels und markiert die aktuelle Seite", async () => {
+    const user = userEvent.setup();
+    mount("/g/100/m/starboard");
+    await screen.findByLabelText("Aktiv");
+    const nav = within(screen.getByRole("navigation"));
+
+    await user.click(nav.getByText("Ticket-Panels"));
+
+    expect(await screen.findByRole("heading", { name: "Ticket-Panels" })).toBeInTheDocument();
+    expect(nav.getByText("Ticket-Panels")).toHaveAttribute("aria-current", "page");
+    expect(nav.getByText("Rollen-Panels")).not.toHaveAttribute("aria-current");
+    expect(window.location.pathname).toBe("/g/100/panels/tickets");
+  });
+
   it("Server ohne Zugriff: Meldung mit Weg zurück", async () => {
     mount("/g/999/m/starboard");
 

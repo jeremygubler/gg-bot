@@ -21,6 +21,8 @@ GUILD_B = 222222222222222222  # Nutzer ohne Recht, Bot da
 GUILD_C = 333333333333333333  # Nutzer verwaltet, Bot fehlt
 BIG_CHANNEL = 987654321098765432  # > 2**53
 USER_ID = 444444444444444444
+CATEGORY = 555
+VOICE = 556
 
 
 @dataclass
@@ -116,9 +118,19 @@ async def api(
                 GuildSnapshot(
                     guild_id=guild_id,
                     name=name,
-                    channels=[ChannelInfo(id=BIG_CHANNEL, name="general", type="text", position=0)],
-                    roles=[RoleInfo(id=5, name="Mod", color=0, position=1, managed=False)],
+                    channels=[
+                        ChannelInfo(id=BIG_CHANNEL, name="general", type="text", position=0),
+                        ChannelInfo(id=CATEGORY, name="Support", type="category", position=1),
+                        ChannelInfo(id=VOICE, name="Lounge", type="voice", position=2),
+                    ],
+                    roles=[
+                        RoleInfo(id=guild_id, name="@everyone", color=0, position=0, managed=False),
+                        RoleInfo(id=5, name="Mod", color=0, position=1, managed=False),
+                        RoleInfo(id=6, name="Bot-Rolle", color=0, position=2, managed=True),
+                        RoleInfo(id=7, name="Admin", color=0, position=20, managed=False),
+                    ],
                     emojis=[],
+                    bot_top_position=10,
                 ),
             )
         transport = httpx.ASGITransport(app=app)

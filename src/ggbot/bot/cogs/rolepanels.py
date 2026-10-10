@@ -12,9 +12,11 @@ from ggbot.bot import panels
 from ggbot.bot.checks import ensure_grantable, ensure_guild
 from ggbot.bot.client import GGBot
 from ggbot.bot.i18n import d
+from ggbot.core import events
 from ggbot.core.errors import UserError
 from ggbot.core.i18n import translator
 from ggbot.core.logging import get_logger
+from ggbot.core.panelstatus import PanelStatus, set_status
 from ggbot.core.roles.plan import (
     PanelMode,
     emoji_key,
@@ -204,15 +206,27 @@ class RolePanelsCog(commands.Cog):
         guild = ensure_guild(interaction)
         locale = await self._locale(guild.id)
         view = await self.bot.services.rolepanels.get(guild.id, panel)
-        if view.external:
-            raise UserError("error.panel_external_publish")
-        if not view.items:
-            raise UserError("error.panel_empty")
         target = channel or (
             interaction.channel if isinstance(interaction.channel, discord.TextChannel) else None
         )
         if target is None:
             raise UserError("error.panel_channel_needed")
+        self._check_publishable(guild, view, target)
+        await interaction.response.defer(ephemeral=True)
+        failed = await self._publish(guild, view, target, locale)
+        text = translator.t(locale, "roles.published", panel_id=panel, channel=target.mention)
+        if failed:
+            text += "\n" + translator.t(locale, "roles.reaction_failed", emojis=" ".join(failed))
+        await interaction.followup.send(text, ephemeral=True)
+
+    @staticmethod
+    def _check_publishable(
+        guild: discord.Guild, view: PanelView, target: discord.TextChannel
+    ) -> None:
+        if view.external:
+            raise UserError("error.panel_external_publish")
+        if not view.items:
+            raise UserError("error.panel_empty")
         have = target.permissions_for(guild.me)
         needs = [*CHANNEL_NEEDS, "add_reactions"] if view.kind == "reaction" else CHANNEL_NEEDS
         missing = [name for name in needs if not getattr(have, name)]
@@ -221,7 +235,11 @@ class RolePanelsCog(commands.Cog):
                 "error.missing_bot_permissions",
                 permissions=", ".join(n.replace("_", " ").title() for n in missing),
             )
-        await interaction.response.defer(ephemeral=True)
+
+    async def _publish(
+        self, guild: discord.Guild, view: PanelView, target: discord.TextChannel, locale: str
+    ) -> list[str]:
+        """Setzt die Nachricht; gibt die abgelehnten Reaktions-Emojis zurück."""
         # Eine zweite Veröffentlichung ersetzt die erste, damit nie zwei Nachrichten gelten.
         await self._delete_message(guild, view)
         message = await target.send(
@@ -229,15 +247,62 @@ class RolePanelsCog(commands.Cog):
             view=panels.build_view(view, locale) or discord.utils.MISSING,
             allowed_mentions=discord.AllowedMentions.none(),
         )
-        await self.bot.services.rolepanels.set_message(guild.id, panel, target.id, message.id)
-        text = translator.t(locale, "roles.published", panel_id=panel, channel=target.mention)
-        if view.kind == "reaction":
-            failed = await self._seed_reactions(message, view)
-            if failed:
-                text += "\n" + translator.t(
-                    locale, "roles.reaction_failed", emojis=" ".join(failed)
-                )
-        await interaction.followup.send(text, ephemeral=True)
+        await self.bot.services.rolepanels.set_message(guild.id, view.id, target.id, message.id)
+        return await self._seed_reactions(message, view) if view.kind == "reaction" else []
+
+    # --- Aufträge aus dem Dashboard ---
+
+    @commands.Cog.listener()
+    async def on_ggbot_panel_publish(self, event: events.PanelPublish) -> None:
+        if event.kind != "role":
+            return
+        redis = self.bot.services.redis
+        try:
+            status = await self._handle_panel_event(event)
+        except UserError as exc:
+            status = PanelStatus(state="error", error_key=exc.key, error_params=exc.params)
+        except discord.HTTPException:
+            log.warning(
+                "rolepanel_dashboard_failed", guild_id=event.guild_id, panel_id=event.panel_id
+            )
+            status = PanelStatus(state="error", error_key="error.panel_publish_failed")
+        await set_status(redis, "role", event.guild_id, event.panel_id, status)
+
+    async def _handle_panel_event(self, event: events.PanelPublish) -> PanelStatus:
+        guild = self.bot.get_guild(event.guild_id)
+        if guild is None:
+            raise UserError("error.panel_publish_failed")
+        locale = await self._locale(guild.id)
+        if event.action == "delete":
+            await self._delete_by_ids(guild, event.channel_id, event.message_id)
+            return PanelStatus(state="done")
+        view = await self.bot.services.rolepanels.get(guild.id, event.panel_id)
+        if event.action == "refresh":
+            await self._refresh(guild, view)
+            return PanelStatus(state="done")
+        target = guild.get_channel(event.channel_id) if event.channel_id else None
+        if not isinstance(target, discord.TextChannel):
+            raise UserError("error.panel_channel_invalid")
+        self._check_publishable(guild, view, target)
+        failed = await self._publish(guild, view, target, locale)
+        if failed:
+            return PanelStatus(
+                state="done",
+                notice_key="roles.reaction_failed",
+                notice_params={"emojis": " ".join(failed)},
+            )
+        return PanelStatus(state="done")
+
+    async def _delete_by_ids(
+        self, guild: discord.Guild, channel_id: int | None, message_id: int | None
+    ) -> None:
+        if channel_id is None or message_id is None:
+            return
+        channel = guild.get_channel_or_thread(channel_id)
+        if not isinstance(channel, Messageable):
+            return
+        with contextlib.suppress(discord.HTTPException):
+            await channel.get_partial_message(message_id).delete()
 
     @rolepanel.command(name="delete", description=d("cmd.rolepanel.delete.desc"))
     @app_commands.describe(panel=d("cmd.arg.panel.desc"))

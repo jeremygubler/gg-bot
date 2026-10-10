@@ -28,6 +28,7 @@ COGS = (
     "ggbot.bot.cogs.eventlog_config",
     "ggbot.bot.cogs.leveling",
     "ggbot.bot.cogs.leveling_config",
+    "ggbot.bot.cogs.publicboard",
     "ggbot.bot.cogs.rolepanels",
     "ggbot.bot.cogs.welcome",
     "ggbot.bot.cogs.tickets",

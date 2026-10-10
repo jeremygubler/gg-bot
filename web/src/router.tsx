@@ -1,20 +1,32 @@
 import { createContext, useCallback, useContext, useEffect, useState, type MouseEvent, type ReactNode } from "react";
 
+export type PanelKind = "roles" | "tickets";
+
 export type Route =
   | { name: "home" }
   | { name: "guild"; guild: string }
   | { name: "module"; guild: string; module: string }
   | { name: "audit"; guild: string }
+  | { name: "panels"; guild: string; kind: PanelKind }
+  | { name: "public"; guild: string }
   | { name: "notfound" };
 
 /** Pfad → Route. Kanonische Pfade: `/`, `/g/<id>`, `/g/<id>/m/<modul>`, `/g/<id>/audit`. */
 export function parseRoute(pathname: string): Route {
   const parts = pathname.split("/").filter((part) => part !== "");
   if (parts.length === 0) return { name: "home" };
-  if (parts[0] !== "g" || parts[1] === undefined || !/^[0-9]{1,20}$/.test(parts[1])) return { name: "notfound" };
+  const isId = (value: string | undefined): value is string => value !== undefined && /^[0-9]{1,20}$/.test(value);
+  // Öffentliche Rangliste: ohne Anmeldung erreichbar, deshalb ein eigener Pfad ausserhalb von /g.
+  if (parts[0] === "leaderboard" && parts.length === 2 && isId(parts[1])) {
+    return { name: "public", guild: parts[1] };
+  }
+  if (parts[0] !== "g" || !isId(parts[1])) return { name: "notfound" };
   const guild = parts[1];
   if (parts.length === 2) return { name: "guild", guild };
   if (parts.length === 3 && parts[2] === "audit") return { name: "audit", guild };
+  if (parts.length === 4 && parts[2] === "panels" && (parts[3] === "roles" || parts[3] === "tickets")) {
+    return { name: "panels", guild, kind: parts[3] };
+  }
   if (parts.length === 4 && parts[2] === "m" && /^[a-z_]{1,64}$/.test(parts[3]!)) {
     return { name: "module", guild, module: parts[3]! };
   }
@@ -26,6 +38,8 @@ export const paths = {
   guild: (guild: string) => `/g/${guild}`,
   module: (guild: string, module: string) => `/g/${guild}/m/${module}`,
   audit: (guild: string) => `/g/${guild}/audit`,
+  panels: (guild: string, kind: PanelKind) => `/g/${guild}/panels/${kind}`,
+  publicLeaderboard: (guild: string) => `/leaderboard/${guild}`,
 };
 
 type Guard = () => boolean;

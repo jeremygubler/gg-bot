@@ -230,3 +230,24 @@ def test_einladungsrechte_entsprechen_discord_py() -> None:
         use_application_commands=True,
     )
     assert expected.value == INVITE_PERMISSIONS
+
+
+async def test_me_zeigt_ob_der_nutzer_rollen_panels_aendern_darf(
+    api: Api, discord: FakeDiscord
+) -> None:
+    discord.guilds[0]["permissions"] = "8"  # A: Administrator
+    discord.guilds[2]["owner"] = True  # C: Eigentümer ohne Rechte-Bits
+    await login(api)
+
+    by_id = {g["id"]: g for g in (await api.client.get("/me")).json()["guilds"]}
+
+    assert by_id[str(GUILD_A)]["administrator"] is True
+    assert by_id[str(GUILD_C)]["administrator"] is True
+
+
+async def test_me_manage_server_ohne_administrator(api: Api) -> None:
+    await login(api)
+
+    by_id = {g["id"]: g for g in (await api.client.get("/me")).json()["guilds"]}
+
+    assert by_id[str(GUILD_A)]["administrator"] is False

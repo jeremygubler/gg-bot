@@ -28,6 +28,7 @@ export function GuildLayout({ guild, children }: { guild: string; children: Reac
   const name = me.guilds.find((g) => g.id === guild)?.name ?? snapshot.data.name;
   const currentModule = route.name === "module" ? route.module : null;
   const onAudit = route.name === "audit";
+  const onPanels = route.name === "panels" ? route.kind : null;
   const item = (active: boolean) =>
     `block rounded px-3 py-1.5 ${active ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-700"}`;
 
@@ -48,6 +49,16 @@ export function GuildLayout({ guild, children }: { guild: string; children: Reac
                 </Link>
               </li>
             ))}
+            <li className="pt-2">
+              <Link to={paths.panels(guild, "roles")} className={item(onPanels === "roles")} current={onPanels === "roles"}>
+                {tr.t("nav.rolepanels")}
+              </Link>
+            </li>
+            <li>
+              <Link to={paths.panels(guild, "tickets")} className={item(onPanels === "tickets")} current={onPanels === "tickets"}>
+                {tr.t("nav.ticketpanels")}
+              </Link>
+            </li>
             <li className="pt-2">
               <Link to={paths.audit(guild)} className={item(onAudit)} current={onAudit}>
                 {tr.t("nav.audit")}

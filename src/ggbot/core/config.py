@@ -48,6 +48,11 @@ class AppConfig(BaseSettings):
     dashboard_url: str = "http://localhost:8080"
     # Signiert das Sitzungs-Cookie. Mindestens 32 Zeichen; bei Wechsel sind alle abgemeldet.
     session_secret: SecretStr = SecretStr("")
+    # Wie viele Proxys vor der API ihre Adresse an X-Forwarded-For anhängen: 1 = nur der nginx aus
+    # Compose, 2 = zusätzlich dein eigener Reverse Proxy davor. Bestimmt, welcher Eintrag von rechts
+    # als Besucher gilt (für das Limit der öffentlichen Rangliste); zu klein = alle teilen sich ein
+    # Limit, zu gross = ein Besucher kann sich per Header eine fremde Adresse geben.
+    proxy_hops: int = Field(default=1, ge=1, le=5)
     # Nur hinter reinem http (lokale Entwicklung) ausschalten.
     cookie_secure: bool = True
 

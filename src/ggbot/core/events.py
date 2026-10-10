@@ -30,9 +30,19 @@ class GuildSync(BaseModel):
 
 
 class PanelPublish(BaseModel):
+    """Das Dashboard bittet den Bot, eine Panel-Nachricht zu setzen, zu ändern oder zu löschen.
+
+    `publish` braucht `channel_id`; `refresh` baut die vorhandene Nachricht neu; `delete` kommt
+    nach dem Löschen des Panels, deshalb trägt das Event Kanal und Nachricht selbst.
+    """
+
     type: Literal["panel.publish"] = "panel.publish"
     guild_id: int
     panel_id: int
+    kind: Literal["role", "ticket"] = "role"
+    action: Literal["publish", "refresh", "delete"] = "publish"
+    channel_id: int | None = None
+    message_id: int | None = None
 
 
 Event = Annotated[SettingsChanged | GuildSync | PanelPublish, Field(discriminator="type")]
