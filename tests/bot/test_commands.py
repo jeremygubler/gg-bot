@@ -16,6 +16,8 @@ from ggbot.bot.cogs.leveling import LevelingCog
 from ggbot.bot.cogs.leveling_config import LevelingConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
+from ggbot.bot.cogs.rolepanels import RolePanelsCog
+from ggbot.bot.cogs.welcome import WelcomeCog
 from ggbot.bot.errors import to_message
 from ggbot.bot.i18n import CommandTranslator, command_key
 from ggbot.bot.services import Services
@@ -37,6 +39,8 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(EventLogConfigCog(instance))
     await instance.add_cog(LevelingCog(instance))
     await instance.add_cog(LevelingConfigCog(instance))
+    await instance.add_cog(RolePanelsCog(instance))
+    await instance.add_cog(WelcomeCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -89,6 +93,25 @@ def test_config_befehle_brauchen_manage_guild(bot: GGBot) -> None:
             assert is_guild_only(command)
 
 
+def test_rolepanel_braucht_rollen_verwalten_welcome_servereinstellungen(bot: GGBot) -> None:
+    seen = {"rolepanel": 0, "welcome": 0}
+    for command in leaf_commands(bot):
+        root = command.qualified_name.split()[0]
+        if root not in seen:
+            continue
+        seen[root] += 1
+        needed = required_permissions(command)
+        assert needed is not None, command.qualified_name
+        assert is_guild_only(command), command.qualified_name
+        if root == "rolepanel":
+            assert needed.manage_roles
+            assert not needed.manage_guild
+        else:
+            assert needed.manage_guild
+    assert seen["rolepanel"] == 6
+    assert seen["welcome"] == 11
+
+
 def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
     commands_ = leaf_commands(bot)
     plain = discord.Permissions.none()
@@ -104,6 +127,10 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
     assert "warn" not in names(manager)  # Manage Server ist kein Moderator-Recht
     assert {"warn", "timeout", "kick", "case", "history", "note add"} <= set(names(moderator))
     assert "ban" not in names(moderator)
+    roles_manager = discord.Permissions(manage_roles=True)
+    assert {"rolepanel create", "rolepanel publish"} <= set(names(roles_manager))
+    assert not any(n.startswith("welcome") for n in names(roles_manager))
+    assert not any(n.startswith("rolepanel") for n in names(manager))
     # In Direktnachrichten gibt es keine Server-Befehle.
     assert names(discord.Permissions.all(), in_guild=False) == ["help"]
 
@@ -278,6 +305,26 @@ EXPECTED_PERMISSIONS = {
             "leveling reward remove",
             "leveling reward list",
             "leveling reward mode",
+        )
+    },
+    **{
+        f"rolepanel {name}": "manage_roles"
+        for name in ("create", "add", "remove", "list", "publish", "delete")
+    },
+    **{
+        f"welcome {name}": "manage_guild"
+        for name in (
+            "join set",
+            "join off",
+            "leave set",
+            "leave off",
+            "dm set",
+            "dm off",
+            "autorole add",
+            "autorole remove",
+            "card",
+            "preview",
+            "status",
         )
     },
     "modconfig warn_expiry": "manage_guild",

@@ -6,23 +6,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from ggbot.core.leveling.announce import validate_template
 from ggbot.core.leveling.xp import MAX_LEVEL
+from ggbot.core.settings.card import CardStyle
 from ggbot.core.settings.schema import SettingsModel
 
 MAX_LIST = 100
 MAX_REWARDS = 50
 MAX_BOOSTS = 50
-CARD_TEMPLATES = ("solid", "gradient", "stripes", "dots")
 AnnounceMode = Literal["off", "current", "channel", "dm"]
-
-
-class CardStyle(BaseModel):
-    """Aussehen der Rank-Card. Farben als RGB-Zahl; die Vorlagen werden im Code gezeichnet."""
-
-    model_config = ConfigDict(extra="ignore")
-
-    accent: int = Field(default=0x5865F2, ge=0, le=0xFFFFFF)
-    background: int = Field(default=0x23272A, ge=0, le=0xFFFFFF)
-    template: Literal["solid", "gradient", "stripes", "dots"] = "gradient"
 
 
 class VoiceXp(BaseModel):

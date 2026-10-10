@@ -48,6 +48,32 @@ logging_invalid = "That log setting is not valid."
 logging_needs_message_content = "These events need the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
 logging_needs_members = "These events need the Server Members intent. Enable it in the Developer Portal and set ENABLE_MEMBERS_INTENT=true."
 card_color_invalid = "\"{value}\" is not a color. Use a hex code like #ff8800."
+panel_not_found = "There is no role panel #{panel_id} on this server."
+panel_title = "The title must be 1–256 characters long."
+panel_description = "The description may be at most 1000 characters long."
+panel_external_only_reactions = "An existing message can only be used for reaction panels."
+panel_limit = "This server already has the maximum of {limit} role panels."
+panel_label = "The label must be 1–80 characters long."
+panel_item_description = "The description may be at most 100 characters long."
+panel_emoji_needed = "Reaction panels need an emoji for every role."
+panel_label_needed = "Buttons and menu entries need a label."
+panel_items_limit = "This panel is full ({limit} roles at most)."
+panel_role_duplicate = "That role is already in this panel."
+panel_emoji_duplicate = "That emoji is already used in this panel."
+panel_role_not_in_panel = "That role is not in this panel."
+panel_emoji_invalid = "I can't use \"{value}\" as an emoji. Use a standard emoji or a custom emoji of this server."
+panel_message_invalid = "The message ID must be a number."
+panel_message_needs_channel = "To use an existing message, also give the channel it is in."
+panel_message_not_found = "I can't find that message in the given channel."
+panel_external_publish = "This panel uses an existing message and can't be published again."
+panel_empty = "Add at least one role with /rolepanel add before publishing."
+panel_channel_needed = "Pick a text channel to publish into."
+panel_forbidden = "I'm not allowed to change your roles. Move my role above the panel roles."
+panel_item_gone = "This button is outdated. Ask the team to publish the panel again."
+panel_unique_many = "This panel allows only one role."
+role_unassignable = "I can't hand out {role}: it is managed, or not below my highest role."
+autorole_unknown = "{role} is not an autorole."
+welcome_invalid = "That setting is not valid: {detail}"
 card_nothing_to_change = "Give at least one of accent, background or template."
 import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
 import_failed = "The import failed and nothing was changed."
@@ -766,3 +792,151 @@ announce = "Announcements: {mode}"
 rewards = "Level rewards: {count} ({mode})"
 exceptions = "No-XP: {channels} channels, {roles} roles · Factors: {channel_boosts} channels, {role_boosts} roles"
 voice_members_hint = "Voice XP only counts members the bot knows. Without the Server Members intent some members may be missed."
+
+[cmd.rolepanel]
+desc = "Create and publish role panels"
+
+[cmd.rolepanel.create]
+desc = "Create a new role panel"
+
+[cmd.rolepanel.add]
+desc = "Add a role to a panel"
+
+[cmd.rolepanel.remove]
+desc = "Remove a role from a panel"
+
+[cmd.rolepanel.list]
+desc = "List all role panels"
+
+[cmd.rolepanel.publish]
+desc = "Post a panel into a channel"
+
+[cmd.rolepanel.delete]
+desc = "Delete a panel and its message"
+
+[cmd.welcome]
+desc = "Welcome, goodbye and autoroles"
+
+[cmd.welcome.join]
+desc = "Welcome message for new members"
+
+[cmd.welcome.join.set]
+desc = "Turn on the welcome message"
+
+[cmd.welcome.join.off]
+desc = "Turn off the welcome message"
+
+[cmd.welcome.leave]
+desc = "Goodbye message"
+
+[cmd.welcome.leave.set]
+desc = "Turn on the goodbye message"
+
+[cmd.welcome.leave.off]
+desc = "Turn off the goodbye message"
+
+[cmd.welcome.dm]
+desc = "Direct message for new members"
+
+[cmd.welcome.dm.set]
+desc = "Turn on the welcome DM"
+
+[cmd.welcome.dm.off]
+desc = "Turn off the welcome DM"
+
+[cmd.welcome.autorole]
+desc = "Roles for new members"
+
+[cmd.welcome.autorole.add]
+desc = "Give a role to every new member"
+
+[cmd.welcome.autorole.remove]
+desc = "Stop giving a role to new members"
+
+[cmd.welcome.card]
+desc = "Colors and template of the welcome image"
+
+[cmd.welcome.preview]
+desc = "Show the welcome message for yourself"
+
+[cmd.welcome.status]
+desc = "Show the welcome settings"
+
+[cmd.arg.panel]
+desc = "Panel (pick from the list)"
+
+[cmd.arg.panel_title]
+desc = "Title of the panel"
+
+[cmd.arg.panel_kind]
+desc = "Buttons, select menu or reactions"
+
+[cmd.arg.panel_mode]
+desc = "normal: toggle · unique: one role · verify: add only"
+
+[cmd.arg.panel_description]
+desc = "Text above the role list"
+
+[cmd.arg.panel_message_id]
+desc = "Existing message for a reaction panel (needs channel)"
+
+[cmd.arg.panel_label]
+desc = "Text on the button or menu entry"
+
+[cmd.arg.panel_emoji]
+desc = "Emoji (standard or from this server)"
+
+[cmd.arg.panel_item_description]
+desc = "Short note in the select menu"
+
+[cmd.arg.autorole_bots]
+desc = "Give the role to bots instead of people"
+
+[cmd.arg.welcome_card]
+desc = "Attach the welcome image"
+
+[roles]
+added = "Added: {roles}"
+removed = "Removed: {roles}"
+skipped = "I can't hand out {roles}. Ask the team to move my role higher."
+unchanged = "Nothing changed."
+select_placeholder = "Pick your roles"
+mode_hint_normal = "Click again to give a role back."
+mode_hint_unique = "You can only have one of these roles."
+mode_hint_verify = "Roles from this panel are permanent."
+created = "Panel #{panel_id} \"{title}\" created. Add roles with /rolepanel add, then publish it."
+item_added = "{role} added to panel #{panel_id}."
+item_removed = "{role} removed from panel #{panel_id}."
+deleted = "Panel #{panel_id} \"{title}\" deleted."
+published = "Panel #{panel_id} posted in {channel}."
+list_empty = "There are no role panels yet. Start with /rolepanel create."
+list_line = "`#{id}` **{title}** · {kind}/{mode} · {items} roles · {where}"
+reaction_failed = "I could not add these reactions: {emojis}. Custom emojis must come from a server I am on."
+list_unpublished = "not published"
+
+[welcome]
+default_join = "Welcome {user} to {server}! You are member #{count}."
+default_leave = "{name} has left {server}."
+default_dm = "Welcome to {server}, {name}!"
+join_set = "Welcome messages go to {channel}."
+join_off = "Welcome messages are off."
+leave_set = "Goodbye messages go to {channel}."
+leave_off = "Goodbye messages are off."
+dm_set = "New members now get a direct message."
+dm_off = "The welcome DM is off."
+autorole_added = "New members now get {role} (after the membership screening, if there is one)."
+autorole_removed = "{role} is no longer handed out automatically."
+card_saved = "Welcome image saved. Check it with /welcome preview."
+on = "on"
+off = "off"
+none = "none"
+status = """**Welcome**
+Welcome message: {join} (image: {card})
+Goodbye message: {leave}
+Welcome DM: {dm}
+Autoroles: {autoroles}
+Autoroles for bots: {bot_autoroles}"""
+
+[welcome.card]
+title = "WELCOME"
+member = "Member #{count}"

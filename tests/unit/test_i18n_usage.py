@@ -14,10 +14,21 @@ from ggbot.core.settings.eventlog import EVENT_TYPES
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "ggbot"
 # Jeder Schlüsselraum des Katalogs: ein neuer muss hier stehen, sonst wird er nicht geprüft.
-KEY_PREFIXES = ("error.", "mod.", "automod.", "logging.", "leveling.", "help.", "config.", "cmd.")
+KEY_PREFIXES = (
+    "error.",
+    "mod.",
+    "automod.",
+    "logging.",
+    "leveling.",
+    "help.",
+    "config.",
+    "cmd.",
+    "roles.",
+    "welcome.",
+)
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).
-NOT_KEYS = frozenset({"mod.unban"})
+NOT_KEYS = frozenset({"mod.unban", "welcome.png"})
 
 # Zusammengesetzte Schlüssel (f"…{wert}"): hier stehen alle Werte, die vorkommen können.
 DYNAMIC_FAMILIES: dict[str, list[str]] = {
@@ -37,6 +48,7 @@ DYNAMIC_FAMILIES: dict[str, list[str]] = {
     "error.logging_needs_{}": ["message_content", "members"],
     "leveling.announce_{}": ["off", "current", "channel", "dm"],
     "leveling.reward_mode_{}": ["stack", "replace"],
+    "roles.mode_hint_{}": ["normal", "unique", "verify"],
 }  # fmt: skip
 
 

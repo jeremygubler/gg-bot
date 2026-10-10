@@ -22,7 +22,8 @@ from ggbot.core.leveling.xp import (
 )
 from ggbot.core.redis import key
 from ggbot.core.settings.cache import SettingsCache
-from ggbot.core.settings.leveling import CardStyle, LevelingSettings
+from ggbot.core.settings.card import CardStyle
+from ggbot.core.settings.leveling import LevelingSettings
 from ggbot.core.settings.store import SettingsStore
 
 PAGE_SIZE = 10

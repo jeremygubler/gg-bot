@@ -113,7 +113,7 @@ bei Snowflakes < 2^63).
 | 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (guild_id, user_id, channel_id, rule, actions, created_at; Statistik, 30 Tage Aufbewahrung) |
 | 4 | Keine eigenen Tabellen: Einstellungen (Modul `logging`, Kanal pro Ereignisart). Nachrichteninhalte werden **nicht** in der Datenbank gespeichert |
 | 5 | `xp_members` (guild_id, user_id, xp, msg_count, voice_seconds, last_xp_at; **kein** gespeichertes Level), `rank_card_styles` (guild_id, user_id, JSONB). Belohnungen, Faktoren und Ausnahmen liegen in den Settings (Modul `leveling`). Keine `xp_voice_sessions`, siehe Abschnitt 16 |
-| 6 | `role_panels`, `role_panel_items`, `reaction_roles`, Willkommen in Settings |
+| 6 | `role_panels` (guild_id, channel_id, message_id, kind button\|select\|reaction, mode, title, description, external), `role_panel_items` (panel_id → CASCADE, role_id, label, emoji, emoji_key, description, position; Unique `(panel_id, role_id)` und `(panel_id, emoji_key)`). Reaktions-Rollen sind Panels der Art `reaction`, keine eigene Tabelle. Willkommen, Abschied und Autorollen liegen in den Settings (Modul `welcome`) |
 | 7 | `ticket_panels`, `ticket_categories`, `tickets`, `ticket_messages` (nur für Transkript), `ticket_feedback`, `ticket_transcripts` |
 | 8 | `notify_subscriptions` (Twitch/YouTube), `notify_state` (laufende Streams, Message-ID) |
 | 9 | `custom_commands`, `scheduled_messages`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `reminders`, `stat_channels`, `starboard_entries`, `birthdays` |
@@ -446,3 +446,38 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   Unbrauchbare Zeilen werden gezählt und gemeldet. Grenzen: 5 MB, 100 000 Zeilen, XP gedeckelt. Modi `max` (Standard, der
   höhere Wert bleibt), `replace`, `add`. Der Schreibvorgang ist eine Transaktion: bei einem Fehler bleibt alles unverändert.
 - **Intents:** XP pro Nachricht braucht nur das nicht privilegierte `guild_messages` (jetzt immer an), keinen Nachrichteninhalt.
+
+## 17. Rollen und Willkommen (Phase 6)
+
+- **Entscheidung getrennt von Discord:** Was bei einem Klick, einer Auswahl oder einer Reaktion mit den Rollen passiert, sind reine
+  Funktionen (`core/roles/plan.py`: `plan_toggle`, `plan_select`, `plan_reaction_added/removed`). Sie liefern ein `Change(add, remove)`
+  und fassen nie Rollen an, die nicht zum Panel gehören. Das Umsetzen (`bot/panels.py: apply_change`) prüft nur noch, ob der Bot die Rolle
+  vergeben darf (verwaltet, `@everyone`, nicht unter seiner höchsten Rolle → übersprungen und gemeldet). Entfernen vor Hinzufügen: bei `unique`
+  hat das Mitglied nie kurz zwei Rollen des Panels.
+- **Modi:** `normal` schaltet um, `unique` hält genau eine, `verify` fügt nur hinzu. Beim Auswahlmenü ist die Auswahl der *gewünschte Stand*
+  (min_values 0, damit sich alles abwählen lässt); Werte ausserhalb des Panels werden ignoriert, auch wenn ein manipulierter Client sie schickt.
+- **Persistenz:** Buttons und Menüs sind `DynamicItem`s mit `custom_id` `gg:role:{panel}:{item}` bzw. `gg:rolesel:{panel}`. Beim Start wird nur die
+  Klasse registriert, keine View pro Nachricht; der Zustand steht in der Datenbank. Ein Klick lädt das Panel mit `guild_id` aus der Interaktion: eine
+  fremde Panel-ID gibt es für einen anderen Server nicht. Entfernte Einträge lassen alte Buttons mit einer freundlichen Meldung ins Leere laufen.
+- **Reaktions-Rollen:** `on_raw_reaction_add/remove` (Intent `guild_reactions`, nicht privilegiert). Weil das für jede Reaktion des Servers eintrifft,
+  hält `RolePanelService` pro Server eine Tabelle "Nachricht → Panel" nur der Reaktions-Panels (60 s, bei eigenen Änderungen sofort geleert); alles
+  andere endet ohne Datenbankzugriff. Emojis werden über `emoji_key` verglichen (eigene Emojis über ihre ID, Unicode ohne Variationsselektor).
+  `is_emoji` ist eine Näherung ohne Emoji-Tabelle (weist Text und Satzzeichen ab); das letzte Wort hat Discord beim Setzen, abgelehnte Reaktionen
+  meldet `/rolepanel publish`.
+- **Berechtigung:** `ensure_grantable`: der Bot darf die Rolle vergeben **und** der Akteur steht über ihr (Besitzer ausgenommen). Sonst wären Panels
+  und Autorollen ein Weg zur Rechteausweitung für jeden mit "Rollen verwalten".
+- **Eigene und fremde Nachrichten:** Ein Reaktions-Panel kann eine vorhandene Nachricht übernehmen (`external`). Der Bot ändert oder löscht sie nie.
+  Wird die Nachricht eines Panels gelöscht (`on_raw_message_delete`, auch Massenlöschung), gilt das Panel als unveröffentlicht, die Einträge bleiben.
+- **Willkommen** (`bot/cogs/welcome.py`, Entscheidung in `core/welcome/rules.py`): Beitritt und "Screening bestanden" (`pending` → nicht mehr) führen
+  in denselben Ablauf; `WelcomeService.claim` (`SET NX`, 60 s) verhindert, dass beides oder ein doppeltes Gateway-Ereignis doppelt begrüsst.
+  Pending-Mitglieder bekommen nichts (sie sähen die Kanäle nicht, eine Rolle umginge das Screening). Im Raid-Modus (`AutomodService.raid_active`)
+  ruht alles für Menschen. Bots bekommen nur ihre eigenen Autorollen. 2 s Wartezeit und ein erneuter Blick, ob das Mitglied noch da ist.
+  Drosselung: höchstens 20 Nachrichten/Minute/Server (Redis-Zähler), gedrosselt wird nur die Nachricht, nie die Rolle.
+- **Vorlagen:** gemeinsame Prüfung in `core/messages.py` (feste Platzhalter, keine Format- oder Attributzugriffe, 300 Zeichen), auch vom Leveling
+  genutzt. Pro Nachrichtenart ein eigener Satz erlaubter Felder (der Abschied kennt kein `{user}`). Erwähnungen: nur das neue Mitglied (Nickname
+  und Servername sind frei wählbar), beim Abschied niemand.
+- **Willkommensbild:** `render/welcome_card.py` teilt Zeichenhilfen (`render/common.py`) mit der Rank-Card, ist eine reine Funktion mit LRU-Cache und
+  läuft im Thread. Nur Farben und Vorlagen aus dem Code, kein Laden fremder Bilder; der Avatar kommt von Discord (8 MB-Grenze, Platzhalter bei Fehlern).
+  Der Kartenstil (`core/settings/card.py`) ist für Rank-Card und Willkommensbild derselbe Typ.
+- **Intents:** Reaktionen: `guild_reactions` (nicht privilegiert). Beitritt, Austritt und Screening brauchen den privilegierten *Server Members Intent*
+  (`ENABLE_MEMBERS_INTENT`); ohne ihn bleibt Willkommen stumm, was das README sagt.

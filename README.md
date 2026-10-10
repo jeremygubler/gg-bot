@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 5 (Leveling)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 6 (Rollen & Willkommen)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -224,6 +224,61 @@ Kanal-Faktoren und Ausnahmen gelten auch hier. Mitglieder, die der Bot nicht ken
 Die Rank-Card nutzt die Schrift DejaVu (im Docker-Image enthalten). Sehr exotische Zeichen im Namen (Emoji, manche Schriften)
 erscheinen dort evtl. als Kästchen.
 
+### Rollen-Panels (Phase 6)
+
+Drei Arten, Rollen selbst zu wählen. Panels baust du Schritt für Schritt mit Slash-Befehlen:
+`/rolepanel create`, dann `/rolepanel add` für jede Rolle, dann `/rolepanel publish`.
+
+| Art | So wählen Mitglieder |
+|---|---|
+| `button` | Ein Button pro Rolle (bis 25) |
+| `select` | Ein Auswahlmenü (bis 25 Einträge, mit Beschreibung) |
+| `reaction` | Reaktion auf die Nachricht (bis 20 Emojis) |
+
+**Modi:** `normal` (umschalten), `unique` (genau eine Rolle des Panels; eine neue ersetzt die alte), `verify` (nur
+hinzufügen, nie entziehen, z. B. für Regel-Bestätigung).
+
+| Befehl | Zweck |
+|---|---|
+| `/rolepanel create <title> <kind> [mode] [description] [message_id] [channel]` | Panel anlegen. Mit `message_id` und `channel` wird eine **vorhandene** Nachricht zum Reaktions-Panel (der Bot setzt keine eigene) |
+| `/rolepanel add <panel> <role> [label] [emoji] [description]` | Rolle hinzufügen; Buttons und Menüeinträge brauchen `label`, Reaktionen ein `emoji` (normal oder eigenes des Servers) |
+| `/rolepanel remove <panel> <role>` | Rolle entfernen; die veröffentlichte Nachricht wird angepasst |
+| `/rolepanel list` | Alle Panels (höchstens 25 pro Server) |
+| `/rolepanel publish <panel> [channel]` | Panel posten; erneutes Veröffentlichen ersetzt die alte Nachricht |
+| `/rolepanel delete <panel>` | Panel und seine Nachricht löschen (eine übernommene fremde Nachricht bleibt) |
+
+Standardrecht: *Rollen verwalten*. Wer ein Panel baut, kann nur Rollen unterhalb der eigenen höchsten Rolle aufnehmen
+(der Server-Besitzer alle), und der Bot nur Rollen unterhalb seiner eigenen. Die Buttons und Menüs überleben Neustarts
+des Bots. Klicks haben 2 s Cooldown pro Mitglied.
+
+### Willkommen, Abschied und Autorollen (Phase 6)
+
+Standardmässig **aus**. Standardrecht für alle `/welcome`-Befehle: *Server verwalten*.
+
+| Befehl | Zweck |
+|---|---|
+| `/welcome join set <channel> [message] [card]` / `off` | Willkommensnachricht (mit Bild, wenn `card`) |
+| `/welcome leave set <channel> [message]` / `off` | Abschiedsnachricht |
+| `/welcome dm set [message]` / `off` | Direktnachricht an neue Mitglieder |
+| `/welcome autorole add <role> [bots]` / `remove <role>` | Rolle für jedes neue Mitglied (`bots`: stattdessen für Bots), höchstens 10 je Liste |
+| `/welcome card [accent] [background] [template]` | Farben (Hex, z. B. `#ff8800`) und Vorlage des Willkommensbilds |
+| `/welcome preview` | Zeigt dir die Begrüssung, nur für dich sichtbar; sendet nichts in den Kanal |
+| `/welcome status` | Übersicht |
+
+**Platzhalter** (höchstens 300 Zeichen, unbekannte werden abgelehnt): Willkommen `{user}` (Erwähnung), `{name}`, `{server}`,
+`{count}` (Mitgliederzahl); Abschied `{name}`, `{server}`, `{count}`; DM `{name}`, `{server}`.
+
+**Verhalten:**
+- **Mitglieder-Screening:** Wer das Screening des Servers noch nicht bestanden hat, bekommt weder Nachricht noch DM noch
+  Autorolle. Alles folgt, sobald er es besteht (so umgeht eine Autorolle das Screening nicht).
+- **Bots** werden nicht begrüsst und haben keinen Abschied; sie bekommen nur die Bot-Autorollen.
+- **Raid-Modus** (Automod): Begrüssung, Abschied, DM und Autorollen für Menschen ruhen, damit Raider weder den Kanal fluten
+  noch Rechte bekommen.
+- Wer innerhalb von 2 s wieder geht, wird nicht begrüsst. Höchstens 20 Nachrichten pro Minute und Server; darüber fallen
+  nur die Nachrichten weg, Autorollen werden weiter vergeben.
+- Erwähnt wird nur das neue Mitglied, nie @everyone oder Rollen (ein Nickname wie `@everyone` pingt nicht).
+- Das Willkommensbild nutzt Farben und eingebaute Vorlagen (`solid`, `gradient`, `stripes`, `dots`), keine hochgeladenen Bilder.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -255,7 +310,10 @@ Dashboard bearbeitet.
 | *Manage Threads* | `/slowmode` in Threads |
 | *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone); Leveling-Belohnungsrollen (die Rolle des Bots muss **über** den Belohnungsrollen stehen) |
 | *Attach Files*, *Embed Links* | Leveling: `/rank` (Bild), `/leaderboard` |
-| *Manage Messages* | Automod löscht Nachrichten |
+| *Manage Messages* | Automod löscht Nachrichten; Reaktions-Panels im Modus `unique` (räumen die übrigen Reaktionen des Mitglieds auf) |
+| *Manage Roles* | Rollen-Panels und Autorollen: die Rolle des Bots muss **über** den vergebenen Rollen stehen |
+| *Send Messages*, *Embed Links*, *Add Reactions* im Panel-Kanal | `/rolepanel publish` (Reaktionen nur bei Reaktions-Panels) |
+| *Send Messages*, *Attach Files* im Willkommenskanal | Willkommensnachricht mit Bild, Abschied |
 | *View Audit Log* | Event-Log: Moderator und Grund bei Bann, Kick, Rollen, Kanälen (optional) |
 | *Send Messages*, *Embed Links* (und *Attach Files* für `message_bulk`) in den Log-Kanälen | Event-Log |
 | *Send Messages* | Automod-Hinweise und Meldungen (optional; ohne wird nur geloggt) |
@@ -264,13 +322,13 @@ Dashboard bearbeitet.
 **Rollen-Reihenfolge:** Die Rolle des Bots muss in der Rollenliste **über** den Rollen der Mitglieder
 stehen, die er moderieren soll. Sonst verweigert Discord die Aktion und der Bot meldet das.
 
-Gateway-Intents ohne Freigabe: *Guilds*, *Guild Messages* (für XP pro Nachricht, ohne Inhalt), *Voice States*, *Guild Invites*, *Guild Moderation* und die Emoji-Daten (alle nicht privilegiert). Zusätzlich, jeweils im Developer Portal unter *Bot → Privileged
+Gateway-Intents ohne Freigabe: *Guilds*, *Guild Messages* (für XP pro Nachricht, ohne Inhalt), *Guild Reactions* (Reaktions-Rollen), *Voice States*, *Guild Invites*, *Guild Moderation* und die Emoji-Daten (alle nicht privilegiert). Zusätzlich, jeweils im Developer Portal unter *Bot → Privileged
 Gateway Intents* freischalten **und** per Umgebungsvariable einschalten (ohne Freigabe startet der Bot mit `true` nicht):
 
 | Intent | Variable | Wofür |
 |---|---|---|
 | *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`/`links`, Log der Nachrichten-Arten |
-| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen; zuverlässigere Voice-XP und `/leveling sync` |
+| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen; zuverlässigere Voice-XP und `/leveling sync`; **Willkommen, Abschied und Autorollen** (ohne den Intent bleiben sie stumm) |
 
 ## Entwicklung
 

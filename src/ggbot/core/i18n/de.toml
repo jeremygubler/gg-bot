@@ -48,6 +48,32 @@ logging_invalid = "Diese Log-Einstellung ist nicht gültig."
 logging_needs_message_content = "Diese Ereignisse brauchen den Message-Content-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MESSAGE_CONTENT_INTENT=true."
 logging_needs_members = "Diese Ereignisse brauchen den Server-Members-Intent. Schalte ihn im Developer Portal frei und setze ENABLE_MEMBERS_INTENT=true."
 card_color_invalid = "\"{value}\" ist keine Farbe. Nimm einen Hex-Code wie #ff8800."
+panel_not_found = "Auf diesem Server gibt es kein Rollen-Panel #{panel_id}."
+panel_title = "Der Titel muss 1–256 Zeichen lang sein."
+panel_description = "Die Beschreibung darf höchstens 1000 Zeichen lang sein."
+panel_external_only_reactions = "Eine vorhandene Nachricht geht nur bei Reaktions-Panels."
+panel_limit = "Dieser Server hat bereits die höchstmögliche Zahl von {limit} Rollen-Panels."
+panel_label = "Die Beschriftung muss 1–80 Zeichen lang sein."
+panel_item_description = "Die Beschreibung darf höchstens 100 Zeichen lang sein."
+panel_emoji_needed = "Reaktions-Panels brauchen für jede Rolle ein Emoji."
+panel_label_needed = "Buttons und Menüeinträge brauchen eine Beschriftung."
+panel_items_limit = "Das Panel ist voll (höchstens {limit} Rollen)."
+panel_role_duplicate = "Diese Rolle ist schon im Panel."
+panel_emoji_duplicate = "Dieses Emoji wird im Panel schon verwendet."
+panel_role_not_in_panel = "Diese Rolle ist nicht im Panel."
+panel_emoji_invalid = "\"{value}\" kann ich nicht als Emoji verwenden. Nimm ein normales Emoji oder ein eigenes Emoji dieses Servers."
+panel_message_invalid = "Die Nachrichten-ID muss eine Zahl sein."
+panel_message_needs_channel = "Für eine vorhandene Nachricht gib auch den Kanal an, in dem sie liegt."
+panel_message_not_found = "Diese Nachricht finde ich im angegebenen Kanal nicht."
+panel_external_publish = "Dieses Panel nutzt eine vorhandene Nachricht und lässt sich nicht erneut veröffentlichen."
+panel_empty = "Füge mit /rolepanel add mindestens eine Rolle hinzu, bevor du veröffentlichst."
+panel_channel_needed = "Wähle einen Textkanal zum Veröffentlichen."
+panel_forbidden = "Ich darf deine Rollen nicht ändern. Setze meine Rolle über die Rollen des Panels."
+panel_item_gone = "Dieser Button ist veraltet. Bitte das Team, das Panel neu zu veröffentlichen."
+panel_unique_many = "Dieses Panel erlaubt nur eine Rolle."
+role_unassignable = "{role} kann ich nicht vergeben: Sie wird verwaltet oder liegt nicht unter meiner höchsten Rolle."
+autorole_unknown = "{role} ist keine Autorolle."
+welcome_invalid = "Diese Einstellung ist ungültig: {detail}"
 card_nothing_to_change = "Gib mindestens eines von accent, background oder template an."
 import_empty = "Die Datei enthält keine brauchbaren Einträge (pro Zeile eine Nutzer-ID und XP oder Level)."
 import_failed = "Der Import ist fehlgeschlagen, es wurde nichts geändert."
@@ -766,3 +792,151 @@ announce = "Ankündigungen: {mode}"
 rewards = "Level-Belohnungen: {count} ({mode})"
 exceptions = "Ohne XP: {channels} Kanäle, {roles} Rollen · Faktoren: {channel_boosts} Kanäle, {role_boosts} Rollen"
 voice_members_hint = "Voice-XP zählt nur Mitglieder, die der Bot kennt. Ohne den Server-Members-Intent können manche fehlen."
+
+[cmd.rolepanel]
+desc = "Rollen-Panels erstellen und veröffentlichen"
+
+[cmd.rolepanel.create]
+desc = "Ein neues Rollen-Panel anlegen"
+
+[cmd.rolepanel.add]
+desc = "Eine Rolle zu einem Panel hinzufügen"
+
+[cmd.rolepanel.remove]
+desc = "Eine Rolle aus einem Panel entfernen"
+
+[cmd.rolepanel.list]
+desc = "Alle Rollen-Panels auflisten"
+
+[cmd.rolepanel.publish]
+desc = "Ein Panel in einen Kanal posten"
+
+[cmd.rolepanel.delete]
+desc = "Ein Panel samt Nachricht löschen"
+
+[cmd.welcome]
+desc = "Willkommen, Abschied und Autorollen"
+
+[cmd.welcome.join]
+desc = "Willkommensnachricht für neue Mitglieder"
+
+[cmd.welcome.join.set]
+desc = "Die Willkommensnachricht einschalten"
+
+[cmd.welcome.join.off]
+desc = "Die Willkommensnachricht ausschalten"
+
+[cmd.welcome.leave]
+desc = "Abschiedsnachricht"
+
+[cmd.welcome.leave.set]
+desc = "Die Abschiedsnachricht einschalten"
+
+[cmd.welcome.leave.off]
+desc = "Die Abschiedsnachricht ausschalten"
+
+[cmd.welcome.dm]
+desc = "Direktnachricht an neue Mitglieder"
+
+[cmd.welcome.dm.set]
+desc = "Die Willkommens-DM einschalten"
+
+[cmd.welcome.dm.off]
+desc = "Die Willkommens-DM ausschalten"
+
+[cmd.welcome.autorole]
+desc = "Rollen für neue Mitglieder"
+
+[cmd.welcome.autorole.add]
+desc = "Jedem neuen Mitglied eine Rolle geben"
+
+[cmd.welcome.autorole.remove]
+desc = "Eine Rolle nicht mehr automatisch vergeben"
+
+[cmd.welcome.card]
+desc = "Farben und Vorlage des Willkommensbilds"
+
+[cmd.welcome.preview]
+desc = "Die Begrüssung für dich selbst anzeigen"
+
+[cmd.welcome.status]
+desc = "Die Willkommens-Einstellungen anzeigen"
+
+[cmd.arg.panel]
+desc = "Panel (aus der Liste wählen)"
+
+[cmd.arg.panel_title]
+desc = "Titel des Panels"
+
+[cmd.arg.panel_kind]
+desc = "Buttons, Auswahlmenü oder Reaktionen"
+
+[cmd.arg.panel_mode]
+desc = "normal: umschalten · unique: eine Rolle · verify: nur hinzufügen"
+
+[cmd.arg.panel_description]
+desc = "Text über der Rollenliste"
+
+[cmd.arg.panel_message_id]
+desc = "Vorhandene Nachricht für ein Reaktions-Panel (braucht Kanal)"
+
+[cmd.arg.panel_label]
+desc = "Text auf dem Button oder Menüeintrag"
+
+[cmd.arg.panel_emoji]
+desc = "Emoji (normal oder von diesem Server)"
+
+[cmd.arg.panel_item_description]
+desc = "Kurzer Hinweis im Auswahlmenü"
+
+[cmd.arg.autorole_bots]
+desc = "Die Rolle an Bots statt an Menschen vergeben"
+
+[cmd.arg.welcome_card]
+desc = "Das Willkommensbild anhängen"
+
+[roles]
+added = "Hinzugefügt: {roles}"
+removed = "Entfernt: {roles}"
+skipped = "{roles} kann ich nicht vergeben. Bitte das Team, meine Rolle höher zu setzen."
+unchanged = "Nichts geändert."
+select_placeholder = "Wähle deine Rollen"
+mode_hint_normal = "Nochmal klicken, um die Rolle wieder abzugeben."
+mode_hint_unique = "Von diesen Rollen kannst du nur eine haben."
+mode_hint_verify = "Rollen aus diesem Panel sind dauerhaft."
+created = "Panel #{panel_id} \"{title}\" angelegt. Füge Rollen mit /rolepanel add hinzu und veröffentliche es dann."
+item_added = "{role} zu Panel #{panel_id} hinzugefügt."
+item_removed = "{role} aus Panel #{panel_id} entfernt."
+deleted = "Panel #{panel_id} \"{title}\" gelöscht."
+published = "Panel #{panel_id} in {channel} gepostet."
+list_empty = "Es gibt noch keine Rollen-Panels. Beginne mit /rolepanel create."
+list_line = "`#{id}` **{title}** · {kind}/{mode} · {items} Rollen · {where}"
+reaction_failed = "Diese Reaktionen konnte ich nicht setzen: {emojis}. Eigene Emojis müssen von einem Server stammen, auf dem ich bin."
+list_unpublished = "nicht veröffentlicht"
+
+[welcome]
+default_join = "Willkommen {user} auf {server}! Du bist Mitglied Nr. {count}."
+default_leave = "{name} hat {server} verlassen."
+default_dm = "Willkommen auf {server}, {name}!"
+join_set = "Willkommensnachrichten gehen nach {channel}."
+join_off = "Willkommensnachrichten sind aus."
+leave_set = "Abschiedsnachrichten gehen nach {channel}."
+leave_off = "Abschiedsnachrichten sind aus."
+dm_set = "Neue Mitglieder bekommen jetzt eine Direktnachricht."
+dm_off = "Die Willkommens-DM ist aus."
+autorole_added = "Neue Mitglieder bekommen jetzt {role} (nach dem Mitglieder-Screening, falls es eines gibt)."
+autorole_removed = "{role} wird nicht mehr automatisch vergeben."
+card_saved = "Willkommensbild gespeichert. Prüfe es mit /welcome preview."
+on = "an"
+off = "aus"
+none = "keine"
+status = """**Willkommen**
+Willkommensnachricht: {join} (Bild: {card})
+Abschiedsnachricht: {leave}
+Willkommens-DM: {dm}
+Autorollen: {autoroles}
+Autorollen für Bots: {bot_autoroles}"""
+
+[welcome.card]
+title = "WILLKOMMEN"
+member = "Mitglied Nr. {count}"

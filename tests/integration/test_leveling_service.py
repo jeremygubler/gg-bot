@@ -11,7 +11,8 @@ from ggbot.core.errors import UserError
 from ggbot.core.leveling.importer import ImportRow
 from ggbot.core.leveling.xp import MAX_XP, total_xp_for_level
 from ggbot.core.services.leveling import PAGE_SIZE, LevelingService, XpContext
-from ggbot.core.settings.leveling import CardStyle, LevelingSettings, VoiceXp
+from ggbot.core.settings.card import CardStyle
+from ggbot.core.settings.leveling import LevelingSettings, VoiceXp
 from ggbot.core.settings.store import SettingsStore
 
 G = 100

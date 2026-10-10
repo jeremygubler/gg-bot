@@ -4,16 +4,14 @@ import time
 import pytest
 from PIL import Image
 
-from ggbot.render import rank_card
+from ggbot.render import common, rank_card
+from ggbot.render.common import HEIGHT, WIDTH, format_number
 from ggbot.render.rank_card import (
     BAR_H,
     BAR_W,
     BAR_X,
     BAR_Y,
-    HEIGHT,
-    WIDTH,
     RankCardData,
-    format_number,
     render_rank_card,
 )
 
@@ -115,7 +113,7 @@ def test_avatar_wird_eingebaut() -> None:
 def test_kaputter_oder_riesiger_avatar_faellt_auf_den_platzhalter_zurueck() -> None:
     for broken in (b"kein bild", b"\x89PNG\r\n\x1a\nkaputt", b""):
         assert decode(render_rank_card(card(avatar=broken))).size == (WIDTH, HEIGHT)
-    huge = b"\x00" * (rank_card.MAX_AVATAR_BYTES + 1)
+    huge = b"\x00" * (common.MAX_AVATAR_BYTES + 1)
     assert render_rank_card(card(avatar=huge)) == render_rank_card(card(avatar=None))
 
 
@@ -134,7 +132,7 @@ def test_lange_namen_ueberdecken_rang_und_level_nicht(level: int, position: int)
     # Rechts neben dem Namen (Rang/Level) darf der Name nichts verändern. Der Zahlenblock beginnt je
     # nach Grösse der Zahlen woanders, darum prüfen wir erst ab dort, wo er sicher beginnt.
     block_left = rank_card.header_left(card(level=level, position=position))
-    assert block_left > rank_card.TEXT_X + 80  # der Name behält Platz
+    assert block_left > common.TEXT_X + 80  # der Name behält Platz
     box = (int(block_left), 30, WIDTH - 40, 100)
     assert long.crop(box).tobytes() == short.crop(box).tobytes()
 
@@ -167,6 +165,6 @@ def test_rendern_ist_schnell_genug_fuer_einen_befehl() -> None:
 
 
 def test_schrift_hat_einen_fallback() -> None:
-    rank_card._font.cache_clear()
-    font = rank_card._font(20, False)
+    common.font.cache_clear()
+    font = common.font(20, False)
     assert font is not None

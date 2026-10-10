@@ -2,7 +2,8 @@ import pytest
 from pydantic import ValidationError
 
 from ggbot.core.leveling.announce import render_template, validate_template
-from ggbot.core.settings.leveling import CardStyle, LevelingSettings, VoiceXp
+from ggbot.core.settings.card import CardStyle
+from ggbot.core.settings.leveling import LevelingSettings, VoiceXp
 
 
 def test_standardwerte_entsprechen_mee6_und_sind_aus() -> None:

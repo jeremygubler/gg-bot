@@ -3,6 +3,7 @@ die Entscheidung selbst liegt in `ggbot.core.permissions`."""
 
 import discord
 
+from ggbot.bot.rewards import assignable
 from ggbot.core.errors import UserError
 from ggbot.core.permissions import Principal, ensure_can_target
 
@@ -62,3 +63,21 @@ def ensure_channel_permissions(
     if missing:
         key = "error.missing_bot_permissions" if bot else "error.missing_permissions"
         raise UserError(key, permissions=_names(missing))
+
+
+def ensure_grantable(interaction: discord.Interaction, role: discord.Role) -> None:
+    """Darf der Bot die Rolle vergeben, und darf der Akteur sie weitergeben?
+
+    Wer Rollen verwalten darf, vergibt trotzdem keine über der eigenen höchsten: sonst wäre ein
+    Panel oder eine Autorolle der Weg, sich selbst hochzustufen.
+    """
+    guild = ensure_guild(interaction)
+    if not assignable(guild, role):
+        raise UserError("error.role_unassignable", role=role.mention)
+    actor = interaction.user
+    if (
+        isinstance(actor, discord.Member)
+        and actor.id != guild.owner_id
+        and role.position >= actor.top_role.position
+    ):
+        raise UserError("error.hierarchy_actor")

@@ -19,8 +19,10 @@ from ggbot.core.leveling.announce import render_template
 from ggbot.core.leveling.rules import VoiceMember, voice_eligible
 from ggbot.core.logging import get_logger
 from ggbot.core.services.leveling import Award, XpContext
-from ggbot.core.settings.leveling import CARD_TEMPLATES, CardStyle, LevelingSettings
-from ggbot.render.rank_card import RankCardData, format_number, render_rank_card
+from ggbot.core.settings.card import CARD_TEMPLATES, CardStyle
+from ggbot.core.settings.leveling import LevelingSettings
+from ggbot.render.common import format_number
+from ggbot.render.rank_card import RankCardData, render_rank_card
 
 log = get_logger(__name__)
 

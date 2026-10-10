@@ -28,6 +28,8 @@ COGS = (
     "ggbot.bot.cogs.eventlog_config",
     "ggbot.bot.cogs.leveling",
     "ggbot.bot.cogs.leveling_config",
+    "ggbot.bot.cogs.rolepanels",
+    "ggbot.bot.cogs.welcome",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10
@@ -67,6 +69,8 @@ class GGBot(commands.AutoShardedBot):
         intents.voice_states = True
         intents.invites = True
         intents.moderation = True
+        # Reaktions-Rollen. Nicht privilegiert.
+        intents.guild_reactions = True
         # discord.py typisiert shard_ids als list[int], erwartet aber "weglassen" für "auto".
         shard_options: dict[str, Any] = {"shard_ids": config.shard_ids} if config.shard_ids else {}
         super().__init__(

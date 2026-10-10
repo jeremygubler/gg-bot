@@ -13,6 +13,8 @@ from ggbot.core.services.eventlog import EventLogService
 from ggbot.core.services.guilds import GuildService
 from ggbot.core.services.leveling import LevelingService
 from ggbot.core.services.moderation import ModerationService
+from ggbot.core.services.rolepanels import RolePanelService
+from ggbot.core.services.welcome import WelcomeService
 from ggbot.core.settings.store import SettingsStore
 
 
@@ -33,6 +35,8 @@ class Services:
     automod: AutomodService
     eventlog: EventLogService
     leveling: LevelingService
+    rolepanels: RolePanelService
+    welcome: WelcomeService
 
     @classmethod
     def build(cls, config: AppConfig, db: Database, redis: Redis) -> "Services":
@@ -53,4 +57,6 @@ class Services:
             automod=AutomodService(db, settings, redis),
             eventlog=EventLogService(settings),
             leveling=LevelingService(db, settings, redis),
+            rolepanels=RolePanelService(db),
+            welcome=WelcomeService(settings, redis),
         )
