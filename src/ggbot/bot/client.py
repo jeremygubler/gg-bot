@@ -26,6 +26,8 @@ COGS = (
     "ggbot.bot.cogs.automod_config",
     "ggbot.bot.cogs.eventlog",
     "ggbot.bot.cogs.eventlog_config",
+    "ggbot.bot.cogs.leveling",
+    "ggbot.bot.cogs.leveling_config",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10
@@ -57,8 +59,9 @@ class GGBot(commands.AutoShardedBot):
         intents.emojis_and_stickers = True
         # Purge liest den Verlauf per REST; ohne diesen Intent sind fremde Inhalte leer.
         intents.message_content = config.enable_message_content_intent
-        # Nachrichten-Ereignisse (Automod) nur mit dem Inhalts-Intent: ohne Inhalt wären sie blind.
-        intents.guild_messages = config.enable_message_content_intent
+        # Nachrichten-Ereignisse braucht das Leveling (XP pro Nachricht); der Inhalt selbst bleibt
+        # ohne den privilegierten Intent leer, Automod und Log-Arten dafür sind dann gesperrt.
+        intents.guild_messages = True
         intents.members = config.enable_members_intent
         # Nicht privilegiert; für das Event-Log (Sprache, Einladungen, Bans).
         intents.voice_states = True
@@ -74,6 +77,11 @@ class GGBot(commands.AutoShardedBot):
             max_messages=config.message_cache_size,
             **shard_options,
             help_command=None,
+            # Sicherer Standard für jede Nachricht: nie @everyone/@here oder Rollen. Wer mehr
+            # braucht, erlaubt es beim Senden ausdrücklich.
+            allowed_mentions=discord.AllowedMentions(
+                everyone=False, roles=False, users=True, replied_user=False
+            ),
         )
         self.services = services
         self._background: list[asyncio.Task[None]] = []

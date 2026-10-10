@@ -112,7 +112,7 @@ bei Snowflakes < 2^63).
 | 2 | `mod_cases` (guild_id, case_no, type, target_id, moderator_id, reason, duration_seconds, expires_at, active, ref_case_no, created_at; Unique `(guild_id, case_no)`), `mod_case_counters` (atomare Case-Nummer pro Server), `mod_notes`, `channel_locks` (vorheriger Overwrite-Zustand für `/unlock`). Eskalationsregeln liegen in den Settings (Modul `moderation`) |
 | 3 | Regeln liegen in `guild_settings` (Modul `automod`); `automod_hits` (guild_id, user_id, channel_id, rule, actions, created_at; Statistik, 30 Tage Aufbewahrung) |
 | 4 | Keine eigenen Tabellen: Einstellungen (Modul `logging`, Kanal pro Ereignisart). Nachrichteninhalte werden **nicht** in der Datenbank gespeichert |
-| 5 | `xp_members` (guild_id, user_id, xp, level, msg_count, voice_seconds, last_xp_at), `xp_voice_sessions`, `level_rewards` in Settings, `rank_card_styles` (guild_id, user_id, JSONB) |
+| 5 | `xp_members` (guild_id, user_id, xp, msg_count, voice_seconds, last_xp_at; **kein** gespeichertes Level), `rank_card_styles` (guild_id, user_id, JSONB). Belohnungen, Faktoren und Ausnahmen liegen in den Settings (Modul `leveling`). Keine `xp_voice_sessions`, siehe Abschnitt 16 |
 | 6 | `role_panels`, `role_panel_items`, `reaction_roles`, Willkommen in Settings |
 | 7 | `ticket_panels`, `ticket_categories`, `tickets`, `ticket_messages` (nur für Transkript), `ticket_feedback`, `ticket_transcripts` |
 | 8 | `notify_subscriptions` (Twitch/YouTube), `notify_state` (laufende Streams, Message-ID) |
@@ -407,3 +407,42 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   Nachrichten (Zeit, Autor, Inhalt, Anhänge), unbekannte nur als ID.
 - **Flut-Schutz:** Pro Kanal ein Worker mit höchstens 100 wartenden Einträgen. Was darüber hinaus kommt (Raid, Massenaktionen),
   wird verworfen und am Ende in einer Zeile gemeldet. Fehlt das Schreibrecht, wird der Rest verworfen statt endlos versucht.
+
+## 16. Leveling (Phase 5)
+
+- **Kurve:** MEE6-kompatibel: von Level n zu n+1 braucht man 5·n² + 50·n + 100 XP. Das Level wird immer aus den XP
+  berechnet (`core/leveling/xp.py`, Binärsuche, Obergrenze Level 1000), nie gespeichert: es gibt keine zweite Wahrheit,
+  die nach einem Import oder einer Korrektur auseinanderlaufen könnte. Menge (Standard 15–25), Cooldown (60 s) und
+  globaler Faktor sind pro Server einstellbar, die Kurve selbst nicht.
+- **Atomare Vergabe:** `xp = xp + :betrag` in der Datenbank (`INSERT … ON CONFLICT DO UPDATE … RETURNING`), begrenzt auf
+  0 … MAX_XP. Parallele Gewinne gehen nicht verloren, das Level davor ergibt sich aus dem Ergebnis.
+- **Text-XP:** Cooldown pro (Server, Nutzer) über `SET NX EX` in Redis, gesetzt erst nach den Ausschlüssen: eine
+  ausgenommene Nachricht startet keinen Cooldown. Ausnahmen (Kanal inkl. Elternkanal bei Threads, Rolle) gelten vor allem.
+- **Faktoren:** globaler Faktor × höchster Rollenfaktor × höchster Kanalfaktor. Rollenfaktoren **stapeln nicht**: sonst
+  bekäme jemand mit mehreren kleinen Boosts das Produkt, das niemand so eingestellt hat.
+- **Voice-XP ohne Sitzungstabelle:** Ein Takt pro Minute geht über die Sprachkanäle, die der Bot im Speicher hat, und
+  vergibt XP an alle, die dann dort sind. Das übersteht Neustarts ohne Aufräumen (es gibt keine offenen Sitzungen) und
+  braucht keine Tabelle. Bedingungen: nicht stumm/taub, nicht im AFK-Kanal, kein Bot, und (Standard) mindestens ein
+  weiterer Mensch im Kanal. Mitglieder, die der Bot nicht kennt (ohne Members-Intent evtl. nicht im Cache), bekommen
+  lieber **kein** XP, als dass Rollen-Ausnahmen übergangen würden; das wird einmal pro Server geloggt.
+- **Belohnungen:** `stack` (alle erreichten Rollen) oder `replace` (nur die höchste, frühere Belohnungsrollen werden
+  entzogen). Die Entscheidung ist eine reine Funktion (`reward_plan`); sie fasst nie Rollen an, die keine Belohnung sind.
+  Rollen, die der Bot nicht vergeben darf (verwaltet, nicht unter seiner höchsten Rolle), lehnt `/leveling reward add`
+  sofort ab; später gelöschte oder blockierte Rollen werden übersprungen und geloggt, `/leveling reward list` warnt.
+  `/leveling sync` wendet die Regeln auf alle Mitglieder mit XP an (BulkGate, Fünferblöcke mit Pause, höchstens 5000).
+- **Level-Up-Nachricht:** Vorlage mit `{user}`, `{name}`, `{level}`, `{xp}`; unbekannte Platzhalter und Formatangaben werden
+  beim Speichern abgelehnt. **Erwähnungen:** `{name}` ist ein frei wählbarer Nickname, deshalb darf jede Ankündigung nur das
+  Mitglied selbst anpingen, nie @everyone oder Rollen. Zusätzlich ist das der Standard des ganzen Bots.
+- **Rank-Card:** Pillow, reine Funktion (`render/rank_card.py`), Ergebnis gecacht (LRU) und im Thread gerendert. Vorlagen
+  (solid, gradient, stripes, dots) und Farben werden im Code gezeichnet, es gibt keine Bilddateien und kein Laden fremder
+  Bilder. Der Avatar kommt über discord.py (Discord-CDN), ist auf 8 MB begrenzt und fällt bei Fehlern auf einen
+  Platzhalter mit Initial zurück. Der Name schrumpft erst in der Schrift und wird erst dann gekürzt; seine Breite richtet
+  sich nach dem Zahlenblock (Rang, Level), damit grosse Zahlen ihn nie überdecken. Schrift: DejaVu (im Docker-Image
+  installiert), sonst Pillows eingebaute.
+- **Bestenliste:** Sortierung nach XP absteigend, bei Gleichstand nach Nutzer-ID; derselbe Massstab gilt für den Rang in `/rank`.
+  Nutzer ohne XP erscheinen nicht.
+- **Import:** `core/leveling/importer.py` liest JSON (auch die Form `{"players": [...]}` bzw. eine Liste solcher Seiten)
+  und CSV (Komma, Semikolon, Tab); `xp` hat Vorrang, sonst wird aus `level` zurückgerechnet. Doppelte Nutzer: höchster Wert.
+  Unbrauchbare Zeilen werden gezählt und gemeldet. Grenzen: 5 MB, 100 000 Zeilen, XP gedeckelt. Modi `max` (Standard, der
+  höhere Wert bleibt), `replace`, `add`. Der Schreibvorgang ist eine Transaktion: bei einem Fehler bleibt alles unverändert.
+- **Intents:** XP pro Nachricht braucht nur das nicht privilegierte `guild_messages` (jetzt immer an), keinen Nachrichteninhalt.

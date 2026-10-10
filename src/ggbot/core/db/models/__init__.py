@@ -4,6 +4,7 @@ from ggbot.core.db.models.audit import DashboardAudit
 from ggbot.core.db.models.automod import AutomodHit
 from ggbot.core.db.models.guild import Guild, GuildSetting
 from ggbot.core.db.models.jobs import ScheduledJob
+from ggbot.core.db.models.leveling import RankCardStyle, XpMember
 from ggbot.core.db.models.moderation import ChannelLock, ModCase, ModCaseCounter, ModNote
 
 __all__ = [
@@ -15,5 +16,7 @@ __all__ = [
     "ModCase",
     "ModCaseCounter",
     "ModNote",
+    "RankCardStyle",
     "ScheduledJob",
+    "XpMember",
 ]

@@ -47,6 +47,24 @@ automod_word_not_found = "There is no entry \"{pattern}\"."
 logging_invalid = "That log setting is not valid."
 logging_needs_message_content = "These events need the Message Content intent. Enable it in the Developer Portal and set ENABLE_MESSAGE_CONTENT_INTENT=true."
 logging_needs_members = "These events need the Server Members intent. Enable it in the Developer Portal and set ENABLE_MEMBERS_INTENT=true."
+card_color_invalid = "\"{value}\" is not a color. Use a hex code like #ff8800."
+card_nothing_to_change = "Give at least one of accent, background or template."
+import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
+import_failed = "The import failed and nothing was changed."
+import_too_large = "The file is too large (maximum {limit} MB)."
+import_too_many = "The file has too many entries (maximum {limit})."
+import_unknown_format = "I can't read that file. Use JSON (e.g. the MEE6 leaderboard export) or CSV with the columns id and xp or level."
+leveling_amount_range = "The amount must be between -{limit} and {limit}."
+leveling_announce_channel_needed = "For this mode you must also choose a channel."
+leveling_bot = "Bots do not collect XP."
+leveling_confirm = "Nothing was deleted. To delete all XP of this server, type {word} in the confirm field."
+leveling_disabled = "Leveling is turned off on this server."
+leveling_invalid = "That leveling setting is not valid ({detail})."
+leveling_level_range = "The level must be between 0 and {max}."
+leveling_no_rewards = "There are no level rewards yet. Add one with /leveling reward add."
+leveling_reward_not_found = "There is no reward for level {level}."
+leveling_role_not_assignable = "I can't hand out {role}: it is managed, or it is not below my highest role."
+leveling_template_invalid = "That message is not valid: {detail}"
 
 [cmd.help]
 desc = "Shows all commands you can use"
@@ -586,3 +604,165 @@ need_members = "needs the Server Members intent"
 channel_missing = "channel not found"
 cannot_send = "I can't write there (Send Messages, Embed Links)"
 cannot_attach = "I can't attach files there (Attach Files)"
+
+[cmd.rank]
+desc = "Shows your rank card (or another member's)"
+[cmd.leaderboard]
+desc = "Shows the XP leaderboard of this server"
+[cmd.card]
+desc = "Your personal rank card"
+[cmd.card.set]
+desc = "Changes the colors or the template of your rank card"
+[cmd.card.reset]
+desc = "Resets your rank card to the server default"
+[cmd.leveling]
+desc = "Leveling settings"
+[cmd.leveling.status]
+desc = "Shows the leveling settings"
+[cmd.leveling.enable]
+desc = "Turns leveling on"
+[cmd.leveling.disable]
+desc = "Turns leveling off"
+[cmd.leveling.xp]
+desc = "Sets the XP range per message"
+[cmd.leveling.cooldown]
+desc = "Sets how often a member can earn XP from messages"
+[cmd.leveling.multiplier]
+desc = "Sets the global XP factor"
+[cmd.leveling.voice]
+desc = "Sets voice XP"
+[cmd.leveling.announce]
+desc = "Chooses where level-ups are announced"
+[cmd.leveling.message]
+desc = "Sets the level-up message (empty = default)"
+[cmd.leveling.sync]
+desc = "Applies the reward roles to all members with XP"
+[cmd.leveling.give]
+desc = "Gives or takes XP"
+[cmd.leveling.set_level]
+desc = "Sets a member to a level"
+[cmd.leveling.reset_user]
+desc = "Deletes the XP of one user"
+[cmd.leveling.reset_all]
+desc = "Deletes the XP of everyone on this server"
+[cmd.leveling.import]
+desc = "Imports levels from a file (e.g. a MEE6 export)"
+[cmd.leveling.noxp]
+desc = "Channels and roles that earn no XP"
+[cmd.leveling.noxp.channel_add]
+desc = "No XP in a channel"
+[cmd.leveling.noxp.channel_remove]
+desc = "XP in a channel again"
+[cmd.leveling.noxp.role_add]
+desc = "No XP for a role"
+[cmd.leveling.noxp.role_remove]
+desc = "XP for a role again"
+[cmd.leveling.boost]
+desc = "XP factors per channel and role"
+[cmd.leveling.boost.channel_set]
+desc = "Sets an XP factor for a channel"
+[cmd.leveling.boost.channel_remove]
+desc = "Removes a channel's XP factor"
+[cmd.leveling.boost.role_set]
+desc = "Sets an XP factor for a role (the highest of a member's roles counts)"
+[cmd.leveling.boost.role_remove]
+desc = "Removes a role's XP factor"
+[cmd.leveling.reward]
+desc = "Roles handed out at certain levels"
+[cmd.leveling.reward.add]
+desc = "Gives a role at a level"
+[cmd.leveling.reward.remove]
+desc = "Removes the reward of a level"
+[cmd.leveling.reward.list]
+desc = "Lists the level rewards"
+[cmd.leveling.reward.mode]
+desc = "Choose whether reward roles stack or replace each other"
+
+[cmd.arg.accent]
+desc = "Accent color as hex code, e.g. #ff8800"
+[cmd.arg.background]
+desc = "Background color as hex code, e.g. #23272a"
+[cmd.arg.template]
+desc = "The background template"
+[cmd.arg.xp_min]
+desc = "Minimum XP"
+[cmd.arg.xp_max]
+desc = "Maximum XP"
+[cmd.arg.cooldown_seconds]
+desc = "Seconds between two XP gains (0 = every message)"
+[cmd.arg.factor]
+desc = "Factor between 0.1 and 10"
+[cmd.arg.requires_company]
+desc = "Only earn XP with another person in the channel"
+[cmd.arg.announce_channel]
+desc = "Channel for the announcement (mode channel)"
+[cmd.arg.template_text]
+desc = "Message with {user}, {name}, {level}, {xp}"
+[cmd.arg.level]
+desc = "The level"
+[cmd.arg.xp_amount]
+desc = "XP to give (negative takes away)"
+[cmd.arg.confirm]
+desc = "Type RESET to confirm"
+[cmd.arg.file]
+desc = "JSON or CSV file with user ID and XP or level"
+[cmd.arg.import_mode]
+desc = "max keeps the higher value, replace overwrites, add adds up"
+
+[leveling]
+levelup_default = "🎉 {user} reached **level {level}**!"
+enabled = "Leveling is on."
+disabled = "Leveling is off."
+xp_set = "XP per message: {xp_min}–{xp_max}."
+cooldown_set = "XP from messages at most every {seconds} s."
+multiplier_set = "Global XP factor: ×{factor}."
+voice_on = "Voice XP is on."
+voice_off = "Voice XP is off."
+announce_off = "Level-ups are no longer announced."
+announce_current = "Level-ups are announced in the channel where they happen."
+announce_channel = "Level-ups are announced in {channel}."
+announce_dm = "Level-ups are sent by direct message."
+message_set = "Level-up message saved."
+message_reset = "The default level-up message is used again."
+noxp_added = "{target} earns no XP any more."
+noxp_removed = "{target} earns XP again."
+boost_set = "{target}: XP ×{factor}."
+boost_removed = "XP factor of {target} removed."
+reward_added = "At level {level} members get {role}."
+reward_removed = "Reward for level {level} removed."
+reward_mode_stack = "Reward roles stack: members keep all earned roles."
+reward_mode_replace = "Reward roles replace each other: only the highest earned role is kept."
+reward_empty = "No level rewards yet."
+reward_mode_line = "Mode: {mode}"
+reward_line = "Level {level} → {role}"
+reward_line_missing = "⚠️ Level {level} → role {role_id} no longer exists"
+reward_line_blocked = "⚠️ Level {level} → {role} (I can't hand it out: move my role above it)"
+sync_done = "Checked {total} members: {changed} changed, {unknown} not found on the server, {failed} failed."
+given = "{member} now has {xp} XP (level {level})."
+level_set = "{member} is now level {level}."
+user_reset = "XP of {user} deleted."
+user_nothing = "{user} had no XP."
+all_reset = "XP of {count} members deleted."
+imported = "Imported ({mode}): {created} new, {updated} updated, {skipped} rows skipped. Run /leveling sync to hand out reward roles."
+
+[leveling.card]
+rank = "RANK"
+level = "LEVEL"
+saved = "Your rank card is saved:"
+reset = "Your rank card uses the server default again."
+
+[leveling.leaderboard]
+title = "Leaderboard – {server}"
+empty = "Nobody has earned XP yet."
+line = "`#{position}` {user} – level {level} · {xp} XP"
+footer = "Page {page}/{pages}"
+
+[leveling.status]
+title = "Leveling"
+state = "State: {state}"
+xp = "XP per message: {xp_min}–{xp_max}, cooldown {cooldown} s, factor ×{factor}"
+voice = "Voice XP: {state} ({xp_min}–{xp_max} per minute, only with company: {company})"
+announce = "Announcements: {mode}"
+rewards = "Level rewards: {count} ({mode})"
+exceptions = "No-XP: {channels} channels, {roles} roles · Factors: {channel_boosts} channels, {role_boosts} roles"
+voice_members_hint = "Voice XP only counts members the bot knows. Without the Server Members intent some members may be missed."

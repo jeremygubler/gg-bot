@@ -14,5 +14,10 @@ COPY migrations ./migrations
 COPY src ./src
 RUN uv sync --frozen --no-dev --all-extras
 
+# Schrift für die Rank-Card (Umlaute und viele Sprachen); ohne sie fällt Pillow auf seine eingebaute zurück.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN useradd --system --uid 10001 --no-create-home ggbot
 USER ggbot

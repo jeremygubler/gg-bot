@@ -12,6 +12,8 @@ from ggbot.bot.cogs.automod_config import AutomodConfigCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
 from ggbot.bot.cogs.eventlog_config import EventLogConfigCog
+from ggbot.bot.cogs.leveling import LevelingCog
+from ggbot.bot.cogs.leveling_config import LevelingConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
 from ggbot.bot.errors import to_message
@@ -33,6 +35,8 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(ModConfigCog(instance))
     await instance.add_cog(AutomodConfigCog(instance))
     await instance.add_cog(EventLogConfigCog(instance))
+    await instance.add_cog(LevelingCog(instance))
+    await instance.add_cog(LevelingConfigCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -94,7 +98,7 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
     def names(permissions: discord.Permissions, in_guild: bool = True) -> list[str]:
         return [c.qualified_name for c in visible_commands(commands_, permissions, in_guild)]
 
-    assert names(plain) == ["help"]
+    assert names(plain) == ["card reset", "card set", "help", "leaderboard", "rank"]
     assert "config language" in names(manager)
     assert "modconfig dm" in names(manager)
     assert "warn" not in names(manager)  # Manage Server ist kein Moderator-Recht
@@ -244,6 +248,38 @@ EXPECTED_PERMISSIONS = {
             "logging ignore bots",
         )
     },
+    **{
+        name: "manage_guild"
+        for name in (
+            "leveling status",
+            "leveling enable",
+            "leveling disable",
+            "leveling xp",
+            "leveling cooldown",
+            "leveling multiplier",
+            "leveling voice",
+            "leveling announce",
+            "leveling message",
+            "leveling sync",
+            "leveling give",
+            "leveling set_level",
+            "leveling reset_user",
+            "leveling reset_all",
+            "leveling import",
+            "leveling noxp channel_add",
+            "leveling noxp channel_remove",
+            "leveling noxp role_add",
+            "leveling noxp role_remove",
+            "leveling boost channel_set",
+            "leveling boost channel_remove",
+            "leveling boost role_set",
+            "leveling boost role_remove",
+            "leveling reward add",
+            "leveling reward remove",
+            "leveling reward list",
+            "leveling reward mode",
+        )
+    },
     "modconfig warn_expiry": "manage_guild",
     "modconfig dm": "manage_guild",
     "modconfig escalation add": "manage_guild",
@@ -267,8 +303,10 @@ def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
     open_commands = {
         c.qualified_name for c in leaf_commands(bot) if required_permissions(c) is None
     }
-    assert open_commands == {"help"}
-    known = set(EXPECTED_PERMISSIONS) | {"help", "config language", "config timezone"}
+    # Für alle gedacht: Hilfe und die Leveling-Anzeige. Alles andere braucht eine Berechtigung.
+    everyone = {"help", "rank", "leaderboard", "card set", "card reset"}
+    assert open_commands == everyone
+    known = set(EXPECTED_PERMISSIONS) | everyone | {"config language", "config timezone"}
     assert {c.qualified_name for c in leaf_commands(bot)} == known
 
 
@@ -290,3 +328,18 @@ def test_event_log_braucht_die_nicht_privilegierten_intents_immer(bot: GGBot) ->
     assert intents.invites
     assert intents.moderation
     assert intents.guilds
+
+
+def test_der_bot_pingt_standardmaessig_nie_everyone_oder_rollen(bot: GGBot) -> None:
+    mentions = bot.allowed_mentions
+    assert mentions is not None
+    assert mentions.everyone is False
+    assert mentions.roles is False
+    assert mentions.replied_user is False
+    assert mentions.users is True
+
+
+def test_user_befehle_sind_nur_auf_servern_nutzbar(bot: GGBot) -> None:
+    by_name = {c.qualified_name: c for c in leaf_commands(bot)}
+    for name in ("rank", "leaderboard", "card set", "card reset"):
+        assert is_guild_only(by_name[name]), name

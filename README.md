@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 4 (Logging)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 5 (Leveling)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -173,6 +173,57 @@ Alle brauchen *Manage Server*. Hinweise:
 - Falls keine Einladungs-Einträge ankommen, dem Bot im Kanal das Recht *Kanäle verwalten* geben (Discord liefert diese
   Ereignisse sonst unter Umständen nicht).
 
+### Leveling (Phase 5)
+
+Standardmässig **aus**. Mit `/leveling enable` einschalten. Jede Nachricht gibt zufällige XP (Standard 15–25, höchstens
+einmal pro 60 s und Mitglied), das Level steigt nach der **MEE6-Kurve**: von Level n zu n+1 braucht man 5·n² + 50·n + 100 XP.
+Das Level wird immer aus den XP berechnet, nie extra gespeichert.
+
+| Befehl | Wer | Wirkung |
+|---|---|---|
+| `/rank [member]` | alle | Rank-Card als Bild: Level, Fortschritt, Rang |
+| `/leaderboard [page]` | alle | Bestenliste, 10 pro Seite |
+| `/card set [accent] [background] [template]` | alle | Eigene Farben (Hex, z. B. `#ff8800`) und Vorlage (`solid`, `gradient`, `stripes`, `dots`) |
+| `/card reset` | alle | Zurück zum Server-Standard |
+
+**Einstellungen** (*Manage Server*):
+
+| Befehl | Wirkung |
+|---|---|
+| `/leveling enable\|disable`, `/leveling status` | Ein/aus, Übersicht |
+| `/leveling xp <min> <max>` | XP-Bereich pro Nachricht |
+| `/leveling cooldown <seconds>` | Mindestabstand zwischen zwei XP-Gewinnen aus Nachrichten (0 = jede) |
+| `/leveling multiplier <factor>` | Globaler Faktor 0,1–10 auf alle XP |
+| `/leveling voice <enabled> [xp_min] [xp_max] [requires_company]` | Voice-XP |
+| `/leveling announce <off\|current\|channel\|dm> [channel]` | Wo Level-Ups angekündigt werden |
+| `/leveling message [template]` | Vorlage mit `{user}`, `{name}`, `{level}`, `{xp}` (leer = Standard) |
+| `/leveling noxp channel_add\|channel_remove\|role_add\|role_remove` | Kanäle/Rollen ohne XP (Threads erben vom Elternkanal) |
+| `/leveling boost channel_set\|channel_remove\|role_set\|role_remove` | XP-Faktor pro Kanal oder Rolle (Rollen **stapeln nicht**, die höchste zählt) |
+| `/leveling reward add <level> <role>`, `remove`, `list`, `mode <stack\|replace>` | Belohnungsrollen: `stack` behält alle, `replace` nur die höchste |
+| `/leveling sync` | Belohnungsrollen auf alle Mitglieder mit XP anwenden (nach geänderten Regeln oder einem Import) |
+| `/leveling give <member> <amount>`, `set_level <member> <level>` | XP geben oder abziehen, Level setzen; die Rollen passen sich an |
+| `/leveling reset_user <user>`, `reset_all <confirm>` | XP löschen; `reset_all` verlangt das Wort `RESET` |
+| `/leveling import <file> [mode]` | Import aus Datei |
+
+**Voice-XP:** pro volle Minute (Standard 10–20 XP), aber nur wenn man nicht stumm oder taub ist, nicht im AFK-Kanal sitzt
+und (Standard) mindestens ein weiterer Mensch im Kanal ist. Bots bekommen nie XP und zählen nicht als Gesellschaft.
+Kanal-Faktoren und Ausnahmen gelten auch hier. Mitglieder, die der Bot nicht kennt, bekommen kein XP; mit dem
+*Server Members Intent* ist das zuverlässig.
+
+**Import:** `/leveling import` nimmt JSON oder CSV. Pro Eintrag brauchst du eine Nutzer-ID und `xp` (Gesamt-XP) oder `level`
+(wird in XP umgerechnet).
+- CSV: erste Zeile mit Spaltennamen, z. B. `id,xp` oder `user_id;level` (Komma, Semikolon oder Tab).
+- JSON: eine Liste `[{"id": "123", "xp": 4675}, …]` oder die Form `{"players": [{"id": "123", "xp": 4675, "level": 10}, …]}`
+  (so sieht, soweit ich weiss, die Antwort der öffentlichen MEE6-Rangliste aus; ich kann das von hier nicht prüfen). Auch
+  eine Liste mehrerer solcher Seiten wird gelesen.
+- Wie du die Daten aus MEE6 holst, hängt von MEE6 ab. Im Zweifel baust du dir eine CSV aus der Rangliste.
+- Modi: `max` (Standard: der höhere Wert bleibt, sicher für wiederholte Importe), `replace` (Import überschreibt), `add` (addiert).
+  Unbrauchbare Zeilen werden gezählt und gemeldet; bei einem Fehler bleibt alles unverändert. Grenzen: 5 MB, 100 000 Zeilen.
+- Danach `/leveling sync`, damit die Belohnungsrollen vergeben werden.
+
+Die Rank-Card nutzt die Schrift DejaVu (im Docker-Image enthalten). Sehr exotische Zeichen im Namen (Emoji, manche Schriften)
+erscheinen dort evtl. als Kästchen.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -202,7 +253,8 @@ Dashboard bearbeitet.
 | *Manage Messages* + *Read Message History* | `/purge` |
 | *Manage Channels* | `/slowmode` |
 | *Manage Threads* | `/slowmode` in Threads |
-| *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone) |
+| *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone); Leveling-Belohnungsrollen (die Rolle des Bots muss **über** den Belohnungsrollen stehen) |
+| *Attach Files*, *Embed Links* | Leveling: `/rank` (Bild), `/leaderboard` |
 | *Manage Messages* | Automod löscht Nachrichten |
 | *View Audit Log* | Event-Log: Moderator und Grund bei Bann, Kick, Rollen, Kanälen (optional) |
 | *Send Messages*, *Embed Links* (und *Attach Files* für `message_bulk`) in den Log-Kanälen | Event-Log |
@@ -212,13 +264,13 @@ Dashboard bearbeitet.
 **Rollen-Reihenfolge:** Die Rolle des Bots muss in der Rollenliste **über** den Rollen der Mitglieder
 stehen, die er moderieren soll. Sonst verweigert Discord die Aktion und der Bot meldet das.
 
-Gateway-Intents: *Guilds* (nicht privilegiert). Zusätzlich, jeweils im Developer Portal unter *Bot → Privileged
+Gateway-Intents ohne Freigabe: *Guilds*, *Guild Messages* (für XP pro Nachricht, ohne Inhalt), *Voice States*, *Guild Invites*, *Guild Moderation* und die Emoji-Daten (alle nicht privilegiert). Zusätzlich, jeweils im Developer Portal unter *Bot → Privileged
 Gateway Intents* freischalten **und** per Umgebungsvariable einschalten (ohne Freigabe startet der Bot mit `true` nicht):
 
 | Intent | Variable | Wofür |
 |---|---|---|
 | *Message Content* | `ENABLE_MESSAGE_CONTENT_INTENT=true` | Automod-Nachrichtenregeln, `/purge contains`/`links`, Log der Nachrichten-Arten |
-| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen |
+| *Server Members* | `ENABLE_MEMBERS_INTENT=true` | Anti-Raid, Konto-Alter, Log von Beitritt, Austritt und Mitgliedsänderungen; zuverlässigere Voice-XP und `/leveling sync` |
 
 ## Entwicklung
 

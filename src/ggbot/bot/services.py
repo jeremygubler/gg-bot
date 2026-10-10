@@ -11,6 +11,7 @@ from ggbot.core.services.automod import AutomodService
 from ggbot.core.services.channels import ChannelLockService
 from ggbot.core.services.eventlog import EventLogService
 from ggbot.core.services.guilds import GuildService
+from ggbot.core.services.leveling import LevelingService
 from ggbot.core.services.moderation import ModerationService
 from ggbot.core.settings.store import SettingsStore
 
@@ -31,6 +32,7 @@ class Services:
     bulk_gate: BulkGate
     automod: AutomodService
     eventlog: EventLogService
+    leveling: LevelingService
 
     @classmethod
     def build(cls, config: AppConfig, db: Database, redis: Redis) -> "Services":
@@ -50,4 +52,5 @@ class Services:
             bulk_gate=BulkGate(),
             automod=AutomodService(db, settings, redis),
             eventlog=EventLogService(settings),
+            leveling=LevelingService(db, settings, redis),
         )
