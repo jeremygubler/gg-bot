@@ -124,6 +124,33 @@ notify_message_invalid = "The message is not valid: {detail}"
 notify_role_everyone = "@everyone can't be used here. Pick a normal role."
 notify_channel_gone = "The target channel no longer exists. Remove the notification and add it again."
 notify_test_failed = "I couldn't post in the target channel. Check my permissions there."
+cc_name = "Command names may use a-z, 0-9, - and _ and be up to 32 characters long."
+cc_cooldown = "The cooldown must be between 0 and {limit} seconds."
+cc_empty = "The response must not be empty."
+cc_invalid = "The response is not valid: {detail}"
+cc_limit = "This server already has the maximum of {limit} custom commands."
+cc_exists = "There is already a command called {name}."
+cc_unknown = "There is no custom command called {name}."
+cc_role = "You need the role {role} for this command."
+gw_prize = "The prize must be 1–{limit} characters long."
+gw_winners = "A giveaway has 1 to {limit} winners."
+gw_duration = "A giveaway runs between 1 minute and 60 days."
+gw_limit = "This server already has {limit} running giveaways."
+gw_unknown = "There is no giveaway #{giveaway_id} on this server."
+gw_over = "This giveaway is already over."
+gw_running = "This giveaway is still running. End it first."
+gw_bots = "Bots can't take part."
+gw_role = "You need the role {role} to take part."
+rm_text = "The reminder must be 1–{limit} characters long."
+rm_delay = "A reminder is due between 1 minute and 1 year from now."
+rm_limit = "You already have {limit} open reminders."
+rm_unknown = "You have no open reminder #{reminder_id}."
+poll_options = "A poll needs {low} to {high} answers, separated by ;"
+poll_option_long = "Each answer may be at most {limit} characters long."
+poll_duplicate = "Two answers are the same."
+poll_question = "The question must be 1–{limit} characters long."
+poll_duration = "A poll runs between {low} hour and {high} hours."
+poll_not_found = "I can't find a poll of mine with that message ID in this channel."
 card_nothing_to_change = "Give at least one of accent, background or template."
 import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
 import_failed = "The import failed and nothing was changed."
@@ -1207,3 +1234,171 @@ list_line = "`#{id}` {provider}: **{name}** → {channel}{role}"
 sample_title = "Sample announcement"
 sample_game = "Sample game"
 test_sent = "Sample announcement posted in {channel}."
+
+[cmd.c]
+desc = "Run a custom command of this server"
+
+[cmd.customcmd]
+desc = "Manage custom text commands"
+
+[cmd.customcmd.add]
+desc = "Create a custom command"
+
+[cmd.customcmd.edit]
+desc = "Change a custom command"
+
+[cmd.customcmd.remove]
+desc = "Delete a custom command"
+
+[cmd.customcmd.list]
+desc = "List the custom commands"
+
+[cmd.customcmd.info]
+desc = "Show details of a custom command"
+
+[cmd.giveaway]
+desc = "Run giveaways"
+
+[cmd.giveaway.start]
+desc = "Start a giveaway"
+
+[cmd.giveaway.end]
+desc = "End a giveaway now and draw the winners"
+
+[cmd.giveaway.reroll]
+desc = "Draw new winners for an ended giveaway"
+
+[cmd.giveaway.cancel]
+desc = "Cancel a giveaway without drawing"
+
+[cmd.giveaway.list]
+desc = "List the running giveaways"
+
+[cmd.poll]
+desc = "Create polls"
+
+[cmd.poll.create]
+desc = "Create a poll in this channel"
+
+[cmd.poll.end]
+desc = "End a poll of the bot early"
+
+[cmd.remind]
+desc = "Reminders"
+
+[cmd.remind.me]
+desc = "Remind me of something later"
+
+[cmd.remind.list]
+desc = "List my open reminders"
+
+[cmd.remind.cancel]
+desc = "Cancel an open reminder"
+
+[cmd.arg.cc_name]
+desc = "Name of the command"
+
+[cmd.arg.cc_name_new]
+desc = "New name (a-z, 0-9, - and _)"
+
+[cmd.arg.cc_args]
+desc = "Text to use in the answer as {args}"
+
+[cmd.arg.cc_response]
+desc = "Answer: {user} {name} {server} {channel} {args} {members} {uses} {random:a|b}"
+
+[cmd.arg.cc_ephemeral]
+desc = "Only the caller sees the answer"
+
+[cmd.arg.cc_role]
+desc = "Role needed to run the command"
+
+[cmd.arg.cc_clear_role]
+desc = "Remove the role requirement"
+
+[cmd.arg.cc_cooldown]
+desc = "Seconds before the same member can run it again"
+
+[cmd.arg.gw_prize]
+desc = "What is raffled"
+
+[cmd.arg.gw_duration]
+desc = "How long it runs, e.g. 2h or 1d"
+
+[cmd.arg.gw_winners]
+desc = "Number of winners"
+
+[cmd.arg.gw_role]
+desc = "Role needed to take part"
+
+[cmd.arg.gw_id]
+desc = "Giveaway (pick from the list)"
+
+[cmd.arg.gw_reroll_count]
+desc = "How many new winners"
+
+[cmd.arg.poll_question]
+desc = "The question"
+
+[cmd.arg.poll_options]
+desc = "Answers separated by ; (2 to 10)"
+
+[cmd.arg.poll_duration]
+desc = "How long it runs, e.g. 24h or 3d"
+
+[cmd.arg.poll_multiple]
+desc = "Allow several answers per person"
+
+[cmd.arg.poll_message]
+desc = "ID of the poll message"
+
+[cmd.arg.remind_when]
+desc = "In how long, e.g. 30m, 2h or 1d"
+
+[cmd.arg.remind_text]
+desc = "What to remind you of"
+
+[cmd.arg.remind_id]
+desc = "Reminder to cancel"
+
+[customcmd]
+added = "Command created. Run it with /c {name}."
+edited = "Command {name} updated."
+removed = "Command {name} deleted."
+list_empty = "There are no custom commands yet. Create one with /customcmd add."
+list_line = "`{name}` · used {uses}×"
+info = """**{name}**
+Used: {uses}× · cooldown: {cooldown} s · role: {role} · only visible to the caller: {ephemeral}
+```
+{response}
+```"""
+
+[giveaway]
+btn = "Join"
+body = "Click the button to take part. Click again to withdraw.\nEnds {ends} · {winners} winner(s) · hosted by {host}"
+requires = "Required role"
+result = "Winners: {winners}"
+nobody = "nobody took part"
+ended = "Giveaway ended"
+started = "Giveaway #{id} started in {channel}."
+joined = "You are in! {count} taking part so far."
+left = "You withdrew. {count} taking part."
+congrats = "🎉 Congratulations {winners}! You won **{prize}**."
+no_winner = "Nobody took part in the giveaway for **{prize}**, so there is no winner."
+ended_now = "Giveaway ended, {count} winner(s) drawn."
+rerolled = "{count} new winner(s) drawn."
+reroll_none = "There is nobody left to draw."
+cancelled = "Giveaway #{id} cancelled."
+list_empty = "There are no running giveaways."
+list_line = "`#{id}` **{prize}** · ends {ends} · {channel}"
+
+[remind]
+set = "Okay, I will remind you {when} (#{id})."
+due = "⏰ {user} reminder: {text}"
+due_dm = "⏰ Reminder from {server}: {text}"
+list_empty = "You have no open reminders."
+list_line = "`#{id}` {when}: {text}"
+cancelled = "Reminder #{id} cancelled."
+
+[poll]
+ended = "Poll ended."

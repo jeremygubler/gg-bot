@@ -124,6 +124,33 @@ notify_message_invalid = "Die Nachricht ist ungültig: {detail}"
 notify_role_everyone = "@everyone ist hier nicht möglich. Wähle eine normale Rolle."
 notify_channel_gone = "Der Zielkanal existiert nicht mehr. Entferne die Benachrichtigung und lege sie neu an."
 notify_test_failed = "Ich konnte im Zielkanal nichts posten. Prüfe meine Rechte dort."
+cc_name = "Befehlsnamen dürfen a-z, 0-9, - und _ enthalten und höchstens 32 Zeichen lang sein."
+cc_cooldown = "Die Wartezeit muss zwischen 0 und {limit} Sekunden liegen."
+cc_empty = "Die Antwort darf nicht leer sein."
+cc_invalid = "Die Antwort ist ungültig: {detail}"
+cc_limit = "Dieser Server hat bereits die höchstmögliche Zahl von {limit} eigenen Befehlen."
+cc_exists = "Es gibt schon einen Befehl namens {name}."
+cc_unknown = "Es gibt keinen eigenen Befehl namens {name}."
+cc_role = "Für diesen Befehl brauchst du die Rolle {role}."
+gw_prize = "Der Preis muss 1–{limit} Zeichen lang sein."
+gw_winners = "Ein Giveaway hat 1 bis {limit} Gewinner."
+gw_duration = "Ein Giveaway läuft zwischen 1 Minute und 60 Tagen."
+gw_limit = "Dieser Server hat schon {limit} laufende Giveaways."
+gw_unknown = "Auf diesem Server gibt es kein Giveaway #{giveaway_id}."
+gw_over = "Dieses Giveaway ist schon vorbei."
+gw_running = "Dieses Giveaway läuft noch. Beende es zuerst."
+gw_bots = "Bots können nicht teilnehmen."
+gw_role = "Zum Mitmachen brauchst du die Rolle {role}."
+rm_text = "Die Erinnerung muss 1–{limit} Zeichen lang sein."
+rm_delay = "Eine Erinnerung ist zwischen 1 Minute und 1 Jahr ab jetzt fällig."
+rm_limit = "Du hast bereits {limit} offene Erinnerungen."
+rm_unknown = "Du hast keine offene Erinnerung #{reminder_id}."
+poll_options = "Eine Umfrage braucht {low} bis {high} Antworten, getrennt durch ;"
+poll_option_long = "Jede Antwort darf höchstens {limit} Zeichen lang sein."
+poll_duplicate = "Zwei Antworten sind gleich."
+poll_question = "Die Frage muss 1–{limit} Zeichen lang sein."
+poll_duration = "Eine Umfrage läuft zwischen {low} Stunde und {high} Stunden."
+poll_not_found = "Mit dieser Nachrichten-ID finde ich hier keine Umfrage von mir."
 card_nothing_to_change = "Gib mindestens eines von accent, background oder template an."
 import_empty = "Die Datei enthält keine brauchbaren Einträge (pro Zeile eine Nutzer-ID und XP oder Level)."
 import_failed = "Der Import ist fehlgeschlagen, es wurde nichts geändert."
@@ -1207,3 +1234,171 @@ list_line = "`#{id}` {provider}: **{name}** → {channel}{role}"
 sample_title = "Beispiel-Ankündigung"
 sample_game = "Beispielspiel"
 test_sent = "Beispiel-Ankündigung in {channel} gepostet."
+
+[cmd.c]
+desc = "Einen eigenen Befehl dieses Servers ausführen"
+
+[cmd.customcmd]
+desc = "Eigene Textbefehle verwalten"
+
+[cmd.customcmd.add]
+desc = "Einen eigenen Befehl anlegen"
+
+[cmd.customcmd.edit]
+desc = "Einen eigenen Befehl ändern"
+
+[cmd.customcmd.remove]
+desc = "Einen eigenen Befehl löschen"
+
+[cmd.customcmd.list]
+desc = "Die eigenen Befehle auflisten"
+
+[cmd.customcmd.info]
+desc = "Details zu einem eigenen Befehl anzeigen"
+
+[cmd.giveaway]
+desc = "Giveaways durchführen"
+
+[cmd.giveaway.start]
+desc = "Ein Giveaway starten"
+
+[cmd.giveaway.end]
+desc = "Ein Giveaway jetzt beenden und Gewinner ziehen"
+
+[cmd.giveaway.reroll]
+desc = "Für ein beendetes Giveaway neue Gewinner ziehen"
+
+[cmd.giveaway.cancel]
+desc = "Ein Giveaway ohne Ziehung abbrechen"
+
+[cmd.giveaway.list]
+desc = "Die laufenden Giveaways auflisten"
+
+[cmd.poll]
+desc = "Umfragen erstellen"
+
+[cmd.poll.create]
+desc = "Eine Umfrage in diesem Kanal erstellen"
+
+[cmd.poll.end]
+desc = "Eine Umfrage des Bots vorzeitig beenden"
+
+[cmd.remind]
+desc = "Erinnerungen"
+
+[cmd.remind.me]
+desc = "Mich später an etwas erinnern"
+
+[cmd.remind.list]
+desc = "Meine offenen Erinnerungen auflisten"
+
+[cmd.remind.cancel]
+desc = "Eine offene Erinnerung abbrechen"
+
+[cmd.arg.cc_name]
+desc = "Name des Befehls"
+
+[cmd.arg.cc_name_new]
+desc = "Neuer Name (a-z, 0-9, - und _)"
+
+[cmd.arg.cc_args]
+desc = "Text, der in der Antwort als {args} erscheint"
+
+[cmd.arg.cc_response]
+desc = "Antwort: {user} {name} {server} {channel} {args} {members} {uses} {random:a|b}"
+
+[cmd.arg.cc_ephemeral]
+desc = "Nur der Aufrufer sieht die Antwort"
+
+[cmd.arg.cc_role]
+desc = "Rolle, die für den Befehl nötig ist"
+
+[cmd.arg.cc_clear_role]
+desc = "Die Rollenvoraussetzung entfernen"
+
+[cmd.arg.cc_cooldown]
+desc = "Sekunden, bis dasselbe Mitglied ihn wieder nutzen darf"
+
+[cmd.arg.gw_prize]
+desc = "Was verlost wird"
+
+[cmd.arg.gw_duration]
+desc = "Wie lange es läuft, z. B. 2h oder 1d"
+
+[cmd.arg.gw_winners]
+desc = "Zahl der Gewinner"
+
+[cmd.arg.gw_role]
+desc = "Rolle, die zur Teilnahme nötig ist"
+
+[cmd.arg.gw_id]
+desc = "Giveaway (aus der Liste wählen)"
+
+[cmd.arg.gw_reroll_count]
+desc = "Wie viele neue Gewinner"
+
+[cmd.arg.poll_question]
+desc = "Die Frage"
+
+[cmd.arg.poll_options]
+desc = "Antworten, getrennt durch ; (2 bis 10)"
+
+[cmd.arg.poll_duration]
+desc = "Wie lange sie läuft, z. B. 24h oder 3d"
+
+[cmd.arg.poll_multiple]
+desc = "Mehrere Antworten pro Person erlauben"
+
+[cmd.arg.poll_message]
+desc = "ID der Umfrage-Nachricht"
+
+[cmd.arg.remind_when]
+desc = "In welcher Zeit, z. B. 30m, 2h oder 1d"
+
+[cmd.arg.remind_text]
+desc = "Woran erinnert werden soll"
+
+[cmd.arg.remind_id]
+desc = "Abzubrechende Erinnerung"
+
+[customcmd]
+added = "Befehl angelegt. Führe ihn mit /c {name} aus."
+edited = "Befehl {name} aktualisiert."
+removed = "Befehl {name} gelöscht."
+list_empty = "Es gibt noch keine eigenen Befehle. Lege einen mit /customcmd add an."
+list_line = "`{name}` · {uses}× genutzt"
+info = """**{name}**
+Genutzt: {uses}× · Wartezeit: {cooldown} s · Rolle: {role} · nur für den Aufrufer sichtbar: {ephemeral}
+```
+{response}
+```"""
+
+[giveaway]
+btn = "Teilnehmen"
+body = "Klicke auf den Knopf, um mitzumachen. Ein zweiter Klick zieht dich zurück.\nEnde {ends} · {winners} Gewinner · veranstaltet von {host}"
+requires = "Nötige Rolle"
+result = "Gewinner: {winners}"
+nobody = "niemand hat teilgenommen"
+ended = "Giveaway beendet"
+started = "Giveaway #{id} in {channel} gestartet."
+joined = "Du bist dabei! Bisher {count} Teilnehmer."
+left = "Du hast dich zurückgezogen. {count} Teilnehmer."
+congrats = "🎉 Glückwunsch {winners}! Ihr habt **{prize}** gewonnen."
+no_winner = "Beim Giveaway für **{prize}** hat niemand teilgenommen, es gibt also keinen Gewinner."
+ended_now = "Giveaway beendet, {count} Gewinner gezogen."
+rerolled = "{count} neue Gewinner gezogen."
+reroll_none = "Es ist niemand mehr übrig, den man ziehen könnte."
+cancelled = "Giveaway #{id} abgebrochen."
+list_empty = "Es laufen keine Giveaways."
+list_line = "`#{id}` **{prize}** · Ende {ends} · {channel}"
+
+[remind]
+set = "Okay, ich erinnere dich {when} (#{id})."
+due = "⏰ {user} Erinnerung: {text}"
+due_dm = "⏰ Erinnerung von {server}: {text}"
+list_empty = "Du hast keine offenen Erinnerungen."
+list_line = "`#{id}` {when}: {text}"
+cancelled = "Erinnerung #{id} abgebrochen."
+
+[poll]
+ended = "Umfrage beendet."

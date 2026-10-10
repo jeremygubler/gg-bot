@@ -11,12 +11,16 @@ from ggbot.bot.client import GGBot
 from ggbot.bot.cogs.automod_config import AutomodConfigCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
 from ggbot.bot.cogs.core import CoreCog, is_guild_only, required_permissions, visible_commands
+from ggbot.bot.cogs.customcmd import CustomCommandCog
 from ggbot.bot.cogs.eventlog_config import EventLogConfigCog
+from ggbot.bot.cogs.giveaway import GiveawayCog
 from ggbot.bot.cogs.leveling import LevelingCog
 from ggbot.bot.cogs.leveling_config import LevelingConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
 from ggbot.bot.cogs.notify import NotifyCog
+from ggbot.bot.cogs.poll import PollCog
+from ggbot.bot.cogs.reminder import ReminderCog
 from ggbot.bot.cogs.rolepanels import RolePanelsCog
 from ggbot.bot.cogs.ticketpanel import TicketPanelCog
 from ggbot.bot.cogs.tickets import TicketsCog
@@ -47,6 +51,10 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(TicketsCog(instance))
     await instance.add_cog(TicketPanelCog(instance))
     await instance.add_cog(NotifyCog(instance))
+    await instance.add_cog(CustomCommandCog(instance))
+    await instance.add_cog(GiveawayCog(instance))
+    await instance.add_cog(ReminderCog(instance))
+    await instance.add_cog(PollCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -128,11 +136,15 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
         return [c.qualified_name for c in visible_commands(commands_, permissions, in_guild)]
 
     assert names(plain) == [
+        "c",
         "card reset",
         "card set",
         "help",
         "leaderboard",
         "rank",
+        "remind cancel",
+        "remind list",
+        "remind me",
         "ticket add",
         "ticket claim",
         "ticket close",
@@ -371,6 +383,10 @@ EXPECTED_PERMISSIONS = {
             "youtube remove",
         )
     },
+    **{f"customcmd {name}": "manage_guild" for name in ("add", "edit", "remove", "list", "info")},
+    **{f"giveaway {name}": "manage_guild" for name in ("start", "end", "reroll", "cancel", "list")},
+    "poll create": "send_polls",
+    "poll end": "send_polls",
     "modconfig warn_expiry": "manage_guild",
     "modconfig dm": "manage_guild",
     "modconfig escalation add": "manage_guild",
@@ -404,7 +420,9 @@ def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
         "ticket remove",
         "ticket transcript",
     }
-    everyone = {"help", "rank", "leaderboard", "card set", "card reset"} | in_ticket
+    # Für alle: eigene Befehle ausführen und eigene Erinnerungen verwalten.
+    for_members = {"c", "remind me", "remind list", "remind cancel"}
+    everyone = {"help", "rank", "leaderboard", "card set", "card reset"} | in_ticket | for_members
     assert open_commands == everyone
     known = set(EXPECTED_PERMISSIONS) | everyone | {"config language", "config timezone"}
     assert {c.qualified_name for c in leaf_commands(bot)} == known

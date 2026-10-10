@@ -12,6 +12,7 @@ from ggbot.core.ratelimit import Cooldown
 from ggbot.core.scheduler import Scheduler
 from ggbot.core.services.automod import AutomodService
 from ggbot.core.services.channels import ChannelLockService
+from ggbot.core.services.engagement import EngagementService
 from ggbot.core.services.eventlog import EventLogService
 from ggbot.core.services.guilds import GuildService
 from ggbot.core.services.leveling import LevelingService
@@ -44,6 +45,7 @@ class Services:
     welcome: WelcomeService
     tickets: TicketService
     notify: NotifyService
+    engagement: EngagementService
     http: httpx.AsyncClient
     twitch: TwitchClient
     youtube: YouTubeClient
@@ -76,6 +78,7 @@ class Services:
             welcome=WelcomeService(settings, redis),
             tickets=TicketService(db, settings, redis),
             notify=NotifyService(db),
+            engagement=EngagementService(db, scheduler),
             http=http,
             twitch=TwitchClient(
                 http, config.twitch_client_id, config.twitch_client_secret.get_secret_value()

@@ -27,10 +27,16 @@ KEY_PREFIXES = (
     "welcome.",
     "ticket.",
     "notify.",
+    "customcmd.",
+    "giveaway.",
+    "remind.",
+    "poll.",
 )
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).
-NOT_KEYS = frozenset({"mod.unban", "welcome.png", "ticket.delete_channel"})
+NOT_KEYS = frozenset(
+    {"mod.unban", "welcome.png", "ticket.delete_channel", "giveaway.end", "reminder.fire"}
+)
 
 # Zusammengesetzte Schlüssel (f"…{wert}"): hier stehen alle Werte, die vorkommen können.
 DYNAMIC_FAMILIES: dict[str, list[str]] = {

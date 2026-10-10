@@ -33,6 +33,10 @@ COGS = (
     "ggbot.bot.cogs.tickets",
     "ggbot.bot.cogs.ticketpanel",
     "ggbot.bot.cogs.notify",
+    "ggbot.bot.cogs.customcmd",
+    "ggbot.bot.cogs.giveaway",
+    "ggbot.bot.cogs.reminder",
+    "ggbot.bot.cogs.poll",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10

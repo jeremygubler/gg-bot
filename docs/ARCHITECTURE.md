@@ -116,7 +116,8 @@ bei Snowflakes < 2^63).
 | 6 | `role_panels` (guild_id, channel_id, message_id, kind button\|select\|reaction, mode, title, description, external), `role_panel_items` (panel_id → CASCADE, role_id, label, emoji, emoji_key, description, position; Unique `(panel_id, role_id)` und `(panel_id, emoji_key)`). Reaktions-Rollen sind Panels der Art `reaction`, keine eigene Tabelle. Willkommen, Abschied und Autorollen liegen in den Settings (Modul `welcome`) |
 | 7 | `ticket_panels`, `ticket_categories` (Support-Rollen, Fragen, Begrüssung als JSONB), `ticket_counters` (Nummer je Server), `tickets` (Kategorie-Name und Support-Rollen als Kopie, damit sie das Löschen der Kategorie überleben), `ticket_transcripts` (HTML), `ticket_feedback`. Keine `ticket_messages`: das Transkript entsteht beim Schliessen aus dem Kanalverlauf, siehe Abschnitt 18 |
 | 8 | `notify_subscriptions` (guild_id, provider, ref, Zielkanal, Vorlage, Rolle; **dazu der Zustand pro Abo:** `last_key`, `live`, `misses`, `seen`, `message_id`). Kein getrenntes `notify_state`: der Zustand gehört zum Abo, so ist "Zustand ändern" eine Zeile und atomar, siehe Abschnitt 19 |
-| 9 | `custom_commands`, `scheduled_messages`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `reminders`, `stat_channels`, `starboard_entries`, `birthdays` |
+| 9a | `custom_commands`, `giveaways`, `giveaway_entries`, `reminders`. **Keine** `polls`/`poll_votes`: Umfragen sind native Discord-Umfragen, siehe Abschnitt 20 |
+| 9b | `scheduled_messages`, `stat_channels`, `starboard_entries`, `birthdays` (folgt) |
 | 10 | `dashboard_sessions` (falls Server-Sessions, siehe 9.), keine weiteren Fachtabellen |
 
 Migrationen: Alembic, **eine oder mehrere Revisionen pro Phase**, jede mit `downgrade`.
@@ -528,3 +529,19 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
 - **Geheimnisse:** Das Twitch-Secret ist `SecretStr`, wird als Log-Geheimnis registriert und nur im Body der Token-Anfrage gesendet. Antworten auf abgelehnte Zugangsdaten werden nie
   weitergegeben oder geloggt.
 - **Erwähnungen:** Titel und Namen stammen von Dritten. Gepingt wird höchstens die eingestellte Rolle (`allowed_mentions`), `@everyone` als Rolle wird abgelehnt.
+
+## 20. Engagement, Teil a (Phase 9a)
+
+- **Phase 9 in zwei Teilen (mit dir abgestimmt):** 9a Eigene Befehle, Umfragen, Giveaways, Erinnerungen. 9b Starboard, Geburtstage, Stat-Kanäle, geplante Nachrichten.
+- **Eigene Befehle ohne Logik:** Die Vorlage ist eine Liste aus Text und festen Platzhaltern (`core/customcmd/template.py`), kein Interpreter. Es gibt nichts auszuwerten, also nichts
+  auszubrechen: unbekannte Platzhalter, Verschachtelung, Format- und Attributzugriffe (`{name.__class__}`) werden beim Speichern abgelehnt. Argumente des Aufrufers werden eingesetzt,
+  aber nie erneut ausgewertet. Zufall kommt als Funktion herein (Regel: reine Module bestimmen weder Zeit noch Zufall). **Ein** Slash-Befehl `/c <name>` statt eines Befehls pro Eintrag:
+  Discord-Befehle pro Server wären bei jeder Änderung eine Synchronisation (und Rate-Limit-Thema). Der Zähler `uses` wird atomar hochgezählt (`UPDATE … SET uses = uses + 1 RETURNING`).
+- **Umfragen sind native Discord-Umfragen** (statt eigener Tabellen `polls`/`poll_votes`): Discord führt Stimmen, Dauer und Ergebnis, auch wenn der Bot aus ist; der Bot müsste nichts
+  nachbauen, nichts speichern und keine Knöpfe pflegen. Preis: keine eigenen Auswertungen und keine anonyme Abstimmung (die Discord nicht kennt). `/poll end` fasst nur Umfragen des Bots an.
+- **Giveaways:** Das Ende ist ein Scheduler-Job (`giveaway.end`, übersteht Neustarts). Beenden ist atomar (`UPDATE … WHERE NOT ended RETURNING`): Knopf, `/giveaway end` und Job können
+  gleichzeitig auslösen, gezogen wird genau einmal. Die Ziehung (`core/giveaway/rules.py`) mischt die Teilnehmer zufällig (Zufall injiziert, sortierte Eingabe), geprüft wird dann der Reihe nach,
+  bis genug da sind (Mitglied noch auf dem Server, kein Bot, Rolle noch vorhanden; höchstens 200 Prüfungen, ohne Members-Intent mit REST-Nachfrage). Teilnahme ist ein Schalter mit Primärschlüssel
+  `(giveaway_id, user_id)`, also auch bei gleichzeitigen Klicks nie doppelt.
+- **Erinnerungen:** Ein Scheduler-Job je Erinnerung. Ausliefern ist atomar (`UPDATE … WHERE state='pending' RETURNING`): doppelte Läufe und abgebrochene Erinnerungen liefern nichts. Kanal vor DM;
+  ist beides unmöglich, gilt sie als ausgeliefert (sonst liefe der Scheduler endlos im Backoff). Gepingt wird nur der Ersteller; der Text kann `@everyone` enthalten, ohne dass es wirkt.

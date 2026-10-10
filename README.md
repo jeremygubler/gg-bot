@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 8 (Benachrichtigungen)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 9a (Eigene Befehle, Umfragen, Giveaways, Erinnerungen)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -338,6 +338,40 @@ gepingt (auch dann nicht, wenn ein Stream-Titel `@everyone` enthält).
 
 **Twitch einrichten (Betreiber):** Auf <https://dev.twitch.tv/console> eine Anwendung anlegen und `TWITCH_CLIENT_ID` und `TWITCH_CLIENT_SECRET` in der `.env` setzen.
 Ohne beides sind die Twitch-Befehle aus (YouTube geht trotzdem). Es wird keine öffentliche URL gebraucht.
+
+### Eigene Befehle (Phase 9a)
+
+Eigene Textbefehle pro Server. Aufruf mit **einem** Befehl: `/c <name> [args]` (mit Autovervollständigung der Befehle des Servers). So braucht ein neuer
+Befehl keine Neu-Synchronisation und keinen Message-Content-Intent.
+
+| Befehl | Zweck |
+|---|---|
+| `/c <name> [args]` | Einen eigenen Befehl ausführen (alle Mitglieder) |
+| `/customcmd add <name> <response> [ephemeral] [role] [cooldown]` | Anlegen (bis 50, Name `a-z 0-9 - _`, höchstens 32 Zeichen). Standardrecht *Server verwalten* |
+| `/customcmd edit`, `remove`, `list`, `info` | Ändern (`clear_role` entfernt die Rollenpflicht), löschen, auflisten, Details |
+
+**Antwort** (bis 1500 Zeichen, `\n` ergibt einen Zeilenumbruch): Text mit den Platzhaltern `{user}` (Erwähnung des Aufrufers), `{name}`, `{server}`, `{channel}`, `{args}`, `{members}`,
+`{uses}` (Zähler) und `{random:a|b|c}` (zufällige Wahl, bis 20 Möglichkeiten). `{{` und `}}` sind die Klammern selbst. Mehr gibt es bewusst nicht: keine Bedingungen, keine
+Funktionen, kein Code. Unbekannte Platzhalter werden beim Speichern abgelehnt. Was jemand als `args` tippt, wird nur eingesetzt, nie ausgewertet, und es wird **niemand** gepingt
+(auch nicht über `@everyone` oder `<@123>` in den Argumenten). Optional: nur mit einer Rolle nutzbar, nur für den Aufrufer sichtbar, Wartezeit pro Mitglied und Befehl (Standard 5 s).
+
+### Umfragen (Phase 9a)
+
+`/poll create <question> <options> [duration] [multiple]` legt eine **native Discord-Umfrage** an (2–10 Antworten, getrennt durch `;`, Dauer 1 Stunde bis 32 Tage, Standard 24h).
+Discord zählt, beendet und zeigt das Ergebnis selbst, auch wenn der Bot gerade aus ist; der Bot speichert dafür nichts. `/poll end <message_id>` beendet eine Umfrage **des Bots** vorzeitig.
+Standardrecht: *Umfragen senden*.
+
+### Giveaways (Phase 9a)
+
+`/giveaway start <prize> <duration> [winners] [channel] [role]`, `end`, `reroll [count]`, `cancel`, `list`. Standardrecht *Server verwalten*.
+Mitglieder klicken auf **Teilnehmen** (zweiter Klick zieht zurück; mit `role` nur für Mitglieder mit dieser Rolle). Das Ende steht fest (Scheduler, übersteht Neustarts);
+`end` zieht sofort. Gezogen wird zufällig, aber **nur unter denen, die beim Ende noch auf dem Server sind**, keine Bots sind und die geforderte Rolle haben. Ein Giveaway wird genau
+einmal gezogen. `reroll` zieht neue Gewinner, nie die alten. Höchstens 10 laufende Giveaways, 1–20 Gewinner, bis 60 Tage.
+
+### Erinnerungen (Phase 9a)
+
+`/remind me <when> <text>` (z. B. `30m`, `2h`, `1d`; 1 Minute bis 1 Jahr), `/remind list`, `/remind cancel`. Die Erinnerung kommt in den Kanal, in dem du sie angelegt hast (nur du
+wirst gepingt); geht das nicht, per DM. Bis 25 offene pro Person und Server.
 
 ## Einstellungen
 

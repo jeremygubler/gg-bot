@@ -2,6 +2,7 @@
 
 from ggbot.core.db.models.audit import DashboardAudit
 from ggbot.core.db.models.automod import AutomodHit
+from ggbot.core.db.models.engagement import CustomCommand, Giveaway, GiveawayEntry, Reminder
 from ggbot.core.db.models.guild import Guild, GuildSetting
 from ggbot.core.db.models.jobs import ScheduledJob
 from ggbot.core.db.models.leveling import RankCardStyle, XpMember
@@ -20,7 +21,10 @@ from ggbot.core.db.models.tickets import (
 __all__ = [
     "AutomodHit",
     "ChannelLock",
+    "CustomCommand",
     "DashboardAudit",
+    "Giveaway",
+    "GiveawayEntry",
     "Guild",
     "GuildSetting",
     "ModCase",
@@ -28,6 +32,7 @@ __all__ = [
     "ModNote",
     "NotifySubscription",
     "RankCardStyle",
+    "Reminder",
     "RolePanel",
     "RolePanelItem",
     "ScheduledJob",
