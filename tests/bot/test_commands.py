@@ -16,6 +16,7 @@ from ggbot.bot.cogs.leveling import LevelingCog
 from ggbot.bot.cogs.leveling_config import LevelingConfigCog
 from ggbot.bot.cogs.modconfig import ModConfigCog
 from ggbot.bot.cogs.moderation import ModerationCog
+from ggbot.bot.cogs.notify import NotifyCog
 from ggbot.bot.cogs.rolepanels import RolePanelsCog
 from ggbot.bot.cogs.ticketpanel import TicketPanelCog
 from ggbot.bot.cogs.tickets import TicketsCog
@@ -45,6 +46,7 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(WelcomeCog(instance))
     await instance.add_cog(TicketsCog(instance))
     await instance.add_cog(TicketPanelCog(instance))
+    await instance.add_cog(NotifyCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -356,6 +358,17 @@ EXPECTED_PERMISSIONS = {
             "category remove",
             "category role_add",
             "category role_remove",
+        )
+    },
+    **{
+        f"notify {name}": "manage_guild"
+        for name in (
+            "list",
+            "test",
+            "twitch add",
+            "twitch remove",
+            "youtube add",
+            "youtube remove",
         )
     },
     "modconfig warn_expiry": "manage_guild",

@@ -14,6 +14,8 @@ async def run() -> None:
     config = get_config()
     token = config.require_token()
     register_secret(token)
+    if config.twitch_client_secret.get_secret_value():
+        register_secret(config.twitch_client_secret.get_secret_value())
     configure_logging(config.log_level, config.log_format)
     log = get_logger("ggbot.bot")
 

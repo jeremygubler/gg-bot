@@ -112,6 +112,18 @@ ticket_rated = "You have already rated this ticket."
 ticket_create_forbidden = "I'm not allowed to create channels. Give me Manage Channels and Manage Roles."
 ticket_create_failed = "I couldn't create the ticket channel. The category may be full (50 channels) or the server has reached its channel limit."
 ticket_settings_invalid = "That setting is not valid: {detail}"
+notify_not_found = "I can't find that streamer or channel."
+notify_unavailable = "The service isn't reachable right now. Try again in a minute."
+notify_not_configured = "The Twitch access of this bot is not set up correctly. Ask the bot owner to check the Twitch credentials."
+notify_twitch_off = "Twitch notifications are not set up on this bot (the owner has to provide a Twitch client ID and secret)."
+notify_unknown = "There is no such notification on this server."
+notify_duplicate = "{name} is already set up on this server."
+notify_limit = "This server already has the maximum of {limit} notifications."
+notify_message_long = "The message may be at most {limit} characters long."
+notify_message_invalid = "The message is not valid: {detail}"
+notify_role_everyone = "@everyone can't be used here. Pick a normal role."
+notify_channel_gone = "The target channel no longer exists. Remove the notification and add it again."
+notify_test_failed = "I couldn't post in the target channel. Check my permissions there."
 card_nothing_to_change = "Give at least one of accent, background or template."
 import_empty = "The file contains no usable entries (needs a user ID and XP or level per row)."
 import_failed = "The import failed and nothing was changed."
@@ -1135,3 +1147,63 @@ Open per member: {max_open} · automatic close: {auto} · delete after: {delay} 
 Rating by DM: {feedback} · transcript by DM: {dm} · members may close: {creators} · mention support: {ping}
 Transcript retention: {retention} · channel name: `{name}`
 Open now: {open} · ratings: {ratings} (average {average}/5)"""
+
+[cmd.notify]
+desc = "Announce Twitch streams and YouTube videos"
+
+[cmd.notify.twitch]
+desc = "Twitch stream announcements"
+
+[cmd.notify.twitch.add]
+desc = "Announce when a streamer goes live"
+
+[cmd.notify.twitch.remove]
+desc = "Stop announcing a streamer"
+
+[cmd.notify.youtube]
+desc = "YouTube video announcements"
+
+[cmd.notify.youtube.add]
+desc = "Announce new videos of a YouTube channel"
+
+[cmd.notify.youtube.remove]
+desc = "Stop announcing a YouTube channel"
+
+[cmd.notify.list]
+desc = "List all notifications of this server"
+
+[cmd.notify.test]
+desc = "Post a sample announcement in the target channel"
+
+[cmd.arg.notify_streamer]
+desc = "Twitch name or channel link"
+
+[cmd.arg.notify_youtube]
+desc = "Channel ID, @handle or channel link"
+
+[cmd.arg.notify_message_twitch]
+desc = "Text: {streamer} {title} {game} {url} {viewers}"
+
+[cmd.arg.notify_message_youtube]
+desc = "Text: {channel} {title} {url}"
+
+[cmd.arg.notify_role]
+desc = "Role to mention with each announcement"
+
+[cmd.arg.notify_sub]
+desc = "Notification to test"
+
+[notify]
+default_twitch = "🔴 **{streamer}** is live: {title} – {url}"
+default_youtube = "📺 **{channel}** uploaded a new video: {title} – {url}"
+field_game = "Game"
+field_viewers = "Viewers"
+stream_ended = "Stream ended"
+added = "{name} will be announced in {channel}. Streams and videos that already exist are not announced."
+added_live = "{name} will be announced in {channel}. They are live right now; this stream is not announced, the next one is."
+removed = "{name} is no longer announced."
+list_empty = "There are no notifications yet. Start with /notify twitch add or /notify youtube add."
+list_line = "`#{id}` {provider}: **{name}** → {channel}{role}"
+sample_title = "Sample announcement"
+sample_game = "Sample game"
+test_sent = "Sample announcement posted in {channel}."

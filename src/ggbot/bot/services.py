@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 
+import httpx
 from redis.asyncio import Redis
 
 from ggbot.core.bulk import BulkGate
 from ggbot.core.config import AppConfig
 from ggbot.core.db.engine import Database
+from ggbot.core.notify.twitch import TwitchClient
+from ggbot.core.notify.youtube import YouTubeClient
 from ggbot.core.ratelimit import Cooldown
 from ggbot.core.scheduler import Scheduler
 from ggbot.core.services.automod import AutomodService
@@ -13,6 +16,7 @@ from ggbot.core.services.eventlog import EventLogService
 from ggbot.core.services.guilds import GuildService
 from ggbot.core.services.leveling import LevelingService
 from ggbot.core.services.moderation import ModerationService
+from ggbot.core.services.notify import NotifyService
 from ggbot.core.services.rolepanels import RolePanelService
 from ggbot.core.services.tickets import TicketService
 from ggbot.core.services.welcome import WelcomeService
@@ -39,12 +43,21 @@ class Services:
     rolepanels: RolePanelService
     welcome: WelcomeService
     tickets: TicketService
+    notify: NotifyService
+    http: httpx.AsyncClient
+    twitch: TwitchClient
+    youtube: YouTubeClient
 
     @classmethod
     def build(cls, config: AppConfig, db: Database, redis: Redis) -> "Services":
         guilds = GuildService(db, redis, default_locale=config.default_locale)
         settings = SettingsStore(db, redis)
         scheduler = Scheduler(db)
+        # Ein Client für alle Anbieter; das kurze Zeitlimit hält hängende Anbieter fern.
+        http = httpx.AsyncClient(
+            timeout=httpx.Timeout(10.0),
+            headers={"User-Agent": "GG-Bot (+https://github.com/jeremygubler/gg-bot)"},
+        )
         return cls(
             config=config,
             db=db,
@@ -62,4 +75,10 @@ class Services:
             rolepanels=RolePanelService(db),
             welcome=WelcomeService(settings, redis),
             tickets=TicketService(db, settings, redis),
+            notify=NotifyService(db),
+            http=http,
+            twitch=TwitchClient(
+                http, config.twitch_client_id, config.twitch_client_secret.get_secret_value()
+            ),
+            youtube=YouTubeClient(http),
         )

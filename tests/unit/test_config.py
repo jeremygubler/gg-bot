@@ -23,3 +23,16 @@ def test_token_nie_in_repr() -> None:
     config = AppConfig(discord_token="geheim-geheim")
     assert "geheim" not in repr(config)
     assert "geheim" not in config.model_dump_json()
+
+
+def test_twitch_nur_mit_id_und_secret() -> None:
+    assert AppConfig().twitch_enabled is False
+    assert AppConfig(twitch_client_id="abc").twitch_enabled is False
+    assert AppConfig(twitch_client_secret="s").twitch_enabled is False
+    assert AppConfig(twitch_client_id="abc", twitch_client_secret="s").twitch_enabled is True
+
+
+def test_twitch_secret_nie_in_repr() -> None:
+    config = AppConfig(twitch_client_id="abc", twitch_client_secret="top-geheim")
+    assert "top-geheim" not in repr(config)
+    assert "top-geheim" not in config.model_dump_json()

@@ -115,7 +115,7 @@ bei Snowflakes < 2^63).
 | 5 | `xp_members` (guild_id, user_id, xp, msg_count, voice_seconds, last_xp_at; **kein** gespeichertes Level), `rank_card_styles` (guild_id, user_id, JSONB). Belohnungen, Faktoren und Ausnahmen liegen in den Settings (Modul `leveling`). Keine `xp_voice_sessions`, siehe Abschnitt 16 |
 | 6 | `role_panels` (guild_id, channel_id, message_id, kind button\|select\|reaction, mode, title, description, external), `role_panel_items` (panel_id → CASCADE, role_id, label, emoji, emoji_key, description, position; Unique `(panel_id, role_id)` und `(panel_id, emoji_key)`). Reaktions-Rollen sind Panels der Art `reaction`, keine eigene Tabelle. Willkommen, Abschied und Autorollen liegen in den Settings (Modul `welcome`) |
 | 7 | `ticket_panels`, `ticket_categories` (Support-Rollen, Fragen, Begrüssung als JSONB), `ticket_counters` (Nummer je Server), `tickets` (Kategorie-Name und Support-Rollen als Kopie, damit sie das Löschen der Kategorie überleben), `ticket_transcripts` (HTML), `ticket_feedback`. Keine `ticket_messages`: das Transkript entsteht beim Schliessen aus dem Kanalverlauf, siehe Abschnitt 18 |
-| 8 | `notify_subscriptions` (Twitch/YouTube), `notify_state` (laufende Streams, Message-ID) |
+| 8 | `notify_subscriptions` (guild_id, provider, ref, Zielkanal, Vorlage, Rolle; **dazu der Zustand pro Abo:** `last_key`, `live`, `misses`, `seen`, `message_id`). Kein getrenntes `notify_state`: der Zustand gehört zum Abo, so ist "Zustand ändern" eine Zeile und atomar, siehe Abschnitt 19 |
 | 9 | `custom_commands`, `scheduled_messages`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `reminders`, `stat_channels`, `starboard_entries`, `birthdays` |
 | 10 | `dashboard_sessions` (falls Server-Sessions, siehe 9.), keine weiteren Fachtabellen |
 
@@ -504,3 +504,27 @@ Alles Folgende ist mit Standardwert vorbelegt und gilt, wenn du nichts anderes s
   (`retention_days`) prüft derselbe Takt einmal täglich.
 - **Bewertung:** Fünf persistente Knöpfe in der DM (`gg:tkfb:{guild}:{ticket}:{stars}`); nur der Ersteller des geschlossenen Tickets, nur einmal (Primärschlüssel `ticket_id`).
 - **Komponenten:** `DynamicItem`s `gg:tkopen:{category}`, `gg:tk:close|claim`, `gg:tkfb:…`. Formulare (Fragen, Schliessgrund) sind Modals. Fehler laufen durch `component_error`.
+
+## 19. Benachrichtigungen (Phase 8)
+
+- **Anbieter-Schnittstelle:** `core/notify/` kennt kein Discord. `TwitchClient` (Helix, App-Token) und `YouTubeClient` (öffentlicher Atom-Feed) liefern `StreamInfo`/`VideoInfo`;
+  Fehler sind `ProviderError` mit den Schlüsseln `not_found`, `unavailable`, `not_configured`. Die Entscheidungen sind reine Funktionen in `rules.py`
+  (`plan_stream`, `new_videos`); der `Poller` (`poller.py`) verbindet Anbieter, Zustand (Service) und einen `Announcer` (Protokoll), den `bot/notifier.py` mit Discord umsetzt.
+  Dadurch lässt sich alles mit simuliertem HTTP (`httpx.MockTransport`) und einem Sender zum Mitschreiben testen.
+- **Entscheidungen (mit dir abgestimmt):** Twitch nur per Polling (kein EventSub, keine öffentliche URL nötig); YouTube per RSS-Feed (kein Schlüssel, keine Quote; dafür kein Live-Status).
+- **Eine Abfrage für alle Server:** `all_for_provider` liest bewusst über Server hinweg (die Frage "ist X live?" ist pro Streamer, nicht pro Server), jeder Eintrag wird danach mit seiner
+  eigenen `guild_id` behandelt. Twitch: eine Anfrage je 100 Streamer, YouTube: eine je Feed (mit Redis-Tor `SET NX EX 300` je Kanal, das gilt auch prozessübergreifend), höchstens 5 gleichzeitig.
+- **Exakt einmal, ohne Verlust bei kurzen Fehlern:** Vor dem Senden wird der Zustand atomar beansprucht (`UPDATE … WHERE last_key IS NOT DISTINCT FROM :alt` bzw. `seen = :alt`); wer
+  verliert, sendet nicht. Scheitert das Senden vorübergehend (`retry`), wird der Anspruch zurückgenommen (nur wenn der Stand noch der eigene ist) und die nächste Runde versucht es neu.
+  Ist es dauerhaft unmöglich (`drop`: Kanal weg, keine Rechte), bleibt der Anspruch, damit nicht jede Minute neu versucht wird. Bei mehreren Prozessen sendet nur der, dem der Server gehört
+  (`available`).
+- **Stream-Zustand:** Dieselbe Stream-ID ist derselbe Stream. "Offline" zählt erst nach 3 Abfragen in Folge (Twitch lässt Streams bei Abbrüchen kurz verschwinden); erst dann wird die
+  Meldung als beendet markiert. Ein Anbieterfehler ändert den Zustand nie.
+- **Video-Zustand:** Pro Abo merkt sich der Bot die letzten 50 Video-IDs. Neu = nicht darin. Alles Neue gilt danach als bekannt, auch was wegen Alter (> 48 h) oder Obergrenze
+  (3 je Abfrage) nicht angekündigt wird, sonst käme es immer wieder. Beim Hinzufügen gilt der aktuelle Feed als bekannt.
+- **Eingaben:** Twitch-Logins `[a-z0-9_]{3,25}`, YouTube-Kanal-IDs `UC…` (24 Zeichen) und `@Handle`; Muster mit `\A…\Z`, weil `$` einen angehängten Zeilenumbruch durchliesse. Der Bot fragt
+  **nur** `youtube.com`, `api.twitch.tv` und `id.twitch.tv` an: freie Adressen werden abgelehnt, nur die daraus gelesene Kanal-ID zählt (kein SSRF).
+- **XML:** Feeds werden mit `defusedxml` gelesen (Entity-Tricks und externe Entitäten werden abgelehnt), mit 1 MB Grenze; kaputte Einträge werden einzeln übersprungen.
+- **Geheimnisse:** Das Twitch-Secret ist `SecretStr`, wird als Log-Geheimnis registriert und nur im Body der Token-Anfrage gesendet. Antworten auf abgelehnte Zugangsdaten werden nie
+  weitergegeben oder geloggt.
+- **Erwähnungen:** Titel und Namen stammen von Dritten. Gepingt wird höchstens die eingestellte Rolle (`allowed_mentions`), `@everyone` als Rolle wird abgelehnt.

@@ -33,6 +33,11 @@ class AppConfig(BaseSettings):
     # gelöschter oder bearbeiteter Nachrichten; in der Datenbank wird nichts davon gespeichert.
     message_cache_size: int = Field(default=5000, ge=100, le=100_000)
 
+    # Twitch-Benachrichtigungen (Helix-API, App-Token). Ohne beides sind die Twitch-Befehle aus;
+    # YouTube braucht keinen Schlüssel (öffentlicher Feed).
+    twitch_client_id: str = ""
+    twitch_client_secret: SecretStr = SecretStr("")
+
     # Nur für die Entwicklung: Slash-Commands sofort auf einer Test-Guild statt global.
     dev_guild_id: int | None = None
 
@@ -51,6 +56,10 @@ class AppConfig(BaseSettings):
         if isinstance(value, str):
             return [int(part) for part in value.split(",") if part.strip()]
         return value
+
+    @property
+    def twitch_enabled(self) -> bool:
+        return bool(self.twitch_client_id and self.twitch_client_secret.get_secret_value())
 
     def require_token(self) -> str:
         token = self.discord_token.get_secret_value()

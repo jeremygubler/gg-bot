@@ -112,6 +112,18 @@ ticket_rated = "Du hast dieses Ticket bereits bewertet."
 ticket_create_forbidden = "Ich darf keine Kanäle anlegen. Gib mir „Kanäle verwalten“ und „Rollen verwalten“."
 ticket_create_failed = "Ich konnte den Ticket-Kanal nicht anlegen. Die Kategorie ist evtl. voll (50 Kanäle) oder der Server hat sein Kanal-Limit erreicht."
 ticket_settings_invalid = "Diese Einstellung ist ungültig: {detail}"
+notify_not_found = "Diesen Streamer bzw. Kanal finde ich nicht."
+notify_unavailable = "Der Dienst ist gerade nicht erreichbar. Versuche es in einer Minute nochmal."
+notify_not_configured = "Der Twitch-Zugang dieses Bots ist nicht richtig eingerichtet. Bitte den Bot-Betreiber, die Twitch-Zugangsdaten zu prüfen."
+notify_twitch_off = "Twitch-Benachrichtigungen sind bei diesem Bot nicht eingerichtet (der Betreiber muss Twitch-Client-ID und -Secret hinterlegen)."
+notify_unknown = "Diese Benachrichtigung gibt es auf diesem Server nicht."
+notify_duplicate = "{name} ist auf diesem Server schon eingerichtet."
+notify_limit = "Dieser Server hat bereits die höchstmögliche Zahl von {limit} Benachrichtigungen."
+notify_message_long = "Die Nachricht darf höchstens {limit} Zeichen lang sein."
+notify_message_invalid = "Die Nachricht ist ungültig: {detail}"
+notify_role_everyone = "@everyone ist hier nicht möglich. Wähle eine normale Rolle."
+notify_channel_gone = "Der Zielkanal existiert nicht mehr. Entferne die Benachrichtigung und lege sie neu an."
+notify_test_failed = "Ich konnte im Zielkanal nichts posten. Prüfe meine Rechte dort."
 card_nothing_to_change = "Gib mindestens eines von accent, background oder template an."
 import_empty = "Die Datei enthält keine brauchbaren Einträge (pro Zeile eine Nutzer-ID und XP oder Level)."
 import_failed = "Der Import ist fehlgeschlagen, es wurde nichts geändert."
@@ -1135,3 +1147,63 @@ Offen pro Mitglied: {max_open} · automatisch schliessen: {auto} · Löschen nac
 Bewertung per DM: {feedback} · Transkript per DM: {dm} · Mitglieder dürfen schliessen: {creators} · Support erwähnen: {ping}
 Aufbewahrung der Transkripte: {retention} · Kanalname: `{name}`
 Jetzt offen: {open} · Bewertungen: {ratings} (Schnitt {average}/5)"""
+
+[cmd.notify]
+desc = "Twitch-Streams und YouTube-Videos ankündigen"
+
+[cmd.notify.twitch]
+desc = "Ankündigungen für Twitch-Streams"
+
+[cmd.notify.twitch.add]
+desc = "Ankündigen, wenn ein Streamer live geht"
+
+[cmd.notify.twitch.remove]
+desc = "Einen Streamer nicht mehr ankündigen"
+
+[cmd.notify.youtube]
+desc = "Ankündigungen für YouTube-Videos"
+
+[cmd.notify.youtube.add]
+desc = "Neue Videos eines YouTube-Kanals ankündigen"
+
+[cmd.notify.youtube.remove]
+desc = "Einen YouTube-Kanal nicht mehr ankündigen"
+
+[cmd.notify.list]
+desc = "Alle Benachrichtigungen dieses Servers auflisten"
+
+[cmd.notify.test]
+desc = "Eine Beispiel-Ankündigung im Zielkanal posten"
+
+[cmd.arg.notify_streamer]
+desc = "Twitch-Name oder Kanal-Link"
+
+[cmd.arg.notify_youtube]
+desc = "Kanal-ID, @Handle oder Kanal-Link"
+
+[cmd.arg.notify_message_twitch]
+desc = "Text: {streamer} {title} {game} {url} {viewers}"
+
+[cmd.arg.notify_message_youtube]
+desc = "Text: {channel} {title} {url}"
+
+[cmd.arg.notify_role]
+desc = "Rolle, die bei jeder Ankündigung erwähnt wird"
+
+[cmd.arg.notify_sub]
+desc = "Zu testende Benachrichtigung"
+
+[notify]
+default_twitch = "🔴 **{streamer}** ist live: {title} – {url}"
+default_youtube = "📺 **{channel}** hat ein neues Video hochgeladen: {title} – {url}"
+field_game = "Spiel"
+field_viewers = "Zuschauer"
+stream_ended = "Stream beendet"
+added = "{name} wird in {channel} angekündigt. Bereits vorhandene Streams und Videos werden nicht angekündigt."
+added_live = "{name} wird in {channel} angekündigt. Gerade läuft ein Stream; dieser wird nicht angekündigt, der nächste schon."
+removed = "{name} wird nicht mehr angekündigt."
+list_empty = "Es gibt noch keine Benachrichtigungen. Beginne mit /notify twitch add oder /notify youtube add."
+list_line = "`#{id}` {provider}: **{name}** → {channel}{role}"
+sample_title = "Beispiel-Ankündigung"
+sample_game = "Beispielspiel"
+test_sent = "Beispiel-Ankündigung in {channel} gepostet."

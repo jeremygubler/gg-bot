@@ -32,6 +32,7 @@ COGS = (
     "ggbot.bot.cogs.welcome",
     "ggbot.bot.cogs.tickets",
     "ggbot.bot.cogs.ticketpanel",
+    "ggbot.bot.cogs.notify",
 )
 HEARTBEAT_KEY = key("heartbeat", "bot")
 HEARTBEAT_INTERVAL = 10
@@ -107,6 +108,7 @@ class GGBot(commands.AutoShardedBot):
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         await self.services.scheduler.stop()
+        await self.services.http.aclose()
         await super().close()
 
     async def _sync_commands(self) -> None:

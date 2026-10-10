@@ -26,6 +26,7 @@ KEY_PREFIXES = (
     "roles.",
     "welcome.",
     "ticket.",
+    "notify.",
 )
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).
@@ -50,6 +51,7 @@ DYNAMIC_FAMILIES: dict[str, list[str]] = {
     "leveling.announce_{}": ["off", "current", "channel", "dm"],
     "leveling.reward_mode_{}": ["stack", "replace"],
     "roles.mode_hint_{}": ["normal", "unique", "verify"],
+    "error.notify_{}": ["not_found", "unavailable", "not_configured"],
 }  # fmt: skip
 
 

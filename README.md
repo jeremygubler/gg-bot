@@ -4,7 +4,7 @@ Selbst gehosteter Discord-Bot als Ersatz für MEE6: Moderation, Automod, Logging
 Rollen, Tickets, Benachrichtigungen und mehr, mit Web-Dashboard. Läuft per Docker Compose.
 
 Architektur und Entscheidungen: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Stand: **Phase 7 (Tickets)**. Die weiteren Feature-Phasen folgen.
+Stand: **Phase 8 (Benachrichtigungen)**. Die weiteren Feature-Phasen folgen.
 
 ## Schnellstart
 
@@ -311,6 +311,34 @@ gelöscht, wird das Ticket ohne Transkript geschlossen. Ohne *Message Content In
 **Datenschutz:** Transkripte enthalten die Ticket-Nachrichten und liegen in der Datenbank, bis `retention_days` abläuft (oder für immer bei 0).
 Das Transkript ist eine Datei ohne Skripte; Nutzereingaben sind maskiert.
 
+### Benachrichtigungen: Twitch und YouTube (Phase 8)
+
+Der Bot kündigt Streams und neue Videos in einem Kanal deiner Wahl an. Standardrecht für `/notify`: *Server verwalten*.
+
+| Befehl | Zweck |
+|---|---|
+| `/notify twitch add <streamer> <channel> [message] [role]` | Ankündigen, wenn der Streamer live geht. `streamer` ist Name, `@Name` oder Kanal-Link |
+| `/notify youtube add <youtube_channel> <channel> [message] [role]` | Neue Videos ankündigen. Eingabe: Kanal-ID (`UC…`), `@Handle` oder Kanal-Link |
+| `/notify twitch remove`, `/notify youtube remove` | Wieder entfernen (mit Auswahl der vorhandenen) |
+| `/notify list` | Alle Benachrichtigungen des Servers (bis 25) |
+| `/notify test <subscription>` | Schickt eine Beispiel-Meldung in den Zielkanal: prüft Rechte, Rolle und Vorlage |
+
+**Vorlagen** (höchstens 300 Zeichen, unbekannte Platzhalter werden abgelehnt): Twitch `{streamer}` `{title}` `{game}` `{url}` `{viewers}`;
+YouTube `{channel}` `{title}` `{url}`. Ohne Vorlage gilt ein Standardtext. Mit `role` wird bei jeder Meldung diese Rolle erwähnt; sonst wird **niemand**
+gepingt (auch dann nicht, wenn ein Stream-Titel `@everyone` enthält).
+
+**Verhalten:**
+- **Was schon da ist, wird nicht angekündigt:** Läuft der Streamer beim Hinzufügen gerade, oder hat der Kanal ältere Videos, gibt es dafür keine Meldung.
+- **Twitch** wird alle 60 s abgefragt (bis 100 Streamer pro Anfrage, auch über alle Server zusammen). Dieselbe Stream-ID wird nur einmal angekündigt. Nach dem Ende
+  (3 Abfragen in Folge offline, so überstehen kurze Verbindungsabbrüche) wird die Meldung als „Stream beendet“ markiert.
+- **YouTube** wird alle 5 Minuten pro Kanal abgefragt (öffentlicher Feed, kein Schlüssel). Es werden nur Videos der letzten 48 Stunden angekündigt, höchstens 3 pro
+  Abfrage, älteste zuerst. Erkannt werden neue Uploads; einen Live-Status liefert der Feed nicht.
+- Ist ein Anbieter nicht erreichbar, ändert sich nichts („nicht erreichbar“ ist nicht „offline“), und die nächste Abfrage holt alles nach.
+- Kann der Bot nicht senden (Rechte oder Kanal fehlen), versucht er es für diese Meldung nicht dauernd wieder; bei einem vorübergehenden Fehler schon.
+
+**Twitch einrichten (Betreiber):** Auf <https://dev.twitch.tv/console> eine Anwendung anlegen und `TWITCH_CLIENT_ID` und `TWITCH_CLIENT_SECRET` in der `.env` setzen.
+Ohne beides sind die Twitch-Befehle aus (YouTube geht trotzdem). Es wird keine öffentliche URL gebraucht.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -327,6 +355,7 @@ Dashboard bearbeitet.
 | `MESSAGE_CACHE_SIZE` | Nachrichten im Arbeitsspeicher (100 bis 100000, Standard 5000); nur daraus zeigt das Event-Log den Inhalt gelöschter Nachrichten |
 | `ENABLE_MEMBERS_INTENT` | `true` schaltet den privilegierten *Server Members Intent* ein (nur nach Freigabe). Für Anti-Raid und Konto-Alter |
 | `DEV_GUILD_ID` | Befehle sofort auf einer Test-Guild statt global (Entwicklung) |
+| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | Zugang zur Twitch-API für die Twitch-Benachrichtigungen (das Secret wird nie geloggt) |
 | `SHARD_COUNT`, `SHARD_IDS` | Sharding; leer = automatisch in einem Prozess |
 
 ## Benötigte Bot-Rechte
@@ -343,6 +372,7 @@ Dashboard bearbeitet.
 | *Manage Roles* | `/lock`, `/unlock` (ändern die Kanalrechte von @everyone); Leveling-Belohnungsrollen (die Rolle des Bots muss **über** den Belohnungsrollen stehen) |
 | *Attach Files*, *Embed Links* | Leveling: `/rank` (Bild), `/leaderboard` |
 | *Manage Messages* | Automod löscht Nachrichten; Reaktions-Panels im Modus `unique` (räumen die übrigen Reaktionen des Mitglieds auf) |
+| *Send Messages*, *Embed Links* im Zielkanal | Benachrichtigungen (mit *Mention Roles* oder einer erwähnbaren Rolle, wenn eine Rolle erwähnt werden soll) |
 | *Manage Channels*, *Manage Roles*, *Manage Messages* | Tickets: private Kanäle mit Rechten anlegen, löschen und die Panel-Rechte setzen |
 | *Send Messages*, *Embed Links*, *Attach Files*, *Read Message History* im Log-Kanal und im Ticket | Tickets: Begrüssung, Transkript-Datei |
 | *Manage Roles* | Rollen-Panels und Autorollen: die Rolle des Bots muss **über** den vergebenen Rollen stehen |
