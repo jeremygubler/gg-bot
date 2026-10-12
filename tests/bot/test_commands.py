@@ -8,6 +8,7 @@ from redis.asyncio import Redis
 
 from ggbot.bot.checks import ensure_bot_permissions, ensure_user_permissions
 from ggbot.bot.client import GGBot
+from ggbot.bot.cogs.autodelete import AutodeleteCog
 from ggbot.bot.cogs.automod_config import AutomodConfigCog
 from ggbot.bot.cogs.birthday import BirthdayCog, PrivacyCog
 from ggbot.bot.cogs.channel_tools import ChannelToolsCog
@@ -28,6 +29,7 @@ from ggbot.bot.cogs.starboard import StarboardCog
 from ggbot.bot.cogs.statchannels import StatChannelCog
 from ggbot.bot.cogs.ticketpanel import TicketPanelCog
 from ggbot.bot.cogs.tickets import TicketsCog
+from ggbot.bot.cogs.verification import VerificationCog
 from ggbot.bot.cogs.welcome import WelcomeCog
 from ggbot.bot.errors import to_message
 from ggbot.bot.i18n import CommandTranslator, command_key
@@ -64,6 +66,8 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(PrivacyCog(instance))
     await instance.add_cog(StatChannelCog(instance))
     await instance.add_cog(ScheduleCog(instance))
+    await instance.add_cog(VerificationCog(instance))
+    await instance.add_cog(AutodeleteCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -407,6 +411,8 @@ EXPECTED_PERMISSIONS = {
     **{f"birthdayconfig {name}": "manage_guild" for name in ("set", "off", "clear_role")},
     **{f"statchannel {name}": "manage_channels" for name in ("add", "remove", "list")},
     **{f"schedule {name}": "manage_guild" for name in ("once", "repeat", "list", "remove")},
+    **{f"verification {name}": "manage_guild" for name in ("setup", "off", "status")},
+    **{f"autodelete {name}": "manage_guild" for name in ("add", "remove", "list", "on", "off")},
     "poll create": "send_polls",
     "poll end": "send_polls",
     "modconfig warn_expiry": "manage_guild",

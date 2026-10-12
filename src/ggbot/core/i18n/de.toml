@@ -1,4 +1,13 @@
 [error]
+verify_locked = "Zu viele falsche Antworten. Versuche es in {minutes} Minuten wieder."
+verify_off = "Die Verifizierung ist auf diesem Server nicht eingeschaltet."
+verify_role_unavailable = "Ich kann die Verifizierungs-Rolle gerade nicht vergeben. Sag bitte einem Moderator Bescheid."
+verify_invalid = "Diese Verifizierungs-Einstellung ist nicht gültig: {detail}"
+autodelete_invalid = "Diese Auto-Löschen-Einstellung ist nicht gültig: {detail}"
+autodelete_age = "Wähle ein Alter zwischen {min} und {max}, z. B. 7d oder 12h."
+autodelete_confirm = "Das löscht endgültig und immer wieder jede Nachricht in {channel}, die älter ist als {age}. Das lässt sich nicht rückgängig machen. Führe den Befehl mit confirm: True erneut aus, um es einzuschalten."
+autodelete_no_rule = "Für {channel} gibt es keine Auto-Löschen-Regel."
+autodelete_no_rules = "Es gibt noch keine Auto-Löschen-Regeln. Lege eine mit /autodelete add an."
 dashboard_role_missing = "Diese Rolle gibt es auf dem Server nicht."
 panel_publish_failed = "Ich konnte das Panel nicht veröffentlichen. Prüfe meine Rechte in diesem Kanal."
 panel_channel_invalid = "Dieser Kanal ist für Panels nicht verfügbar."
@@ -1602,3 +1611,85 @@ once_label = "einmalig"
 removed = "Geplante Nachricht #{id} abgebrochen."
 list_empty = "Es gibt keine geplanten Nachrichten."
 list_line = "`#{id}` {when} · {every} · {channel}: {text}"
+
+[cmd.verification]
+desc = "Mitgliedern per Knopfdruck oder kleiner Aufgabe eine Rolle geben"
+
+[cmd.verification.setup]
+desc = "Verifizierungs-Panel posten und die Verifizierung einschalten"
+
+[cmd.verification.off]
+desc = "Verifizierung ausschalten"
+
+[cmd.verification.status]
+desc = "Verifizierungs-Einstellungen anzeigen"
+
+[cmd.autodelete]
+desc = "Alte Nachrichten in bestimmten Kanälen automatisch löschen"
+
+[cmd.autodelete.add]
+desc = "Nachrichten ab einem Alter in einem Kanal löschen (endgültig)"
+
+[cmd.autodelete.remove]
+desc = "In einem Kanal nicht mehr automatisch löschen"
+
+[cmd.autodelete.list]
+desc = "Auto-Löschen-Regeln anzeigen"
+
+[cmd.autodelete.on]
+desc = "Auto-Löschen einschalten"
+
+[cmd.autodelete.off]
+desc = "Auto-Löschen ausschalten"
+
+[cmd.arg.verify_role]
+desc = "Die Rolle, die Mitglieder nach der Verifizierung bekommen"
+
+[cmd.arg.verify_mode]
+desc = "button: ein Klick. code: Zeichen aus einem Bild abtippen"
+
+[cmd.arg.verify_title]
+desc = "Titel des Panels (Standard: Verifizierung)"
+
+[cmd.arg.verify_message]
+desc = "Text des Panels (Standard: eine kurze Erklärung)"
+
+[cmd.arg.ad_age]
+desc = "Nachrichten älter als das löschen, z. B. 7d, 12h, 90m"
+
+[cmd.arg.ad_keep_pinned]
+desc = "Angeheftete Nachrichten behalten (Standard: ja)"
+
+[cmd.arg.ad_confirm]
+desc = "Auf True setzen: gelöschte Nachrichten sind nicht wiederherstellbar"
+
+[verify]
+default_title = "Verifizierung"
+default_message = "Drücke den Knopf, um Zugang zum Server zu bekommen."
+button = "Verifizieren"
+enter = "Code eingeben"
+task = "Tippe die Zeichen aus dem Bild ab. Du hast {attempts} Versuche."
+modal_title = "Verifizierung"
+modal_label = "Zeichen im Bild"
+done = "Du bist verifiziert. Willkommen!"
+already = "Du bist bereits verifiziert."
+wrong = "Das war nicht richtig. Verbleibende Versuche: {remaining}."
+locked = "Zu viele falsche Antworten. Du kannst es in {minutes} Minuten wieder versuchen."
+expired = "Das Bild ist abgelaufen. Drücke Verifizieren für ein neues."
+setup_done = "Die Verifizierung ist an. Das Panel steht in {channel}; Mitglieder bekommen {role}. Verstecke die übrigen Kanäle vor Mitgliedern ohne diese Rolle."
+off = "Die Verifizierung ist aus. Das Panel bleibt stehen, vergibt aber keine Rolle mehr."
+status = """**Verifizierung**
+Zustand: {state}
+Modus: {mode}
+Rolle: {role}
+Panel-Kanal: {channel}"""
+
+[autodelete]
+added = "Nachrichten in {channel}, die älter sind als {age}, werden jetzt automatisch gelöscht."
+removed = "In {channel} wird nicht mehr automatisch gelöscht."
+list_empty = "Es gibt keine Auto-Löschen-Regeln."
+list_on = "**Auto-Löschen ist an**"
+list_off = "**Auto-Löschen ist aus** (die Regeln unten tun nichts)"
+list_line = "{channel}: älter als {age}, Angeheftete behalten: {pinned}"
+on = "Auto-Löschen ist an."
+off = "Auto-Löschen ist aus. Es wird nichts mehr gelöscht."

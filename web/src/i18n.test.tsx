@@ -52,6 +52,14 @@ describe("Übersetzungen", () => {
     expect(tr.error("etwas_neues")).toBe(tr.t("err.unknown"));
   });
 
+  it("ein Wert kann je Feld anders heissen, sonst gilt der allgemeine Eintrag", () => {
+    const tr = makeTranslator("de");
+
+    expect(tr.enumValue("button", "mode")).toBe("Ein Klick genügt");
+    expect(tr.enumValue("button")).toBe("Buttons");
+    expect(tr.enumValue("button", "kind")).toBe("Buttons"); // kein Sondereintrag: allgemein
+  });
+
   it("ersetzt Platzhalter und fällt für Unbekanntes auf lesbare Namen zurück", () => {
     expect(makeTranslator("en").t("form.limit", { n: 5 })).toBe("At most 5 entries.");
     expect(makeTranslator("de").field("neues_feld")).toBe("Neues feld");

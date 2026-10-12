@@ -735,3 +735,31 @@ Umgesetzt in `web/src/` (React 18, Vite, Tailwind, nur `react`/`react-dom` zur L
   `latest`), GitHub-Release mit dem Changelog-Abschnitt. **Der Workflow ist nicht erprobt** (kein Registry-Zugang
   hier); der erste Tag zeigt es.
 
+## 26. Verifizierung und Auto-Löschen (Phase 12a)
+
+Phase 12 liefert weitere MEE6-Funktionen in drei Teilen: 12a Verifizierung und Auto-Löschen, 12b Vorschläge, Sticky-
+Nachrichten und temporäre Sprachkanäle, 12c Embed-Builder und Ankündigungen im Dashboard.
+
+- **Verifizierung** (`core/settings/verification.py`, `core/services/verification.py`, `bot/verification.py`,
+  `bot/cogs/verification.py`): Panel mit persistentem Knopf (`gg:verify:start`, DynamicItem, überlebt Neustarts).
+  Modus `button` vergibt die Rolle sofort; Modus `code` schickt ein Bild (`render/verify_code.py`, Startwert von
+  `secrets`, Text nie im Chat) und einen Eingabeknopf (`gg:verify:enter`) mit Fenster. Der Code liegt in Redis (5 min).
+  **Versuche:** der Zähler wird vor dem Vergleich atomar erhöht (`INCR`), nach `MAX_ATTEMPTS` (3) gilt eine Sperre
+  von 10 Minuten; die Versuche zählen über mehrere Bilder hinweg, sonst liesse sich durch ständig neue Bilder raten.
+  Der letzte Fehlversuch sperrt sofort. Das Bild gibt es höchstens alle 20 s (`Cooldown`).
+  Die Rolle wird nur vergeben, wenn der Bot sie vergeben darf (`assignable`); sonst eine Meldung an den Nutzer und
+  eine Warnung im Log. `setup` verlangt zusätzlich, dass der Akteur die Rolle weitergeben darf (`ensure_grantable`).
+  `panel_message_id` steht in den Einstellungen (Schutz vor Auto-Löschen), im Dashboard-Formular aber versteckt
+  (`x-hidden` im Schema; die Oberfläche lässt solche Felder aus und gibt den Wert unverändert zurück).
+- **Auto-Löschen** (`core/settings/autodelete.py`, `core/autodelete/rules.py`, `bot/cogs/autodelete.py`):
+  Regeln je Kanal (10 Minuten bis 90 Tage, eine Regel je Kanal, höchstens 20), Standard aus. Die Auswahl der zu
+  löschenden Nachrichten ist eine reine Funktion (`plan`): zu junge bleiben auch dann, wenn der Aufrufer sie liefert;
+  angeheftete (wenn gewünscht) und geschützte (Panel-Nachrichten der Rollen-, Ticket- und Verifizierungs-Panels) bleiben;
+  unter 14 Tagen minus eine Stunde Reserve gesammelt (Discord-Grenze), älter einzeln; je Lauf und Kanal höchstens 200
+  gesammelt und 20 einzeln. Der Lauf je Kanal wird über `SET NX` gesperrt (mehrere Shards, langsamer Vorlauf).
+  Ein Fehler (`Forbidden`, `HTTPException`) beendet den Kanal, nicht den Lauf; ein Server beendet nie die übrigen.
+  `/autodelete add` verlangt `confirm: True`, weil das Löschen endgültig ist.
+- **Dashboard:** beide Module erscheinen über das Register (schema-getrieben, mit DE/EN-Beschriftung).
+- **Bewusst offen:** Rauswurf unverifizierter Mitglieder nach einer Frist (bräuchte Beitritts-Ereignisse, also den
+  privilegierten Members-Intent); Schutz laufender Giveaways, Umfragen und Starboard-Kopien vor dem Auto-Löschen.
+

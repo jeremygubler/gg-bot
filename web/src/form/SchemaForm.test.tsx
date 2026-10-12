@@ -249,3 +249,49 @@ describe("SchemaForm: grosse IDs", () => {
     expect(GUILD).toBe("100");
   });
 });
+
+
+describe("SchemaForm: Verifizierung und Auto-Löschen", () => {
+  it("zeigt Modus mit eigener Beschriftung und versteckt die Panel-ID, behält sie aber", async () => {
+    const user = userEvent.setup();
+    const { state } = renderModule("verification", { panel_message_id: "123456789012345678" });
+
+    expect(screen.getByLabelText("Modus")).toHaveDisplayValue("Ein Klick genügt");
+    expect(screen.queryByLabelText(/panel/i)).not.toBeInTheDocument();
+    await user.click(screen.getByLabelText("Aktiv"));
+    await user.selectOptions(screen.getByLabelText("Modus"), "Bild-Code abtippen");
+
+    expect(state.current).toMatchObject({ enabled: true, mode: "code", panel_message_id: "123456789012345678" });
+  });
+
+  it("Regeln: neue Regel anlegen, Kanal und Frist setzen, Fehler am Feld zeigen", async () => {
+    const user = userEvent.setup();
+    const { state } = renderModule("autodelete", {}, [
+      { loc: ["rules", 0, "max_age_minutes"], msg: "Input should be greater than or equal to 10" },
+    ]);
+
+    await user.click(screen.getByRole("button", { name: "+ Hinzufügen" }));
+    expect((state.current["rules"] as unknown[])[0]).toEqual({ channel_id: "", max_age_minutes: 10, keep_pinned: true });
+
+    await user.selectOptions(screen.getByLabelText("Kanal"), BIG);
+    const age = screen.getByLabelText("Löschen nach (Minuten)");
+    await user.clear(age);
+    await user.type(age, "120");
+
+    expect((state.current["rules"] as unknown[])[0]).toEqual({
+      channel_id: BIG,
+      max_age_minutes: 120,
+      keep_pinned: true,
+    });
+  });
+
+  it("Regel mit Serverfehler zeigt ihn an der Frist", () => {
+    renderModule(
+      "autodelete",
+      { rules: [{ channel_id: BIG, max_age_minutes: 5, keep_pinned: true }] },
+      [{ loc: ["rules", 0, "max_age_minutes"], msg: "Input should be greater than or equal to 10" }],
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("greater than or equal to 10");
+  });
+});

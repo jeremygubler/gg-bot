@@ -452,6 +452,40 @@ Einrichten:
 Jede Änderung wird mit Vorher/Nachher protokolliert (im Dashboard unter *Änderungsprotokoll*, `GET /guilds/{id}/audit`).
 Discord-IDs stehen im JSON als Strings (JavaScript verfälscht Zahlen über 2^53).
 
+### Verifizierung (Phase 12a)
+
+Mitglieder bekommen eine Rolle, sobald sie einen Knopf drücken oder eine kleine Aufgabe lösen. Gedacht für
+Server, auf denen Neue erst alles hinter dieser Rolle sehen sollen.
+
+- `/verification setup <kanal> <rolle> [modus] [titel] [text]` postet das Panel und schaltet ein. Modus `button`:
+  ein Klick genügt. Modus `code`: ein Bild mit fünf Zeichen muss abgetippt werden (hält Skripte ab, die nur Text
+  lesen; ein Mensch löst es in Sekunden). Ein zweites `setup` ersetzt das Panel.
+- `/verification off`, `/verification status`.
+- **Die Kanäle musst du selbst verstecken**: `@everyone` darf nur den Verifizierungs-Kanal sehen, die Rolle den
+  Rest. Der Bot vergibt nur die Rolle.
+- Im Code-Modus gibt es **drei Versuche je zehn Minuten**, auch über mehrere Bilder hinweg; danach ist gesperrt.
+  Ein neues Bild frühestens nach 20 Sekunden. Der Code steht nie im Text, nur im Bild.
+- Die Rolle muss unter der Rolle des Bots stehen und darf nicht verwaltet sein; wer das Panel einrichtet, muss sie
+  selbst weitergeben dürfen (wie bei Rollen-Panels). Nicht umgesetzt: Rauswurf nach Ablauf einer Frist (bräuchte
+  Beitritts-Ereignisse und damit den Members-Intent).
+- Einstellungen auch im Dashboard (Modul *Verifizierung*); das Panel selbst postet `/verification setup`.
+
+### Auto-Löschen (Phase 12a)
+
+Nachrichten in bestimmten Kanälen werden nach einer Frist gelöscht, alle fünf Minuten geprüft.
+
+- `/autodelete add <kanal> <alter> [angeheftete_behalten] [confirm]`, z. B. `7d`, `12h`, `90m` (10 Minuten bis 90
+  Tage). **Löschen ist endgültig**: der Befehl verlangt `confirm: True`. `/autodelete remove`, `list`, `on`, `off`.
+- Schutz gegen Fehlgriffe: standardmässig **aus**, angeheftete Nachrichten bleiben (abschaltbar), die Nachrichten der
+  Panels des Bots (Rollen-, Ticket- und Verifizierungs-Panel) werden nie gelöscht, und je Lauf und Kanal höchstens 200
+  Nachrichten gesammelt plus 20 einzeln. Ein grosser Rückstand baut sich also über Stunden ab, ein falscher Kanal
+  nicht in einem Atemzug.
+- Discord löscht gesammelt nur Nachrichten unter 14 Tagen; ältere löscht der Bot einzeln (langsam, deshalb der
+  Deckel). Der Bot braucht im Kanal *Nachrichten verwalten* und *Nachrichtenverlauf lesen*; fehlt es, überspringt er
+  den Kanal und schreibt es ins Log.
+- Nicht geschützt: laufende Giveaways, Umfragen und Starboard-Kopien; wer dort Auto-Löschen einsetzt, löscht auch
+  diese Nachrichten.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
@@ -540,6 +574,9 @@ Reverse Proxy davor. Der Bot läuft nicht schreibgeschützt (nicht erprobt). Meh
 | *Send Messages*, *Embed Links* (und *Attach Files* für `message_bulk`) in den Log-Kanälen | Event-Log |
 | *Send Messages* | Automod-Hinweise und Meldungen (optional; ohne wird nur geloggt) |
 | *Moderate Members*, *Kick Members*, *Ban Members* | Automod-Aktionen (Timeout, Raid/Konto-Alter) |
+| *Manage Roles* | Verifizierung: die Rolle des Bots muss **über** der Verifizierungs-Rolle stehen |
+| *Send Messages*, *Embed Links* im Panel-Kanal | `/verification setup` |
+| *Manage Messages*, *Read Message History*, *View Channel* im Kanal | Auto-Löschen |
 
 **Rollen-Reihenfolge:** Die Rolle des Bots muss in der Rollenliste **über** den Rollen der Mitglieder
 stehen, die er moderieren soll. Sonst verweigert Discord die Aktion und der Bot meldet das.

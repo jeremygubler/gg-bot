@@ -10,6 +10,7 @@ from ggbot.core.notify.twitch import TwitchClient
 from ggbot.core.notify.youtube import YouTubeClient
 from ggbot.core.ratelimit import Cooldown
 from ggbot.core.scheduler import Scheduler
+from ggbot.core.services.autodelete import AutodeleteService
 from ggbot.core.services.automod import AutomodService
 from ggbot.core.services.channels import ChannelLockService
 from ggbot.core.services.community import (
@@ -26,6 +27,7 @@ from ggbot.core.services.moderation import ModerationService
 from ggbot.core.services.notify import NotifyService
 from ggbot.core.services.rolepanels import RolePanelService
 from ggbot.core.services.tickets import TicketService
+from ggbot.core.services.verification import VerificationService
 from ggbot.core.services.welcome import WelcomeService
 from ggbot.core.settings.store import SettingsStore
 
@@ -56,6 +58,8 @@ class Services:
     birthdays: BirthdayService
     statchannels: StatChannelService
     schedules: ScheduleService
+    verification: VerificationService
+    autodelete: AutodeleteService
     http: httpx.AsyncClient
     twitch: TwitchClient
     youtube: YouTubeClient
@@ -93,6 +97,8 @@ class Services:
             birthdays=BirthdayService(db, settings),
             statchannels=StatChannelService(db),
             schedules=ScheduleService(db, scheduler),
+            verification=VerificationService(redis, settings),
+            autodelete=AutodeleteService(redis, settings),
             http=http,
             twitch=TwitchClient(
                 http, config.twitch_client_id, config.twitch_client_secret.get_secret_value()

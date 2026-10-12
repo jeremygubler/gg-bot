@@ -3,6 +3,7 @@ import { blank, compile, equal, indexErrors, setAt, SchemaError, type Field, typ
 import { fixtures } from "./test/schemas";
 
 function field(module: string, ...path: string[]): Field {
+  if (path.length === 0) return { name: module, spec: compile(fixtures[module]!.schema), nullable: false, default: undefined };
   let spec: Spec = compile(fixtures[module]!.schema);
   let found: Field | undefined;
   for (const name of path) {
@@ -63,6 +64,13 @@ describe("compile", () => {
       key: { kind: "picker", picker: "role" },
       value: { spec: { kind: "number" } },
     });
+  });
+
+  it("versteckte Felder (x-hidden) fehlen im Formular, die übrigen bleiben", () => {
+    const names = (field("verification").spec as { fields: Field[] }).fields.map((f) => f.name);
+
+    expect(names).not.toContain("panel_message_id");
+    expect(names).toEqual(expect.arrayContaining(["enabled", "role_id", "mode", "channel_id"]));
   });
 
   it("meldet unbekannte Formen, statt ein Feld zu verlieren", () => {

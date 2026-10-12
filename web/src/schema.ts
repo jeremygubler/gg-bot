@@ -124,9 +124,11 @@ function buildSpec(node: Schema, root: Schema, where: string): Spec {
       if (node.properties !== undefined) {
         return {
           kind: "object",
-          fields: Object.entries(node.properties).map(([name, child]) =>
-            buildField(name, child, root, `${where}.${name}`),
-          ),
+          // `x-hidden`: Werte, die der Bot pflegt (z. B. die ID einer Panel-Nachricht). Sie bleiben im
+          // Wert erhalten und gehen beim Speichern unverändert zurück, nur das Formular zeigt sie nicht.
+          fields: Object.entries(node.properties)
+            .filter(([, child]) => child["x-hidden"] !== true)
+            .map(([name, child]) => buildField(name, child, root, `${where}.${name}`)),
         };
       }
       const valueSchema =

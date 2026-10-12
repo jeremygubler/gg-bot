@@ -177,7 +177,14 @@ export function FieldView(props: {
         {isNull ? (
           <span className="text-sm text-slate-500">{tr.t("form.unset")}</span>
         ) : (
-          <Control id={id} spec={field.spec} value={value} invalid={invalid} onChange={props.onChange} />
+          <Control
+            id={id}
+            name={field.name}
+            spec={field.spec}
+            value={value}
+            invalid={invalid}
+            onChange={props.onChange}
+          />
         )}
       </div>,
     );
@@ -186,6 +193,7 @@ export function FieldView(props: {
   return container(
     <Control
       id={id}
+      name={field.name}
       spec={field.spec}
       value={value}
       invalid={invalid}
@@ -197,6 +205,7 @@ export function FieldView(props: {
 
 function Control(props: {
   id: string;
+  name: string;
   spec: Spec;
   value: Json;
   invalid: boolean;
@@ -267,7 +276,7 @@ function Control(props: {
         >
           {spec.values.map((option) => (
             <option key={option} value={option}>
-              {tr.enumValue(option)}
+              {tr.enumValue(option, props.name)}
             </option>
           ))}
         </select>

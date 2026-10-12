@@ -46,6 +46,8 @@ COGS = (
     "ggbot.bot.cogs.birthday",
     "ggbot.bot.cogs.statchannels",
     "ggbot.bot.cogs.schedule",
+    "ggbot.bot.cogs.verification",
+    "ggbot.bot.cogs.autodelete",
 )
 
 

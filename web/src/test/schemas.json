@@ -1428,5 +1428,160 @@
       "ignore_nsfw": true,
       "ignored_channels": []
     }
+  },
+  "verification": {
+    "schema": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "role_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "role"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Id"
+        },
+        "mode": {
+          "default": "button",
+          "enum": [
+            "button",
+            "code"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel Id"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message",
+          "x-widget": "textarea"
+        },
+        "panel_message_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Panel Message Id",
+          "x-hidden": true
+        }
+      },
+      "title": "VerificationSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "role_id": null,
+      "mode": "button",
+      "channel_id": null,
+      "title": null,
+      "message": null,
+      "panel_message_id": null
+    }
+  },
+  "autodelete": {
+    "schema": {
+      "$defs": {
+        "AutodeleteRule": {
+          "description": "Nachrichten in diesem Kanal werden nach `max_age_minutes` gelöscht.",
+          "properties": {
+            "channel_id": {
+              "pattern": "^[0-9]{1,20}$",
+              "title": "Channel Id",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            "max_age_minutes": {
+              "maximum": 129600,
+              "minimum": 10,
+              "title": "Max Age Minutes",
+              "type": "integer"
+            },
+            "keep_pinned": {
+              "default": true,
+              "title": "Keep Pinned",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "channel_id",
+            "max_age_minutes"
+          ],
+          "title": "AutodeleteRule",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/AutodeleteRule"
+          },
+          "maxItems": 20,
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "title": "AutodeleteSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "rules": []
+    }
   }
 }

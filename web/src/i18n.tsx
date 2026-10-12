@@ -188,6 +188,8 @@ const modules: Record<string, Pair> = {
   tickets: ["Tickets", "Tickets"],
   birthday: ["Geburtstage", "Birthdays"],
   starboard: ["Starboard", "Starboard"],
+  verification: ["Verifizierung", "Verification"],
+  autodelete: ["Auto-Löschen", "Auto-delete"],
 };
 
 /** Feldnamen → Beschriftung. Unbekannte Namen fallen auf eine lesbare Form des Namens zurück. */
@@ -278,6 +280,10 @@ const fields: Record<string, Pair> = {
   warn_expiry_days: ["Verwarnungen verfallen nach (Tagen)", "Warnings expire after (days)"],
   warns: ["Verwarnungen", "Warnings"],
   public_leaderboard: ["Öffentliche Rangliste", "Public leaderboard"],
+  max_age_minutes: ["Löschen nach (Minuten)", "Delete after (minutes)"],
+  keep_pinned: ["Angeheftete behalten", "Keep pinned messages"],
+  rules: ["Regeln", "Rules"],
+  title: ["Titel", "Title"],
   words: ["Wörter", "Words"],
   xp_max: ["XP höchstens", "XP maximum"],
   xp_min: ["XP mindestens", "XP minimum"],
@@ -299,6 +305,9 @@ const enums: Record<string, Pair> = {
   word: ["Wort", "Word"],
   wildcard: ["Platzhalter", "Wildcard"],
   regex: ["Regulärer Ausdruck", "Regular expression"],
+  code: ["Bild-Code abtippen", "Type the code from a picture"],
+  // Gleicher Wert, andere Bedeutung je Feld: „Feld.Wert“ geht vor dem allgemeinen Eintrag.
+  "mode.button": ["Ein Klick genügt", "One click is enough"],
   button: ["Buttons", "Buttons"],
   select: ["Auswahlmenü", "Select menu"],
   reaction: ["Reaktionen", "Reactions"],
@@ -342,7 +351,7 @@ export type Translator = {
   t: (key: UiKey, params?: Record<string, string | number>) => string;
   module: (name: string) => string;
   field: (name: string) => string;
-  enumValue: (value: string) => string;
+  enumValue: (value: string, field?: string) => string;
   error: (code: string) => string;
 };
 
@@ -357,7 +366,10 @@ export function makeTranslator(locale: Locale): Translator {
     t,
     module: (name) => pick(modules[name], locale) ?? humanize(name),
     field: (name) => pick(fields[name], locale) ?? humanize(name),
-    enumValue: (value) => pick(enums[value], locale) ?? humanize(value),
+    enumValue: (value, field) =>
+      pick(field === undefined ? undefined : enums[`${field}.${value}`], locale) ??
+      pick(enums[value], locale) ??
+      humanize(value),
     error: (code) => pick(ui[`err.${code}` as UiKey], locale) ?? t("err.unknown"),
   };
 }

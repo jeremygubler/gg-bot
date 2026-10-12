@@ -36,6 +36,8 @@ KEY_PREFIXES = (
     "privacy.",
     "statchannel.",
     "schedule.",
+    "verify.",
+    "autodelete.",
 )
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).

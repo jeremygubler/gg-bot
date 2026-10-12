@@ -1,4 +1,13 @@
 [error]
+verify_locked = "Too many wrong answers. Try again in {minutes} minutes."
+verify_off = "Verification is not switched on on this server."
+verify_role_unavailable = "I can't give out the verification role right now. Please tell a moderator."
+verify_invalid = "That verification setting is not valid: {detail}"
+autodelete_invalid = "That auto-delete setting is not valid: {detail}"
+autodelete_age = "Choose an age between {min} and {max}, e.g. 7d or 12h."
+autodelete_confirm = "This permanently deletes every message in {channel} that is older than {age}, again and again. It can't be undone. Run the command again with confirm: True to switch it on."
+autodelete_no_rule = "There is no auto-delete rule for {channel}."
+autodelete_no_rules = "There are no auto-delete rules yet. Add one with /autodelete add."
 dashboard_role_missing = "The role does not exist on this server."
 panel_publish_failed = "I could not publish the panel. Check my permissions in that channel."
 panel_channel_invalid = "That channel is not available for panels."
@@ -1602,3 +1611,85 @@ once_label = "once"
 removed = "Scheduled message #{id} cancelled."
 list_empty = "There are no scheduled messages."
 list_line = "`#{id}` {when} · {every} · {channel}: {text}"
+
+[cmd.verification]
+desc = "Give members a role after a button press or a small task"
+
+[cmd.verification.setup]
+desc = "Post the verification panel and switch verification on"
+
+[cmd.verification.off]
+desc = "Switch verification off"
+
+[cmd.verification.status]
+desc = "Show the verification settings"
+
+[cmd.autodelete]
+desc = "Delete old messages in chosen channels automatically"
+
+[cmd.autodelete.add]
+desc = "Delete messages older than a given age in a channel (permanent)"
+
+[cmd.autodelete.remove]
+desc = "Stop deleting messages in a channel"
+
+[cmd.autodelete.list]
+desc = "Show the auto-delete rules"
+
+[cmd.autodelete.on]
+desc = "Switch auto-delete on"
+
+[cmd.autodelete.off]
+desc = "Switch auto-delete off"
+
+[cmd.arg.verify_role]
+desc = "The role members get when they verify"
+
+[cmd.arg.verify_mode]
+desc = "button: one click. code: type the characters from a picture"
+
+[cmd.arg.verify_title]
+desc = "Title of the panel (default: Verification)"
+
+[cmd.arg.verify_message]
+desc = "Text of the panel (default: a short explanation)"
+
+[cmd.arg.ad_age]
+desc = "Delete messages older than this, e.g. 7d, 12h, 90m"
+
+[cmd.arg.ad_keep_pinned]
+desc = "Keep pinned messages (default: yes)"
+
+[cmd.arg.ad_confirm]
+desc = "Set to True: you know deleted messages cannot be restored"
+
+[verify]
+default_title = "Verification"
+default_message = "Press the button to get access to the server."
+button = "Verify"
+enter = "Enter code"
+task = "Type the characters from the picture. You have {attempts} attempts."
+modal_title = "Verification"
+modal_label = "Characters in the picture"
+done = "You are verified. Welcome!"
+already = "You are already verified."
+wrong = "That was not right. Attempts left: {remaining}."
+locked = "Too many wrong answers. You can try again in {minutes} minutes."
+expired = "That picture has expired. Press Verify for a new one."
+setup_done = "Verification is on. The panel is in {channel}; members get {role}. Make sure the other channels are hidden from members without that role."
+off = "Verification is off. The panel stays where it is but no longer gives the role."
+status = """**Verification**
+State: {state}
+Mode: {mode}
+Role: {role}
+Panel channel: {channel}"""
+
+[autodelete]
+added = "Messages in {channel} older than {age} will now be deleted automatically."
+removed = "Messages in {channel} are no longer deleted automatically."
+list_empty = "There are no auto-delete rules."
+list_on = "**Auto-delete is on**"
+list_off = "**Auto-delete is off** (the rules below do nothing)"
+list_line = "{channel}: older than {age}, keep pinned: {pinned}"
+on = "Auto-delete is on."
+off = "Auto-delete is off. Nothing is deleted any more."

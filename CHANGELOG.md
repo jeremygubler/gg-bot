@@ -5,6 +5,13 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 durch ein Tag `vX.Y.Z`; die Beschreibung kommt aus dem passenden Abschnitt hier
 (`scripts/release-notes.sh`).
 
+## [Unreleased]
+
+### Neu (Phase 12a)
+- Verifizierung (`/verification`): Rolle per Knopf oder Bild-Code, drei Versuche je zehn Minuten.
+- Auto-Löschen (`/autodelete`): Nachrichten nach einer Frist löschen, mit Bestätigung, Schutz für Angeheftete und
+  Panel-Nachrichten und Obergrenzen je Lauf.
+
 ## [0.11.0] - 2026-10-10
 
 Erste getaggte Version: alle Feature-Phasen (1 bis 10) plus Härtung und Betrieb (11).
