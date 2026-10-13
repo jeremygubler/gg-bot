@@ -7,6 +7,10 @@ durch ein Tag `vX.Y.Z`; die Beschreibung kommt aus dem passenden Abschnitt hier
 
 ## [Unreleased]
 
+### Neu (Phase 12c)
+- Dashboard: Ankündigungen mit Embed-Builder und Live-Vorschau, Senden sofort oder geplant, nachträgliches Bearbeiten
+  gesendeter Nachrichten; Erwähnungen lösen nie Pings aus, jedes Senden steht im Änderungsprotokoll.
+
 ### Neu (Phase 12b)
 - Vorschläge (`/suggest`, `/suggestion`): nummeriert, Abstimmung per Knopf, Entscheidung durch das Team mit Grund.
 - Sticky-Nachrichten (`/sticky`): bleiben am Ende des Kanals, Neupost gebündelt.

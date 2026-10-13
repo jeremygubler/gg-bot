@@ -10,6 +10,7 @@ from ggbot.core.notify.twitch import TwitchClient
 from ggbot.core.notify.youtube import YouTubeClient
 from ggbot.core.ratelimit import Cooldown
 from ggbot.core.scheduler import Scheduler
+from ggbot.core.services.announcements import AnnouncementService
 from ggbot.core.services.autodelete import AutodeleteService
 from ggbot.core.services.automod import AutomodService
 from ggbot.core.services.channels import ChannelLockService
@@ -64,6 +65,7 @@ class Services:
     verification: VerificationService
     autodelete: AutodeleteService
     suggestions: SuggestionService
+    announcements: AnnouncementService
     sticky: StickyService
     tempvoice: TempVoiceService
     http: httpx.AsyncClient
@@ -106,6 +108,7 @@ class Services:
             verification=VerificationService(redis, settings),
             autodelete=AutodeleteService(redis, settings),
             suggestions=SuggestionService(db, settings),
+            announcements=AnnouncementService(db, scheduler),
             sticky=StickyService(db, redis),
             tempvoice=TempVoiceService(db, settings),
             http=http,

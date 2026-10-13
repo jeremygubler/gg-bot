@@ -51,6 +51,7 @@ COGS = (
     "ggbot.bot.cogs.suggestions",
     "ggbot.bot.cogs.sticky",
     "ggbot.bot.cogs.tempvoice",
+    "ggbot.bot.cogs.announcements",
 )
 
 

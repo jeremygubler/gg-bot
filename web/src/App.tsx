@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, createApi, type Api, type Me } from "./api";
 import { ApiContext, MeContext } from "./context";
 import { useSetLocale, useTr } from "./i18n";
+import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { AuditPage } from "./pages/AuditPage";
 import { PanelsPage } from "./pages/PanelsPage";
 import { PublicLeaderboardPage } from "./pages/PublicLeaderboard";
@@ -140,6 +141,12 @@ function Routes() {
       return (
         <GuildLayout guild={route.guild}>
           <AuditPage />
+        </GuildLayout>
+      );
+    case "announcements":
+      return (
+        <GuildLayout guild={route.guild}>
+          <AnnouncementsPage />
         </GuildLayout>
       );
     case "panels":

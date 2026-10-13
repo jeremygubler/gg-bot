@@ -1,4 +1,5 @@
 import type {
+  Announcement,
   AuditEntry,
   Category,
   Me,
@@ -31,6 +32,9 @@ export class FakeBackend {
   nextPut: { status: number; body: unknown } | null = null;
   rolePanels: RolePanel[] = [];
   ticketPanels: TicketPanel[] = [];
+  announcements: Announcement[] = [];
+  /** Was der Bot mit einer fälligen Ankündigung macht, sobald das Dashboard nachfragt. */
+  botSends: "sent" | "failed" | null = null;
   /** Antwort des Bots auf eine Veröffentlichung (sofort vorhanden); `none` = keine Rückmeldung. */
   botAnswer: PublishStatus = { state: "done", message: null, notice: null };
   statuses = new Map<string, PublishStatus>();
@@ -103,6 +107,7 @@ export class FakeBackend {
       if (this.previewFails) return error(500, "unknown");
       return new Response(PNG, { status: 200, headers: { "Content-Type": "image/png" } });
     }
+    if (rest.startsWith("announcements")) return this.announcementRoute(method, rest, body, json);
     if (rest.startsWith("panels/")) return this.panels(method, rest.slice("panels/".length), body, json, error);
     const settings = /^settings\/(\w+)$/.exec(rest);
     if (settings === null) throw new Error(`FakeBackend: unbekannter Pfad ${method} ${path}`);
@@ -121,6 +126,67 @@ export class FakeBackend {
 
   private userError(json: (s: number, p: unknown) => Response, message: string): Response {
     return json(422, { detail: { error: "user_error", message } });
+  }
+
+  private announcementRoute(
+    method: string,
+    rest: string,
+    body: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    json: (s: number, p: unknown) => Response,
+  ): Response {
+    const parts = rest.split("/");
+    if (parts.length === 1) {
+      if (method === "GET") return json(200, this.announcements);
+      if (!String(body.name).trim()) return this.userError(json, "Gib der Ankündigung einen Namen.");
+      if (!body.content && !body.embed) return this.userError(json, "Die Nachricht ist leer.");
+      const created: Announcement = {
+        id: String(this.nextId++),
+        name: body.name,
+        content: body.content,
+        embed: body.embed,
+        state: "draft",
+        channel_id: null,
+        message_id: null,
+        scheduled_at: null,
+        sent_at: null,
+        error: null,
+      };
+      this.announcements.unshift(created);
+      return json(201, created);
+    }
+    const entry = this.announcements.find((a) => a.id === parts[1]);
+    if (entry === undefined) return this.userError(json, "Diese Ankündigung gibt es nicht.");
+    if (parts.length === 2) {
+      if (method === "GET") {
+        const due = entry.state === "scheduled" && Date.parse(entry.scheduled_at!) <= Date.now() + 10_000;
+        if (due && this.botSends === "sent") Object.assign(entry, { state: "sent", message_id: "900", sent_at: entry.scheduled_at });
+        if (due && this.botSends === "failed") Object.assign(entry, { state: "failed", error: "Der Bot darf dort nicht schreiben." });
+        return json(200, entry);
+      }
+      if (method === "DELETE") {
+        this.announcements = this.announcements.filter((a) => a !== entry);
+        return json(200, null);
+      }
+      if (!body.content && !body.embed) return this.userError(json, "Die Nachricht ist leer.");
+      Object.assign(entry, { name: body.name, content: body.content, embed: body.embed });
+      return json(200, entry);
+    }
+    if (parts[2] === "send") {
+      if (entry.state === "sent") return this.userError(json, "Schon gesendet.");
+      Object.assign(entry, {
+        state: "scheduled",
+        channel_id: body.channel_id,
+        scheduled_at: body.scheduled_at ?? new Date().toISOString(),
+        error: null,
+      });
+      return json(202, entry);
+    }
+    if (parts[2] === "cancel") {
+      if (entry.state !== "scheduled") return this.userError(json, "Nicht geplant.");
+      Object.assign(entry, { state: "draft", scheduled_at: null });
+      return json(200, entry);
+    }
+    throw new Error(`FakeBackend: unbekannter Ankündigungs-Pfad ${method} ${rest}`);
   }
 
   private panels(

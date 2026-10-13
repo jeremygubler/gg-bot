@@ -1,5 +1,6 @@
 """Alle Modelle hier importieren, damit Alembic sie über `Base.metadata` findet."""
 
+from ggbot.core.db.models.announcements import Announcement
 from ggbot.core.db.models.audit import DashboardAudit
 from ggbot.core.db.models.automod import AutomodHit
 from ggbot.core.db.models.channels import StickyMessage, TempVoiceChannel
@@ -31,6 +32,7 @@ from ggbot.core.db.models.tickets import (
 )
 
 __all__ = [
+    "Announcement",
     "AutomodHit",
     "Birthday",
     "ChannelLock",

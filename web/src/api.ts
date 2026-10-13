@@ -105,6 +105,31 @@ export type CategoryInput = {
   welcome_message: string | null;
   questions: string[];
 };
+export type EmbedField = { name: string; value: string; inline: boolean };
+export type Embed = {
+  title: string | null;
+  description: string | null;
+  color: number | null;
+  author: string | null;
+  footer: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  fields: EmbedField[];
+};
+export type AnnouncementState = "draft" | "scheduled" | "sent" | "failed";
+export type Announcement = {
+  id: string;
+  name: string;
+  content: string | null;
+  embed: Embed | null;
+  state: AnnouncementState;
+  channel_id: string | null;
+  message_id: string | null;
+  scheduled_at: string | null;
+  sent_at: string | null;
+  error: string | null;
+};
+export type AnnouncementInput = { name: string; content: string | null; embed: Embed | null };
 export type CardKind = "rank" | "welcome";
 export type CardStyle = { accent: number; background: number; template: string };
 export type PublicRow = { position: number; name: string | null; avatar_url: string | null; level: number; xp: number };
@@ -210,6 +235,21 @@ export function createApi(
       request<PublishStatus>("POST", `/guilds/${guild}/panels/tickets/${id}/publish`, { channel_id: channel }),
     ticketPanelStatus: (guild: string, id: string) =>
       request<PublishStatus>("GET", `/guilds/${guild}/panels/tickets/${id}/status`),
+    announcements: (guild: string) => request<Announcement[]>("GET", `/guilds/${guild}/announcements`),
+    announcement: (guild: string, id: string) => request<Announcement>("GET", `/guilds/${guild}/announcements/${id}`),
+    createAnnouncement: (guild: string, input: AnnouncementInput) =>
+      request<Announcement>("POST", `/guilds/${guild}/announcements`, input),
+    updateAnnouncement: (guild: string, id: string, input: AnnouncementInput) =>
+      request<Announcement>("PUT", `/guilds/${guild}/announcements/${id}`, input),
+    deleteAnnouncement: (guild: string, id: string) =>
+      request<void>("DELETE", `/guilds/${guild}/announcements/${id}`),
+    sendAnnouncement: (guild: string, id: string, channel: string, scheduledAt: string | null) =>
+      request<Announcement>("POST", `/guilds/${guild}/announcements/${id}/send`, {
+        channel_id: channel,
+        scheduled_at: scheduledAt,
+      }),
+    cancelAnnouncement: (guild: string, id: string) =>
+      request<Announcement>("POST", `/guilds/${guild}/announcements/${id}/cancel`),
     preview: async (guild: string, card: CardKind, style: CardStyle): Promise<Blob> =>
       (await send("POST", `/guilds/${guild}/preview/${card}`, style)).blob(),
     publicLeaderboard: (guild: string, page: number) =>

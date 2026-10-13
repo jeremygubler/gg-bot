@@ -8,6 +8,7 @@ describe("parseRoute", () => {
     expect(parseRoute("/")).toEqual({ name: "home" });
     expect(parseRoute("/g/123")).toEqual({ name: "guild", guild: "123" });
     expect(parseRoute("/g/123/audit")).toEqual({ name: "audit", guild: "123" });
+    expect(parseRoute("/g/123/announcements")).toEqual({ name: "announcements", guild: "123" });
     expect(parseRoute("/g/123/m/starboard")).toEqual({ name: "module", guild: "123", module: "starboard" });
     expect(parseRoute("/g/123/m/starboard/")).toEqual({ name: "module", guild: "123", module: "starboard" });
     expect(parseRoute("/g/123/panels/roles")).toEqual({ name: "panels", guild: "123", kind: "roles" });
@@ -24,6 +25,7 @@ describe("parseRoute", () => {
   it("paths und parseRoute sind zueinander passend", () => {
     expect(parseRoute(paths.module("5", "logging"))).toEqual({ name: "module", guild: "5", module: "logging" });
     expect(parseRoute(paths.audit("5"))).toEqual({ name: "audit", guild: "5" });
+    expect(parseRoute(paths.announcements("5"))).toEqual({ name: "announcements", guild: "5" });
     expect(parseRoute(paths.guild("5"))).toEqual({ name: "guild", guild: "5" });
     expect(parseRoute(paths.home())).toEqual({ name: "home" });
     expect(parseRoute(paths.panels("5", "tickets"))).toEqual({ name: "panels", guild: "5", kind: "tickets" });

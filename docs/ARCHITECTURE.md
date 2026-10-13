@@ -787,3 +787,28 @@ Nachrichten und temporäre Sprachkanäle, 12c Embed-Builder und Ankündigungen i
   Steuerzeichen, gekürzt, nie leer). Beim Start (`on_ready`) gleicht `reconcile` die Tabelle mit Discord ab.
 - **Dashboard:** `suggestions` und `tempvoice` erscheinen über das Register; Sticky-Nachrichten nur per Befehl.
 - **Bewusst offen:** Übergabe des Besitzes, wenn der Besitzer geht; Sticky mit Dashboard-Seite.
+
+## 28. Embed-Builder und Ankündigungen (Phase 12c)
+
+- **Datenmodell** (`core/db/models/announcements.py`, Migration 0011): eine Zeile je Ankündigung mit Name, Text,
+  Embed (JSONB), Zustand (`draft`, `scheduled`, `sent`, `failed`), Kanal, Nachrichten-ID, Zeitpunkt und `rev`.
+  Die Nachrichtenform ist `core/announce/message.py` (rein, pydantic): Grenzen von Discord, https-Pflicht für Bilder,
+  Gesamtgrösse 6000 und „nie eine leere Nachricht“ (`normalize`); ein Embed ohne Inhalt wird zu `None`.
+- **Senden über den Scheduler** (`core/services/announcements.py`, `bot/cogs/announcements.py`): Die API fasst Discord
+  nie an. `schedule` setzt den Zustand per bedingtem `UPDATE` (nur aus Entwurf, Geplant oder Fehlgeschlagen), erhöht
+  `rev` und legt einen Job `announce.sync {id, rev}` an; „sofort“ ist derselbe Weg mit dem Zeitpunkt „jetzt“. Der Job
+  sendet nur, wenn Zustand und `rev` noch passen: ein abgesagter oder neu geplanter Auftrag läuft ins Leere.
+  `mark_sent` und `mark_failed` sind ebenfalls an `rev` gebunden; wurde zwischen Senden und Eintragen abgesagt,
+  löscht der Bot die gerade gesendete Kopie wieder. Dauerhafte Fehler (Kanal weg, Rechte, Discord lehnt ab) setzen
+  `failed` mit einem Übersetzungsschlüssel; nur „Server nicht verfügbar“ wirft und wird vom Scheduler wiederholt.
+- **Bearbeiten Gesendeter:** `update` auf eine gesendete Ankündigung legt einen Job mit der aktuellen `rev` an; er
+  erkennt an `message_id`, dass abzugleichen ist, und bearbeitet die Discord-Nachricht. Ein Fehler (z. B. in Discord
+  gelöscht) steht als `error` an der gesendeten Ankündigung, ohne den Zustand zu ändern.
+- **Erwähnungen** sind beim Senden und Bearbeiten immer ausgeschaltet (`AllowedMentions.none()`).
+- **API** (`api/routers/announcements.py`): CRUD, `send` (Kanal, optional Zeitpunkt **mit Zeitzone**), `cancel`. Der
+  Kanal wird gegen den Snapshot geprüft (Textkanal); jede Einplanung, Absage und Bearbeitung einer gesendeten
+  Nachricht schreibt einen Eintrag ins Änderungsprotokoll. Schreibzugriffe sind auf 60 je Minute und Nutzer begrenzt.
+- **Oberfläche** (`web/src/announcements/`): Liste und Editor mit Live-Vorschau (`EmbedPreview`, ohne fremde Bilder).
+  Die Liste hält die Oberfläche selbst, damit ein Neuladen den Editor nicht abbaut. Senden ist gesperrt, solange es
+  ungespeicherte Änderungen gibt. Bei einer fälligen Ankündigung fragt der Editor alle 2 s nach dem Ergebnis des Bots.
+- **Bewusst offen:** mehrere Embeds je Nachricht, Anhänge, Wiederholungen, Vorlagen aus bestehenden Discord-Nachrichten.

@@ -7,6 +7,7 @@ export type Route =
   | { name: "guild"; guild: string }
   | { name: "module"; guild: string; module: string }
   | { name: "audit"; guild: string }
+  | { name: "announcements"; guild: string }
   | { name: "panels"; guild: string; kind: PanelKind }
   | { name: "public"; guild: string }
   | { name: "notfound" };
@@ -24,6 +25,7 @@ export function parseRoute(pathname: string): Route {
   const guild = parts[1];
   if (parts.length === 2) return { name: "guild", guild };
   if (parts.length === 3 && parts[2] === "audit") return { name: "audit", guild };
+  if (parts.length === 3 && parts[2] === "announcements") return { name: "announcements", guild };
   if (parts.length === 4 && parts[2] === "panels" && (parts[3] === "roles" || parts[3] === "tickets")) {
     return { name: "panels", guild, kind: parts[3] };
   }
@@ -38,6 +40,7 @@ export const paths = {
   guild: (guild: string) => `/g/${guild}`,
   module: (guild: string, module: string) => `/g/${guild}/m/${module}`,
   audit: (guild: string) => `/g/${guild}/audit`,
+  announcements: (guild: string) => `/g/${guild}/announcements`,
   panels: (guild: string, kind: PanelKind) => `/g/${guild}/panels/${kind}`,
   publicLeaderboard: (guild: string) => `/leaderboard/${guild}`,
 };

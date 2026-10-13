@@ -521,6 +521,28 @@ Wer den Lobby-Kanal betritt, bekommt einen eigenen Sprachkanal und wird hineinve
   Neustart räumt der Bot Einträge ohne Kanal und verwaiste leere Kanäle auf.
 - Die Zuordnung Kanal → Besitzer liegt in der Datenbank; nur Kanäle aus dieser Tabelle werden je gelöscht.
 
+### Ankündigungen und Embed-Builder (Phase 12c)
+
+Im Dashboard unter **Ankündigungen**: eine Nachricht aus Text und Embed bauen, in der Vorschau prüfen und in einen
+Kanal senden, sofort oder zu einer bestimmten Zeit. Eine gesendete Nachricht lässt sich später bearbeiten.
+
+- Embed: Titel, Beschreibung, Farbe, Autor, Fusszeile, Bild, Vorschaubild und bis zu 25 Felder (nebeneinander oder
+  untereinander). Die Grenzen sind die von Discord (z. B. höchstens 6000 Zeichen im Embed insgesamt); Bild-Adressen
+  müssen mit `https://` beginnen.
+- Entwürfe liegen in der Datenbank (höchstens 100 je Server). Zustände: *Entwurf*, *Geplant*, *Gesendet*,
+  *Fehlgeschlagen*. Geplante lassen sich bis zum Zeitpunkt absagen; fehlgeschlagene (Kanal weg, Rechte fehlen) lassen sich
+  erneut senden. Die Uhrzeit gilt in der Zeitzone deines Browsers.
+- Gesendet wird vom Bot über den Scheduler, also auch nach einem Neustart und auch auf dem Zeitpunkt in der Zukunft.
+  „Sofort“ heisst: innerhalb weniger Sekunden. Der Bot braucht im Zielkanal *Kanal sehen*, *Nachrichten senden* und
+  für Embeds *Links einbetten*.
+- **Erwähnungen** (`@everyone`, `@Rolle`, `@Nutzer`) lösen nie eine Benachrichtigung aus; wer pingen will, schreibt die
+  Nachricht in Discord selbst.
+- Wer *Server verwalten* darf, kann über den Bot in jeden Textkanal schreiben, auch dorthin, wo die Person selbst
+  nicht schreiben darf. Das ist Absicht (wie bei Rollen- und Ticket-Panels), jedes Senden steht im Änderungsprotokoll.
+- Löschen entfernt nur den Eintrag; die schon gesendete Nachricht bleibt in Discord stehen.
+- Die Vorschau ist vereinfacht und lädt keine fremden Bilder (die Adresse stammt vom Nutzer, ein Abruf würde die
+  IP-Adresse des Betrachters weitergeben).
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).
