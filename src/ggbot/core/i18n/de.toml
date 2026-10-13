@@ -8,6 +8,25 @@ autodelete_age = "Wähle ein Alter zwischen {min} und {max}, z. B. 7d oder 12h."
 autodelete_confirm = "Das löscht endgültig und immer wieder jede Nachricht in {channel}, die älter ist als {age}. Das lässt sich nicht rückgängig machen. Führe den Befehl mit confirm: True erneut aus, um es einzuschalten."
 autodelete_no_rule = "Für {channel} gibt es keine Auto-Löschen-Regel."
 autodelete_no_rules = "Es gibt noch keine Auto-Löschen-Regeln. Lege eine mit /autodelete add an."
+suggest_unknown = "Diesen Vorschlag gibt es nicht."
+suggest_closed = "Über diesen Vorschlag wurde schon entschieden. Abstimmen ist nicht mehr möglich."
+suggest_self_vote = "Du kannst für deinen eigenen Vorschlag nicht abstimmen."
+suggest_decided = "Über diesen Vorschlag wurde schon entschieden."
+suggest_off = "Vorschläge sind auf diesem Server nicht eingeschaltet."
+suggest_channel_perms = "Ich kann in {channel} keine Vorschläge posten. Ich brauche dort Kanal sehen, Nachrichten senden und Links einbetten."
+suggest_empty = "Schreib bitte, was du vorschlagen möchtest."
+suggest_long = "Dein Vorschlag ist zu lang. Maximal {limit} Zeichen."
+sticky_empty = "Der Text der Sticky-Nachricht darf nicht leer sein."
+sticky_long = "Der Text ist zu lang. Maximal {limit} Zeichen."
+sticky_limit = "Pro Server gibt es höchstens {max} Sticky-Nachrichten. Entferne zuerst eine."
+sticky_unknown = "In diesem Kanal gibt es keine Sticky-Nachricht."
+sticky_perms = "Ich brauche in {channel} die Rechte Kanal sehen, Nachrichten senden, Links einbetten und Nachrichten verwalten."
+voice_not_in_channel = "Du musst dafür in deinem temporären Sprachkanal sein."
+voice_not_owner = "Dieser Kanal gehört dir nicht. Nur der Besitzer kann ihn ändern."
+voice_forbidden = "Ich darf diesen Kanal nicht ändern. Bitte sag einem Moderator Bescheid."
+voice_name_empty = "Der Name darf nicht leer sein."
+tempvoice_perms = "Ich brauche auf dem Server die Rechte Kanäle verwalten und Mitglieder verschieben."
+tempvoice_invalid = "Diese Einstellung ist nicht gültig: {detail}"
 dashboard_role_missing = "Diese Rolle gibt es auf dem Server nicht."
 panel_publish_failed = "Ich konnte das Panel nicht veröffentlichen. Prüfe meine Rechte in diesem Kanal."
 panel_channel_invalid = "Dieser Kanal ist für Panels nicht verfügbar."
@@ -1693,3 +1712,126 @@ list_off = "**Auto-Löschen ist aus** (die Regeln unten tun nichts)"
 list_line = "{channel}: älter als {age}, Angeheftete behalten: {pinned}"
 on = "Auto-Löschen ist an."
 off = "Auto-Löschen ist aus. Es wird nichts mehr gelöscht."
+
+[cmd.suggest]
+desc = "Einen Vorschlag für den Server einreichen"
+
+[cmd.suggestion]
+desc = "Vorschläge einrichten und entscheiden"
+
+[cmd.suggestion.setup]
+desc = "Vorschläge einschalten und den Kanal festlegen"
+
+[cmd.suggestion.off]
+desc = "Vorschläge ausschalten"
+
+[cmd.suggestion.approve]
+desc = "Einen Vorschlag annehmen"
+
+[cmd.suggestion.deny]
+desc = "Einen Vorschlag ablehnen"
+
+[cmd.sticky]
+desc = "Sticky-Nachrichten: bleiben am Ende des Kanals"
+
+[cmd.sticky.set]
+desc = "Eine Sticky-Nachricht in einem Kanal setzen"
+
+[cmd.sticky.remove]
+desc = "Die Sticky-Nachricht eines Kanals entfernen"
+
+[cmd.sticky.list]
+desc = "Alle Sticky-Nachrichten anzeigen"
+
+[cmd.voice]
+desc = "Deinen temporären Sprachkanal verwalten"
+
+[cmd.voice.name]
+desc = "Deinen Sprachkanal umbenennen"
+
+[cmd.voice.limit]
+desc = "Die Teilnehmerzahl deines Sprachkanals begrenzen"
+
+[cmd.voice.lock]
+desc = "Deinen Sprachkanal für Neue sperren"
+
+[cmd.voice.unlock]
+desc = "Deinen Sprachkanal wieder öffnen"
+
+[cmd.tempvoice]
+desc = "Temporäre Sprachkanäle einrichten"
+
+[cmd.tempvoice.setup]
+desc = "Temporäre Sprachkanäle mit einer Lobby einschalten"
+
+[cmd.tempvoice.off]
+desc = "Temporäre Sprachkanäle ausschalten"
+
+[cmd.tempvoice.status]
+desc = "Einstellungen der temporären Sprachkanäle anzeigen"
+
+[cmd.arg.suggest_text]
+desc = "Dein Vorschlag"
+
+[cmd.arg.suggest_number]
+desc = "Nummer des Vorschlags"
+
+[cmd.arg.suggest_reason]
+desc = "Begründung (optional)"
+
+[cmd.arg.sticky_text]
+desc = "Der Text der Nachricht"
+
+[cmd.arg.voice_name]
+desc = "Der neue Name"
+
+[cmd.arg.voice_limit]
+desc = "Höchstzahl der Teilnehmer, 0 = unbegrenzt"
+
+[cmd.arg.voice_lobby]
+desc = "Der Lobby-Sprachkanal"
+
+[cmd.arg.voice_category]
+desc = "Kategorie für die neuen Kanäle (Standard: die der Lobby)"
+
+[cmd.arg.voice_template]
+desc = "Namensvorlage, z. B. {user}s Raum"
+
+[suggest]
+title = "Vorschlag #{number}"
+author = "Von"
+votes = "Stimmen"
+tally = "👍 {up} · 👎 {down}"
+sent = "Dein Vorschlag #{number} steht jetzt in {channel}."
+setup_done = "Vorschläge sind an. Neue Vorschläge erscheinen in {channel}."
+off_done = "Vorschläge sind aus."
+approved_done = "Vorschlag #{number} ist angenommen."
+denied_done = "Vorschlag #{number} ist abgelehnt."
+
+[suggest.status]
+approved = "✅ Angenommen"
+denied = "❌ Abgelehnt"
+
+[suggest.dm]
+approved = "Dein Vorschlag #{number} auf {guild} wurde angenommen. Begründung: {reason}"
+denied = "Dein Vorschlag #{number} auf {guild} wurde abgelehnt. Begründung: {reason}"
+
+[sticky]
+footer = "📌 Angeheftete Nachricht"
+set_done = "Die Sticky-Nachricht in {channel} ist gesetzt."
+remove_done = "Die Sticky-Nachricht in {channel} ist entfernt."
+list_empty = "Es gibt keine Sticky-Nachrichten."
+list = """**Sticky-Nachrichten**
+{entries}"""
+
+[voice]
+name_done = "Dein Kanal heißt jetzt „{name}“."
+limit_done = "Die Teilnehmerzahl ist jetzt {limit} (0 = unbegrenzt)."
+lock_done = "Dein Kanal ist gesperrt. Wer schon drin ist, bleibt."
+unlock_done = "Dein Kanal ist wieder offen."
+setup_done = "Temporäre Sprachkanäle sind an. Wer {lobby} betritt, bekommt einen eigenen Kanal."
+off_done = "Temporäre Sprachkanäle sind aus. Vorhandene Kanäle verschwinden, sobald sie leer sind."
+status_off = "Temporäre Sprachkanäle sind aus."
+status = """**Temporäre Sprachkanäle**
+Lobby: {lobby}
+Aktive Kanäle: {count} von {max}"""

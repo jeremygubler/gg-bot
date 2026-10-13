@@ -763,3 +763,27 @@ Nachrichten und temporäre Sprachkanäle, 12c Embed-Builder und Ankündigungen i
 - **Bewusst offen:** Rauswurf unverifizierter Mitglieder nach einer Frist (bräuchte Beitritts-Ereignisse, also den
   privilegierten Members-Intent); Schutz laufender Giveaways, Umfragen und Starboard-Kopien vor dem Auto-Löschen.
 
+## 27. Vorschläge, Sticky und temporäre Sprachkanäle (Phase 12b)
+
+- **Vorschläge** (`core/settings/suggestions.py`, `core/suggestions/rules.py`, `core/services/suggestions.py`,
+  `bot/suggestions.py`, `bot/cogs/suggestions.py`; Tabellen `suggestions`, `suggestion_votes`, `suggestion_counters`):
+  Nummern je Server über einen Zähler (`INSERT … ON CONFLICT DO UPDATE … RETURNING`, also auch bei gleichzeitigen
+  Aufrufen lückenlos und eindeutig). Abstimmen über persistente Knöpfe (`gg:sug:(up|down):<id>`, DynamicItem), nicht
+  über Reaktionen: eine Stimme je Person ist durch den Primärschlüssel `(suggestion_id, user_id)` erzwungen, die
+  Zählung kommt aus der Datenbank, das Embed wird bei jedem Klick neu gebaut. Die Umschaltregel (`toggle`) ist rein.
+  **Entscheiden** ist ein bedingtes `UPDATE … WHERE status = 'pending' RETURNING`: bei zwei gleichzeitigen
+  Entscheidungen gewinnt genau eine, die andere bekommt `error.suggest_decided`. Danach nehmen Vorschläge keine
+  Stimmen mehr an (Dienst prüft den Status; die Knöpfe werden zusätzlich entfernt).
+- **Sticky** (`core/services/sticky.py`, `bot/cogs/sticky.py`; Tabelle `sticky_messages`, Schlüssel = Kanal): Jede
+  Nachricht im Server fragt `channel_ids` an, das 30 s im Prozess zwischengespeichert wird (eigene Änderungen
+  invalidieren sofort). Der Neupost wird über `SET NX EX 8` gebündelt und als persistenter Job `sticky.repost`
+  geplant; der Job liest den Stand erneut (zwischenzeitlich entfernt = nichts tun). Eigene Nachrichten des Bots lösen
+  nichts aus, sonst gäbe es eine Schleife. Die Obergrenze (10) wird vor dem Schreiben geprüft; zwei gleichzeitige
+  Neuanlagen an der Grenze könnten sie um eins überschreiten – bewusst nicht gesperrt, der Schaden ist gering.
+- **Temporäre Sprachkanäle** (`core/settings/tempvoice.py`, `core/tempvoice/rules.py`, `core/services/tempvoice.py`,
+  `bot/cogs/tempvoice.py`; Tabelle `temp_voice_channels`): Reagiert nur, wenn sich der Kanal ändert. Gelöscht wird
+  ausschliesslich, was in der Tabelle steht, und nur von dem Aufruf, dessen `DELETE` die Zeile wirklich entfernt hat
+  (`remove` liefert `True` genau einmal). Der Anzeigename kommt vom Nutzer und läuft durch `clean_name` (keine
+  Steuerzeichen, gekürzt, nie leer). Beim Start (`on_ready`) gleicht `reconcile` die Tabelle mit Discord ab.
+- **Dashboard:** `suggestions` und `tempvoice` erscheinen über das Register; Sticky-Nachrichten nur per Befehl.
+- **Bewusst offen:** Übergabe des Besitzes, wenn der Besitzer geht; Sticky mit Dashboard-Seite.

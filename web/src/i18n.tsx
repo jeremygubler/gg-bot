@@ -190,6 +190,8 @@ const modules: Record<string, Pair> = {
   starboard: ["Starboard", "Starboard"],
   verification: ["Verifizierung", "Verification"],
   autodelete: ["Auto-Löschen", "Auto-delete"],
+  suggestions: ["Vorschläge", "Suggestions"],
+  tempvoice: ["Temporäre Sprachkanäle", "Temporary voice channels"],
 };
 
 /** Feldnamen → Beschriftung. Unbekannte Namen fallen auf eine lesbare Form des Namens zurück. */
@@ -282,6 +284,12 @@ const fields: Record<string, Pair> = {
   public_leaderboard: ["Öffentliche Rangliste", "Public leaderboard"],
   max_age_minutes: ["Löschen nach (Minuten)", "Delete after (minutes)"],
   keep_pinned: ["Angeheftete behalten", "Keep pinned messages"],
+  self_vote: ["Für eigene Vorschläge abstimmen", "Vote on own suggestions"],
+  dm_author: ["Autor per DM benachrichtigen", "Notify the author by DM"],
+  lobby_channel_id: ["Lobby-Kanal", "Lobby channel"],
+  category_id: ["Kategorie", "Category"],
+  user_limit: ["Teilnehmer-Grenze (0 = unbegrenzt)", "User limit (0 = unlimited)"],
+  max_channels: ["Höchstzahl gleichzeitiger Kanäle", "Maximum simultaneous channels"],
   rules: ["Regeln", "Rules"],
   title: ["Titel", "Title"],
   words: ["Wörter", "Words"],

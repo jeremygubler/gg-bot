@@ -1583,5 +1583,118 @@
       "enabled": false,
       "rules": []
     }
+  },
+  "suggestions": {
+    "schema": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel Id"
+        },
+        "self_vote": {
+          "default": false,
+          "title": "Self Vote",
+          "type": "boolean"
+        },
+        "dm_author": {
+          "default": true,
+          "title": "Dm Author",
+          "type": "boolean"
+        }
+      },
+      "title": "SuggestionSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "channel_id": null,
+      "self_vote": false,
+      "dm_author": true
+    }
+  },
+  "tempvoice": {
+    "schema": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "lobby_channel_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lobby Channel Id"
+        },
+        "category_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,20}$",
+              "type": "string",
+              "x-picker": "channel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category Id"
+        },
+        "name_template": {
+          "default": "{user}",
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Name Template",
+          "type": "string"
+        },
+        "user_limit": {
+          "default": 0,
+          "maximum": 99,
+          "minimum": 0,
+          "title": "User Limit",
+          "type": "integer"
+        },
+        "max_channels": {
+          "default": 25,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Max Channels",
+          "type": "integer"
+        }
+      },
+      "title": "TempVoiceSettings",
+      "type": "object"
+    },
+    "defaults": {
+      "enabled": false,
+      "lobby_channel_id": null,
+      "category_id": null,
+      "name_template": "{user}",
+      "user_limit": 0,
+      "max_channels": 25
+    }
   }
 }

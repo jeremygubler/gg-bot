@@ -48,6 +48,9 @@ COGS = (
     "ggbot.bot.cogs.schedule",
     "ggbot.bot.cogs.verification",
     "ggbot.bot.cogs.autodelete",
+    "ggbot.bot.cogs.suggestions",
+    "ggbot.bot.cogs.sticky",
+    "ggbot.bot.cogs.tempvoice",
 )
 
 

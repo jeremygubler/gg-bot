@@ -12,6 +12,8 @@ from ggbot.core.settings.eventlog import LoggingSettings
 from ggbot.core.settings.leveling import LevelingSettings
 from ggbot.core.settings.schema import GeneralSettings, ModerationSettings, SettingsModel
 from ggbot.core.settings.starboard import StarboardSettings
+from ggbot.core.settings.suggestions import SuggestionSettings
+from ggbot.core.settings.tempvoice import TempVoiceSettings
 from ggbot.core.settings.tickets import TicketSettings
 from ggbot.core.settings.verification import VerificationSettings
 from ggbot.core.settings.welcome import WelcomeSettings
@@ -30,5 +32,7 @@ MODELS: dict[str, type[SettingsModel]] = {
         StarboardSettings,
         VerificationSettings,
         AutodeleteSettings,
+        SuggestionSettings,
+        TempVoiceSettings,
     )
 }

@@ -38,6 +38,9 @@ KEY_PREFIXES = (
     "schedule.",
     "verify.",
     "autodelete.",
+    "suggest.",
+    "sticky.",
+    "voice.",
 )
 KEY_PATTERN = re.compile(r"^[a-z_]+(\.[a-z_0-9]+)+$")
 # Sieht aus wie ein Schlüssel, ist aber keiner (z. B. der Name eines Scheduler-Jobs).
@@ -50,11 +53,14 @@ NOT_KEYS = frozenset(
         "reminder.fire",
         "starboard.refresh",
         "schedule.send",
+        "sticky.repost",
     }
 )
 
 # Zusammengesetzte Schlüssel (f"…{wert}"): hier stehen alle Werte, die vorkommen können.
 DYNAMIC_FAMILIES: dict[str, list[str]] = {
+    "suggest.status.{}": ["approved", "denied"],
+    "suggest.dm.{}": ["approved", "denied"],
     "mod.dm.{}": ["warn", "timeout", "kick", "ban", "tempban", "softban"],
     "mod.done.{}": [
         "warn", "unwarn", "timeout", "untimeout", "kick", "ban", "tempban", "softban", "unban",

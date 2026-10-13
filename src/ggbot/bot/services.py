@@ -26,6 +26,9 @@ from ggbot.core.services.leveling import LevelingService
 from ggbot.core.services.moderation import ModerationService
 from ggbot.core.services.notify import NotifyService
 from ggbot.core.services.rolepanels import RolePanelService
+from ggbot.core.services.sticky import StickyService
+from ggbot.core.services.suggestions import SuggestionService
+from ggbot.core.services.tempvoice import TempVoiceService
 from ggbot.core.services.tickets import TicketService
 from ggbot.core.services.verification import VerificationService
 from ggbot.core.services.welcome import WelcomeService
@@ -60,6 +63,9 @@ class Services:
     schedules: ScheduleService
     verification: VerificationService
     autodelete: AutodeleteService
+    suggestions: SuggestionService
+    sticky: StickyService
+    tempvoice: TempVoiceService
     http: httpx.AsyncClient
     twitch: TwitchClient
     youtube: YouTubeClient
@@ -99,6 +105,9 @@ class Services:
             schedules=ScheduleService(db, scheduler),
             verification=VerificationService(redis, settings),
             autodelete=AutodeleteService(redis, settings),
+            suggestions=SuggestionService(db, settings),
+            sticky=StickyService(db, redis),
+            tempvoice=TempVoiceService(db, settings),
             http=http,
             twitch=TwitchClient(
                 http, config.twitch_client_id, config.twitch_client_secret.get_secret_value()

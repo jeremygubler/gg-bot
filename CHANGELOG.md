@@ -7,6 +7,11 @@ durch ein Tag `vX.Y.Z`; die Beschreibung kommt aus dem passenden Abschnitt hier
 
 ## [Unreleased]
 
+### Neu (Phase 12b)
+- Vorschläge (`/suggest`, `/suggestion`): nummeriert, Abstimmung per Knopf, Entscheidung durch das Team mit Grund.
+- Sticky-Nachrichten (`/sticky`): bleiben am Ende des Kanals, Neupost gebündelt.
+- Temporäre Sprachkanäle (`/tempvoice`, `/voice`): eigener Kanal über eine Lobby, leer = gelöscht.
+
 ### Neu (Phase 12a)
 - Verifizierung (`/verification`): Rolle per Knopf oder Bild-Code, drei Versuche je zehn Minuten.
 - Auto-Löschen (`/autodelete`): Nachrichten nach einer Frist löschen, mit Bestätigung, Schutz für Angeheftete und

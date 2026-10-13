@@ -8,6 +8,25 @@ autodelete_age = "Choose an age between {min} and {max}, e.g. 7d or 12h."
 autodelete_confirm = "This permanently deletes every message in {channel} that is older than {age}, again and again. It can't be undone. Run the command again with confirm: True to switch it on."
 autodelete_no_rule = "There is no auto-delete rule for {channel}."
 autodelete_no_rules = "There are no auto-delete rules yet. Add one with /autodelete add."
+suggest_unknown = "That suggestion does not exist."
+suggest_closed = "This suggestion has already been decided. Voting is closed."
+suggest_self_vote = "You can't vote on your own suggestion."
+suggest_decided = "This suggestion has already been decided."
+suggest_off = "Suggestions are not switched on on this server."
+suggest_channel_perms = "I can't post suggestions in {channel}. I need View Channel, Send Messages and Embed Links there."
+suggest_empty = "Please write what you would like to suggest."
+suggest_long = "Your suggestion is too long. At most {limit} characters."
+sticky_empty = "The sticky message text can't be empty."
+sticky_long = "The text is too long. At most {limit} characters."
+sticky_limit = "A server can have at most {max} sticky messages. Remove one first."
+sticky_unknown = "There is no sticky message in this channel."
+sticky_perms = "I need View Channel, Send Messages, Embed Links and Manage Messages in {channel}."
+voice_not_in_channel = "You need to be in your temporary voice channel for this."
+voice_not_owner = "This channel is not yours. Only its owner can change it."
+voice_forbidden = "I'm not allowed to change this channel. Please tell a moderator."
+voice_name_empty = "The name can't be empty."
+tempvoice_perms = "I need the Manage Channels and Move Members permissions on this server."
+tempvoice_invalid = "That setting is not valid: {detail}"
 dashboard_role_missing = "The role does not exist on this server."
 panel_publish_failed = "I could not publish the panel. Check my permissions in that channel."
 panel_channel_invalid = "That channel is not available for panels."
@@ -1693,3 +1712,126 @@ list_off = "**Auto-delete is off** (the rules below do nothing)"
 list_line = "{channel}: older than {age}, keep pinned: {pinned}"
 on = "Auto-delete is on."
 off = "Auto-delete is off. Nothing is deleted any more."
+
+[cmd.suggest]
+desc = "Submit a suggestion for the server"
+
+[cmd.suggestion]
+desc = "Set up and decide suggestions"
+
+[cmd.suggestion.setup]
+desc = "Switch suggestions on and choose the channel"
+
+[cmd.suggestion.off]
+desc = "Switch suggestions off"
+
+[cmd.suggestion.approve]
+desc = "Approve a suggestion"
+
+[cmd.suggestion.deny]
+desc = "Deny a suggestion"
+
+[cmd.sticky]
+desc = "Sticky messages: stay at the bottom of the channel"
+
+[cmd.sticky.set]
+desc = "Set a sticky message in a channel"
+
+[cmd.sticky.remove]
+desc = "Remove the sticky message of a channel"
+
+[cmd.sticky.list]
+desc = "Show all sticky messages"
+
+[cmd.voice]
+desc = "Manage your temporary voice channel"
+
+[cmd.voice.name]
+desc = "Rename your voice channel"
+
+[cmd.voice.limit]
+desc = "Limit how many people fit into your voice channel"
+
+[cmd.voice.lock]
+desc = "Lock your voice channel for newcomers"
+
+[cmd.voice.unlock]
+desc = "Open your voice channel again"
+
+[cmd.tempvoice]
+desc = "Set up temporary voice channels"
+
+[cmd.tempvoice.setup]
+desc = "Switch on temporary voice channels with a lobby"
+
+[cmd.tempvoice.off]
+desc = "Switch temporary voice channels off"
+
+[cmd.tempvoice.status]
+desc = "Show the temporary voice channel settings"
+
+[cmd.arg.suggest_text]
+desc = "Your suggestion"
+
+[cmd.arg.suggest_number]
+desc = "Number of the suggestion"
+
+[cmd.arg.suggest_reason]
+desc = "Reason (optional)"
+
+[cmd.arg.sticky_text]
+desc = "The text of the message"
+
+[cmd.arg.voice_name]
+desc = "The new name"
+
+[cmd.arg.voice_limit]
+desc = "Maximum number of people, 0 = unlimited"
+
+[cmd.arg.voice_lobby]
+desc = "The lobby voice channel"
+
+[cmd.arg.voice_category]
+desc = "Category for the new channels (default: the lobby's)"
+
+[cmd.arg.voice_template]
+desc = "Name template, e.g. {user}'s room"
+
+[suggest]
+title = "Suggestion #{number}"
+author = "By"
+votes = "Votes"
+tally = "👍 {up} · 👎 {down}"
+sent = "Your suggestion #{number} is now in {channel}."
+setup_done = "Suggestions are on. New suggestions appear in {channel}."
+off_done = "Suggestions are off."
+approved_done = "Suggestion #{number} is approved."
+denied_done = "Suggestion #{number} is denied."
+
+[suggest.status]
+approved = "✅ Approved"
+denied = "❌ Denied"
+
+[suggest.dm]
+approved = "Your suggestion #{number} on {guild} was approved. Reason: {reason}"
+denied = "Your suggestion #{number} on {guild} was denied. Reason: {reason}"
+
+[sticky]
+footer = "📌 Pinned message"
+set_done = "The sticky message in {channel} is set."
+remove_done = "The sticky message in {channel} is removed."
+list_empty = "There are no sticky messages."
+list = """**Sticky messages**
+{entries}"""
+
+[voice]
+name_done = "Your channel is now called “{name}”."
+limit_done = "The user limit is now {limit} (0 = unlimited)."
+lock_done = "Your channel is locked. People already inside stay."
+unlock_done = "Your channel is open again."
+setup_done = "Temporary voice channels are on. Joining {lobby} creates a channel of your own."
+off_done = "Temporary voice channels are off. Existing channels disappear once they are empty."
+status_off = "Temporary voice channels are off."
+status = """**Temporary voice channels**
+Lobby: {lobby}
+Active channels: {count} of {max}"""

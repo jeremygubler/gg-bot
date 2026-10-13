@@ -486,6 +486,41 @@ Nachrichten in bestimmten Kanälen werden nach einer Frist gelöscht, alle fünf
 - Nicht geschützt: laufende Giveaways, Umfragen und Starboard-Kopien; wer dort Auto-Löschen einsetzt, löscht auch
   diese Nachrichten.
 
+### Vorschläge (Phase 12b)
+
+Mitglieder reichen Vorschläge ein, alle stimmen mit Knöpfen ab, das Team entscheidet.
+
+- `/suggest <text>` (jeder, 60 s Wartezeit) postet einen nummerierten Vorschlag in den Vorschlagskanal, mit 👍/👎.
+  Die Stimmen liegen in der Datenbank, eine je Person; derselbe Knopf nimmt sie zurück, der andere wechselt.
+- Team (*Server verwalten*): `/suggestion setup <kanal>`, `off`, `approve <nummer> [grund]`, `deny <nummer> [grund]`.
+  Entschiedene Vorschläge werden eingefärbt, bekommen den Grund und verlieren die Knöpfe; eine Entscheidung gilt
+  nur einmal. Der Autor bekommt eine DM (abschaltbar im Dashboard, geschlossene DMs sind kein Fehler).
+- Für den eigenen Vorschlag stimmen ist standardmässig gesperrt (Dashboard: `Für eigene Vorschläge abstimmen`).
+- Bekannte Kante: Klicken zwei Personen im selben Augenblick, kann eine Anzeige kurz einen Stand zurückliegen; der
+  nächste Klick zeigt wieder den richtigen. Gezählt wird immer richtig.
+
+### Sticky-Nachrichten (Phase 12b)
+
+Eine Nachricht, die nach neuen Beiträgen wieder ans Ende des Kanals rutscht.
+
+- `/sticky set <kanal> <text>`, `/sticky remove <kanal>`, `/sticky list` (*Nachrichten verwalten*); höchstens 10 je
+  Server, Text bis 1500 Zeichen. Der Bot braucht im Kanal *Nachrichten senden*, *Links einbetten* und *Nachrichten
+  verwalten*.
+- Viele Nachrichten hintereinander ergeben **einen** Neupost, rund 8 Sekunden nach der ersten (Redis-Sperre plus
+  persistenter Job). So bleibt der Kanal ruhig und das Ratenlimit unberührt. Die alte Kopie wird gelöscht.
+- Es gibt keine Dashboard-Seite dafür; Sticky-Nachrichten werden nur über Befehle verwaltet.
+
+### Temporäre Sprachkanäle (Phase 12b)
+
+Wer den Lobby-Kanal betritt, bekommt einen eigenen Sprachkanal und wird hineinverschoben; leer = gelöscht.
+
+- Team: `/tempvoice setup <lobby> [kategorie] [vorlage] [limit]`, `off`, `status`. Der Bot braucht *Kanäle verwalten*
+  und *Mitglieder verschieben*. Die Vorlage kennt `{user}` und `{number}` (Standard `{user}`).
+- Besitzer: `/voice name`, `limit`, `lock`, `unlock` – nur im eigenen Kanal, Umbenennen höchstens alle 2 Minuten.
+- Schutz: höchstens 25 Kanäle gleichzeitig (einstellbar bis 50), 15 s Wartezeit je Person für neue Kanäle. Nach einem
+  Neustart räumt der Bot Einträge ohne Kanal und verwaiste leere Kanäle auf.
+- Die Zuordnung Kanal → Besitzer liegt in der Datenbank; nur Kanäle aus dieser Tabelle werden je gelöscht.
+
 ## Einstellungen
 
 Alle Einstellungen kommen aus der Umgebung (`.env`), siehe [.env.example](.env.example).

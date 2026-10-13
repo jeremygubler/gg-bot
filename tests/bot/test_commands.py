@@ -27,6 +27,9 @@ from ggbot.bot.cogs.rolepanels import RolePanelsCog
 from ggbot.bot.cogs.schedule import ScheduleCog
 from ggbot.bot.cogs.starboard import StarboardCog
 from ggbot.bot.cogs.statchannels import StatChannelCog
+from ggbot.bot.cogs.sticky import StickyCog
+from ggbot.bot.cogs.suggestions import SuggestionsCog
+from ggbot.bot.cogs.tempvoice import TempVoiceCog
 from ggbot.bot.cogs.ticketpanel import TicketPanelCog
 from ggbot.bot.cogs.tickets import TicketsCog
 from ggbot.bot.cogs.verification import VerificationCog
@@ -68,6 +71,9 @@ async def bot(db: Database, redis: Redis) -> GGBot:
     await instance.add_cog(ScheduleCog(instance))
     await instance.add_cog(VerificationCog(instance))
     await instance.add_cog(AutodeleteCog(instance))
+    await instance.add_cog(SuggestionsCog(instance))
+    await instance.add_cog(StickyCog(instance))
+    await instance.add_cog(TempVoiceCog(instance))
     # Nie gestartet, also gibt es nichts zu schliessen (close() erwartet eine Verbindung).
     return instance
 
@@ -164,12 +170,17 @@ def test_help_zeigt_nur_erlaubte_befehle(bot: GGBot) -> None:
         "remind cancel",
         "remind list",
         "remind me",
+        "suggest",
         "ticket add",
         "ticket claim",
         "ticket close",
         "ticket remove",
         "ticket transcript",
         "ticket unclaim",
+        "voice limit",
+        "voice lock",
+        "voice name",
+        "voice unlock",
     ]
     assert "config language" in names(manager)
     assert "modconfig dm" in names(manager)
@@ -413,6 +424,9 @@ EXPECTED_PERMISSIONS = {
     **{f"schedule {name}": "manage_guild" for name in ("once", "repeat", "list", "remove")},
     **{f"verification {name}": "manage_guild" for name in ("setup", "off", "status")},
     **{f"autodelete {name}": "manage_guild" for name in ("add", "remove", "list", "on", "off")},
+    **{f"suggestion {name}": "manage_guild" for name in ("setup", "off", "approve", "deny")},
+    **{f"sticky {name}": "manage_messages" for name in ("set", "remove", "list")},
+    **{f"tempvoice {name}": "manage_guild" for name in ("setup", "off", "status")},
     "poll create": "send_polls",
     "poll end": "send_polls",
     "modconfig warn_expiry": "manage_guild",
@@ -453,6 +467,7 @@ def test_kein_neuer_befehl_ohne_erwartete_berechtigung(bot: GGBot) -> None:
         "c", "remind me", "remind list", "remind cancel",
         "birthday set", "birthday remove", "birthday show", "birthday upcoming",
         "privacy show", "privacy delete",
+        "suggest", "voice name", "voice limit", "voice lock", "voice unlock",
     }  # fmt: skip
     everyone = {"help", "rank", "leaderboard", "card set", "card reset"} | in_ticket | for_members
     assert open_commands == everyone
