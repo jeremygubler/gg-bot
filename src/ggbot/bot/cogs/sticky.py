@@ -127,3 +127,7 @@ class StickyCog(commands.Cog):
             return
         lines = [f"<#{e.channel_id}> — {e.text[:80]}" for e in entries]
         await self._say(interaction, "sticky.list", entries="\n".join(lines))
+
+
+async def setup(bot: GGBot) -> None:
+    await bot.add_cog(StickyCog(bot))

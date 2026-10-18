@@ -179,3 +179,7 @@ class SuggestionsCog(commands.Cog):
         )
         with contextlib.suppress(discord.HTTPException):  # DMs zu: dann eben nicht
             await member.send(text, allowed_mentions=discord.AllowedMentions.none())
+
+
+async def setup(bot: GGBot) -> None:
+    await bot.add_cog(SuggestionsCog(bot))

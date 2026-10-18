@@ -257,3 +257,7 @@ class TempVoiceCog(commands.Cog):
             count=await service.count(guild.id),
             max=settings.max_channels,
         )
+
+
+async def setup(bot: GGBot) -> None:
+    await bot.add_cog(TempVoiceCog(bot))

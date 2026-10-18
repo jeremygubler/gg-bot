@@ -96,3 +96,7 @@ class AnnouncementsCog(commands.Cog):
             await service.set_edit_result(view.id, "error.announce_discord")
         else:
             await service.set_edit_result(view.id, None)
+
+
+async def setup(bot: GGBot) -> None:
+    await bot.add_cog(AnnouncementsCog(bot))
