@@ -483,8 +483,8 @@ Nachrichten in bestimmten Kanälen werden nach einer Frist gelöscht, alle fünf
 - Discord löscht gesammelt nur Nachrichten unter 14 Tagen; ältere löscht der Bot einzeln (langsam, deshalb der
   Deckel). Der Bot braucht im Kanal *Nachrichten verwalten* und *Nachrichtenverlauf lesen*; fehlt es, überspringt er
   den Kanal und schreibt es ins Log.
-- Nicht geschützt: laufende Giveaways, Umfragen und Starboard-Kopien; wer dort Auto-Löschen einsetzt, löscht auch
-  diese Nachrichten.
+- Geschützt sind ausserdem laufende Giveaways (die Teilnahme hängt am Knopf), Starboard-Kopien und Nachrichten, an
+  denen eine Umfrage noch läuft. Beendete Giveaways und Umfragen löscht die Regel wie jede andere Nachricht.
 
 ### Vorschläge (Phase 12b)
 
@@ -595,9 +595,9 @@ Sinnvolle Alarme: `gg_bot_up == 0` seit 2 Minuten, `gg_scheduler_overdue_jobs > 
 `increase(gg_bot_command_errors_total[15m]) > 0`. Ohne Prometheus genügt `docker compose ps` (der Bot hat einen
 Healthcheck) und `GET /api/healthz` (nennt Version und `bot: ok|down`).
 
-**Härtung.** Die Container laufen ohne Root-Rechte und ohne Linux-Capabilities, API und Web mit
-Schreibschutz; nginx setzt eine strenge Content-Security-Policy. **TLS und HSTS** gehören an deinen
-Reverse Proxy davor. Der Bot läuft nicht schreibgeschützt (nicht erprobt). Mehr in
+**Härtung.** Die Container laufen ohne Root-Rechte und ohne Linux-Capabilities, Bot, API und Web mit
+Schreibschutz (nur `/tmp` ist beschreibbar); nginx setzt eine strenge Content-Security-Policy. **TLS und HSTS** gehören an deinen
+Reverse Proxy davor. Mehr in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) Abschnitt 25.
 
 **Releases.** Version in `pyproject.toml`, `web/package.json` und `CHANGELOG.md` erhöhen, committen, dann

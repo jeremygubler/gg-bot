@@ -70,6 +70,14 @@ async def sb_entry(session: AsyncSession, guild_id: int, message_id: int) -> Sta
     return result.scalar_one_or_none()
 
 
+async def sb_copy_ids(session: AsyncSession, guild_id: int) -> list[int]:
+    """Nachrichten-IDs der Starboard-Kopien eines Servers."""
+    rows = await session.execute(
+        select(StarboardEntry.star_message_id).where(StarboardEntry.guild_id == guild_id)
+    )
+    return [i for i in rows.scalars() if i is not None]
+
+
 async def sb_claim_post(session: AsyncSession, guild_id: int, message_id: int) -> bool:
     """Genau einer darf eine noch nicht geposte Nachricht posten."""
     result = await session.execute(

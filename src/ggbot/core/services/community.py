@@ -79,6 +79,11 @@ class StarboardService:
                 return None
             return StarEntry(e.guild_id, e.message_id, e.channel_id, e.author_id, e.star_message_id)
 
+    async def copy_message_ids(self, guild_id: int) -> frozenset[int]:
+        """Die Kopien im Starboard-Kanal: sie sind der Beitrag selbst."""
+        async with self._db.session() as session:
+            return frozenset(await repo.sb_copy_ids(session, guild_id))
+
     async def count(self, guild_id: int, message_id: int) -> int:
         async with self._db.session() as session:
             return await repo.sb_count(session, guild_id, message_id)

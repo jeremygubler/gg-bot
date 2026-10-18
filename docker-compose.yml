@@ -55,6 +55,9 @@ services:
 
   bot:
     <<: *backend
+    # Der Bot schreibt nichts auf die Platte (Zustand liegt in Postgres und Redis); wie die API.
+    read_only: true
+    tmpfs: ["/tmp"]
     command: ["python", "-m", "ggbot.bot.main"]
     depends_on:
       migrate: {condition: service_completed_successfully}

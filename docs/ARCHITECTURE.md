@@ -713,8 +713,9 @@ Umgesetzt in `web/src/` (React 18, Vite, Tailwind, nur `react`/`react-dom` zur L
   ewig cachebar, `index.html` nie. **HSTS** gehört an den TLS-beendenden Proxy davor. Die CSP wurde im echten
   Browser gegen alle Seiten geprüft (keine Verstösse; mit entferntem CDN schlägt dieselbe Prüfung an).
 - **Container**: `cap_drop: ALL`, `no-new-privileges`, Log-Rotation (10 MB × 3), `read_only` mit `tmpfs /tmp`
-  für API und Web. Postgres und Redis bleiben bei den Standardwerten der offiziellen Images. Der Bot läuft nicht
-  `read_only`: das liess sich ohne echten Discord-Token nicht erproben.
+  für Bot, API und Web. Postgres und Redis bleiben bei den Standardwerten der offiziellen Images. Der Bot schreibt
+  nichts auf die Platte; die CI lädt in seinem schreibgeschützten Container alle Cogs (`load_extension`) und prüft
+  an `/proc/mounts`, dass die Wurzel `ro` ist (ohne Discord-Verbindung, also ohne echten Token).
 - **Backup/Restore** (`scripts/backup.sh`, `scripts/restore.sh`): `pg_dump -Fc` mit sofortiger Leseprobe
   (`pg_restore --list`), Rechte 600, Rotation (`BACKUP_KEEP`, Standard 14), halbfertige Dateien werden entfernt.
   Restore prüft die Datei **vor** dem Eingriff, verlangt `RESTORE` (oder `--yes`), hält Bot und API an, spielt ein,
@@ -754,14 +755,14 @@ Nachrichten und temporäre Sprachkanäle, 12c Embed-Builder und Ankündigungen i
 - **Auto-Löschen** (`core/settings/autodelete.py`, `core/autodelete/rules.py`, `bot/cogs/autodelete.py`):
   Regeln je Kanal (10 Minuten bis 90 Tage, eine Regel je Kanal, höchstens 20), Standard aus. Die Auswahl der zu
   löschenden Nachrichten ist eine reine Funktion (`plan`): zu junge bleiben auch dann, wenn der Aufrufer sie liefert;
-  angeheftete (wenn gewünscht) und geschützte (Panel-Nachrichten der Rollen-, Ticket- und Verifizierungs-Panels) bleiben;
+  angeheftete (wenn gewünscht) und geschützte (Panel-Nachrichten der Rollen-, Ticket- und Verifizierungs-Panels, laufende Giveaways, Starboard-Kopien und Nachrichten mit noch laufender Umfrage) bleiben;
   unter 14 Tagen minus eine Stunde Reserve gesammelt (Discord-Grenze), älter einzeln; je Lauf und Kanal höchstens 200
   gesammelt und 20 einzeln. Der Lauf je Kanal wird über `SET NX` gesperrt (mehrere Shards, langsamer Vorlauf).
   Ein Fehler (`Forbidden`, `HTTPException`) beendet den Kanal, nicht den Lauf; ein Server beendet nie die übrigen.
   `/autodelete add` verlangt `confirm: True`, weil das Löschen endgültig ist.
 - **Dashboard:** beide Module erscheinen über das Register (schema-getrieben, mit DE/EN-Beschriftung).
 - **Bewusst offen:** Rauswurf unverifizierter Mitglieder nach einer Frist (bräuchte Beitritts-Ereignisse, also den
-  privilegierten Members-Intent); Schutz laufender Giveaways, Umfragen und Starboard-Kopien vor dem Auto-Löschen.
+  privilegierten Members-Intent).
 
 ## 27. Vorschläge, Sticky und temporäre Sprachkanäle (Phase 12b)
 

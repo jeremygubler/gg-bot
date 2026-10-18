@@ -99,7 +99,8 @@ class AutodeleteCog(commands.Cog):
         return deleted
 
     async def _protected(self, guild: discord.Guild) -> frozenset[int]:
-        """Nachrichten, an denen Knöpfe des Bots hängen: ohne sie wären die Panels tot."""
+        """Nachrichten, die der Bot noch braucht: Panels (ohne sie sind die Knöpfe tot), laufende
+        Giveaways (die Teilnahme hängt am Knopf) und die Kopien im Starboard."""
         services = self.bot.services
         ids: set[int] = set()
         ids.update(p.message_id for p in await services.rolepanels.list(guild.id) if p.message_id)
@@ -109,6 +110,12 @@ class AutodeleteCog(commands.Cog):
         verification = await services.verification.settings(guild.id)
         if verification.panel_message_id:
             ids.add(verification.panel_message_id)
+        ids.update(
+            g.message_id
+            for g in await services.engagement.active_giveaways(guild.id)
+            if g.message_id
+        )
+        ids.update(await services.starboard.copy_message_ids(guild.id))
         return frozenset(ids)
 
     async def _run_rule(
@@ -118,16 +125,17 @@ class AutodeleteCog(commands.Cog):
         before = discord.Object(
             id=discord.utils.time_snowflake(rules.cutoff(now, rule.max_age_minutes))
         )
-        messages = [
-            rules.Message(m.id, m.created_at, m.pinned)
-            async for m in channel.history(limit=SCAN_LIMIT, before=before)
-        ]
+        history = [m async for m in channel.history(limit=SCAN_LIMIT, before=before)]
+        # Eine Umfrage, die noch läuft, wird mit ihrer Nachricht gelöscht; die Stimmen wären weg.
+        running = frozenset(
+            m.id for m in history if m.poll is not None and not m.poll.is_finalised()
+        )
         plan = rules.plan(
-            messages,
+            [rules.Message(m.id, m.created_at, m.pinned) for m in history],
             now=now,
             max_age_minutes=rule.max_age_minutes,
             keep_pinned=rule.keep_pinned,
-            protected=protected,
+            protected=protected | running,
         )
         if plan.total == 0:
             return 0

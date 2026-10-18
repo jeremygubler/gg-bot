@@ -78,6 +78,38 @@ jobs:
         run: |
           docker compose run --rm --no-deps --build bot python -c \
             "import importlib, re2; from ggbot.bot.client import COGS; [importlib.import_module(c) for c in COGS]; print(len(COGS), 'Cogs ok')"
+      - name: Bot lädt alle Cogs im schreibgeschützten Container (ohne Discord-Verbindung)
+        run: |
+          docker compose run --rm --no-deps bot python - <<'PY'
+          import asyncio
+
+          from ggbot.bot.client import COGS, GGBot
+          from ggbot.bot.services import Services
+          from ggbot.core.config import get_config
+          from ggbot.core.db.engine import Database
+          from ggbot.core.redis import create_redis
+
+          root = next(line.split() for line in open("/proc/mounts") if line.split()[1] == "/")
+          if "ro" not in root[3].split(","):
+              raise SystemExit(f"Wurzeldateisystem des Bots ist nicht schreibgeschützt: {root}")
+
+
+          async def main() -> None:
+              config = get_config()
+              db = Database(config.database_url)
+              redis = create_redis(config.redis_url)
+              bot = GGBot(Services.build(config, db, redis))
+              async with bot:
+                  for cog in COGS:
+                      await bot.load_extension(cog)
+                  await redis.ping()
+                  print(len(COGS), "Cogs geladen,", len(bot.tree.get_commands()), "Befehle")
+              await redis.aclose()
+              await db.dispose()
+
+
+          asyncio.run(main())
+          PY
       - name: API über nginx erreichbar
         run: |
           curl -fsS http://localhost:8080/api/healthz

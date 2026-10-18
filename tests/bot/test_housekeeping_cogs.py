@@ -364,8 +364,10 @@ async def test_knoepfe_sind_dauerhaft_registriert(bot: GGBot) -> None:
 NOW = dt.datetime.now(dt.UTC)
 
 
-def fake_message(mid: int, age: dt.timedelta, *, pinned: bool = False) -> SimpleNamespace:
-    return SimpleNamespace(id=mid, created_at=NOW - age, pinned=pinned)
+def fake_message(
+    mid: int, age: dt.timedelta, *, pinned: bool = False, poll: Any = None
+) -> SimpleNamespace:
+    return SimpleNamespace(id=mid, created_at=NOW - age, pinned=pinned, poll=poll)
 
 
 def ad_world(bot: GGBot, messages: list[SimpleNamespace]) -> tuple[MagicMock, MagicMock]:
@@ -480,6 +482,60 @@ async def test_panel_nachrichten_sind_geschuetzt(bot: GGBot) -> None:
     await AutodeleteCog(bot).run_guild(guild)
 
     assert deleted_in_bulk(channel) == [400]
+
+
+async def test_laufende_giveaways_sind_geschuetzt_beendete_nicht(bot: GGBot) -> None:
+    guild, channel = ad_world(
+        bot, [fake_message(500, dt.timedelta(days=1)), fake_message(600, dt.timedelta(days=1))]
+    )
+    service = bot.services.engagement
+    running = await service.create_giveaway(
+        GUILD_ID, channel_id=CH, prize="A", winner_count=1, host_id=1, duration=dt.timedelta(days=3)
+    )
+    await service.set_giveaway_message(GUILD_ID, running.id, 500)
+    done = await service.create_giveaway(
+        GUILD_ID, channel_id=CH, prize="B", winner_count=1, host_id=1, duration=dt.timedelta(days=3)
+    )
+    await service.set_giveaway_message(GUILD_ID, done.id, 600)
+    await service.end_giveaway(GUILD_ID, done.id)
+    await ad_configure(bot, rule(60, keep_pinned=False))
+
+    await AutodeleteCog(bot).run_guild(guild)
+
+    assert deleted_in_bulk(channel) == [600]
+
+
+async def test_starboard_kopien_sind_geschuetzt(bot: GGBot) -> None:
+    guild, channel = ad_world(
+        bot, [fake_message(700, dt.timedelta(days=1)), fake_message(800, dt.timedelta(days=1))]
+    )
+    star = bot.services.starboard
+    await star.vote(GUILD_ID, 1, USER, channel_id=CH, author_id=2)
+    await star.claim_post(GUILD_ID, 1)
+    await star.finish_post(GUILD_ID, 1, 700)
+    await ad_configure(bot, rule(60, keep_pinned=False))
+
+    await AutodeleteCog(bot).run_guild(guild)
+
+    assert deleted_in_bulk(channel) == [800]
+
+
+async def test_laufende_umfragen_sind_geschuetzt_beendete_nicht(bot: GGBot) -> None:
+    running = SimpleNamespace(is_finalised=lambda: False)
+    final = SimpleNamespace(is_finalised=lambda: True)
+    guild, channel = ad_world(
+        bot,
+        [
+            fake_message(10, dt.timedelta(days=1), poll=running),
+            fake_message(20, dt.timedelta(days=1), poll=final),
+            fake_message(30, dt.timedelta(days=1)),
+        ],
+    )
+    await ad_configure(bot, rule(60, keep_pinned=False))
+
+    await AutodeleteCog(bot).run_guild(guild)
+
+    assert sorted(deleted_in_bulk(channel)) == [20, 30]
 
 
 async def test_ausgeschaltet_oder_ohne_regeln_wird_nichts_angefasst(bot: GGBot) -> None:

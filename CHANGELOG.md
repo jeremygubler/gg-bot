@@ -7,6 +7,12 @@ durch ein Tag `vX.Y.Z`; die Beschreibung kommt aus dem passenden Abschnitt hier
 
 ## [Unreleased]
 
+### Phase 13a
+- Fehlerbehebung: Vorschläge, Sticky, temporäre Sprachkanäle und Ankündigungen liessen sich nicht laden (fehlende
+  `setup()`-Funktion), der Bot wäre beim Start abgebrochen. Neuer Test lädt alle Erweiterungen wie der echte Start.
+- Auto-Löschen schützt jetzt auch laufende Giveaways, Starboard-Kopien und laufende Umfragen.
+- Der Bot-Container läuft schreibgeschützt; die CI prüft das und lädt alle Cogs darin.
+
 ### Neu (Phase 12c)
 - Dashboard: Ankündigungen mit Embed-Builder und Live-Vorschau, Senden sofort oder geplant, nachträgliches Bearbeiten
   gesendeter Nachrichten; Erwähnungen lösen nie Pings aus, jedes Senden steht im Änderungsprotokoll.
